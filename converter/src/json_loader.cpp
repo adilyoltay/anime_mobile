@@ -201,6 +201,31 @@ Document parse_json(const std::string& json_content)
         parse_shape_array(json["rectangles"]);
     }
 
+    // Parse texts
+    if (json.contains("texts"))
+    {
+        for (const auto& text : json["texts"])
+        {
+            TextData textData;
+            textData.content = text.value("content", textData.content);
+            textData.x = text.value("x", textData.x);
+            textData.y = text.value("y", textData.y);
+            textData.width = text.value("width", textData.width);
+            textData.height = text.value("height", textData.height);
+            
+            if (text.contains("style"))
+            {
+                const auto& style = text["style"];
+                textData.style.fontFamily = style.value("fontFamily", textData.style.fontFamily);
+                textData.style.fontSize = style.value("fontSize", textData.style.fontSize);
+                textData.style.fontWeight = style.value("fontWeight", textData.style.fontWeight);
+                textData.style.align = style.value("align", textData.style.align);
+            }
+            
+            doc.texts.push_back(textData);
+        }
+    }
+
     // Parse animations
     if (json.contains("animations"))
     {
@@ -246,6 +271,43 @@ Document parse_json(const std::string& json_content)
             }
             
             doc.animations.push_back(animData);
+        }
+    }
+    
+    // Parse state machines
+    if (json.contains("stateMachines"))
+    {
+        for (const auto& sm : json["stateMachines"])
+        {
+            StateMachineData smData;
+            smData.name = sm.value("name", smData.name);
+            
+            if (sm.contains("inputs"))
+            {
+                for (const auto& input : sm["inputs"])
+                {
+                    StateMachineInputData inputData;
+                    inputData.name = input.value("name", inputData.name);
+                    inputData.type = input.value("type", inputData.type);
+                    inputData.defaultValue = input.value("defaultValue", inputData.defaultValue);
+                    smData.inputs.push_back(inputData);
+                }
+            }
+            
+            doc.stateMachines.push_back(smData);
+        }
+    }
+    
+    // Parse constraints
+    if (json.contains("constraints"))
+    {
+        for (const auto& constraint : json["constraints"])
+        {
+            ConstraintData constData;
+            constData.type = constraint.value("type", constData.type);
+            constData.targetId = constraint.value("targetId", constData.targetId);
+            constData.strength = constraint.value("strength", constData.strength);
+            doc.constraints.push_back(constData);
         }
     }
 

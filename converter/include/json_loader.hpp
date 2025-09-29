@@ -111,6 +111,24 @@ struct KeyFrameData
     float value = 0.0f;
 };
 
+struct TextStyleData
+{
+    std::string fontFamily = "Inter";
+    float fontSize = 24.0f;
+    uint32_t fontWeight = 400;
+    uint32_t align = 0; // 0=left, 1=center, 2=right
+};
+
+struct TextData
+{
+    std::string content = "";
+    float x = 0.0f;
+    float y = 0.0f;
+    float width = 200.0f;
+    float height = 100.0f;
+    TextStyleData style;
+};
+
 struct AnimationData
 {
     std::string name = "Animation";
@@ -122,11 +140,34 @@ struct AnimationData
     std::vector<KeyFrameData> opacityKeyframes;
 };
 
+struct StateMachineInputData
+{
+    std::string name = "";
+    std::string type = "bool"; // bool, number, trigger
+    float defaultValue = 0.0f;
+};
+
+struct StateMachineData
+{
+    std::string name = "StateMachine";
+    std::vector<StateMachineInputData> inputs;
+};
+
+struct ConstraintData
+{
+    std::string type = "ik"; // ik, transform, distance, rotation, scale
+    uint32_t targetId = 0;
+    float strength = 1.0f;
+};
+
 struct Document
 {
     ArtboardData artboard;
     std::vector<ShapeData> shapes;
+    std::vector<TextData> texts;
     std::vector<AnimationData> animations;
+    std::vector<StateMachineData> stateMachines;
+    std::vector<ConstraintData> constraints;
 };
 
 Document parse_json(const std::string& json_content);

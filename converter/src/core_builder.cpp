@@ -23,6 +23,10 @@
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
 #include "rive/animation/keyframe_double.hpp"
+// Text support (skeleton)
+#include "rive/text/text.hpp"
+// State machine support (skeleton)  
+#include "rive/animation/state_machine.hpp"
 #include "rive/generated/animation/animation_base.hpp"
 #include "rive/generated/animation/linear_animation_base.hpp"
 #include "rive/generated/animation/keyed_object_base.hpp"
@@ -142,6 +146,9 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 691: // DashPath::offsetIsPercentage
                 case 752: // Feather::inner
                 case 748: // Feather::spaceValue
+                case 281: // Text::alignValue
+                case 284: // Text::sizingValue
+                case 287: // Text::overflowValue
                     type = rive::CoreUintType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
@@ -158,6 +165,11 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 749: // Feather::strength
                 case 750: // Feather::offsetX
                 case 751: // Feather::offsetY
+                case 285: // Text::width
+                case 286: // Text::height
+                case 366: // Text::originX
+                case 367: // Text::originY
+                case 371: // Text::paragraphSpacing
                     type = rive::CoreDoubleType::id;
                     break;
                 default:
@@ -397,6 +409,34 @@ CoreDocument build_core_document(const Document& document,
             // if (shapeData.stroke.trimPath.enabled) { ... }
         }
     }
+
+    // Build texts (skeleton implementation)
+    for (const auto& textData : document.texts)
+    {
+        auto& text = builder.addCore(new rive::Text());
+        builder.setParent(text, artboard.id);
+        builder.set(text, rive::NodeBase::xPropertyKey, textData.x);
+        builder.set(text, rive::NodeBase::yPropertyKey, textData.y);
+        builder.set(text, static_cast<uint16_t>(285), textData.width); // Text::width
+        builder.set(text, static_cast<uint16_t>(286), textData.height); // Text::height
+        builder.set(text, static_cast<uint16_t>(281), textData.style.align); // alignValue
+        
+        // Note: Full text rendering requires TextStyle, TextRun, and font assets
+        // This is a minimal skeleton for future expansion
+    }
+    
+    // Build state machines (skeleton implementation)
+    for (const auto& smData : document.stateMachines)
+    {
+        auto& stateMachine = builder.addCore(new rive::StateMachine());
+        builder.set(stateMachine, rive::AnimationBase::namePropertyKey, smData.name);
+        
+        // Note: Full state machine requires State, Transition, and Input objects
+        // This is a minimal skeleton for future expansion
+    }
+    
+    // Constraints are typically added to specific bones/objects
+    // Skeleton implementation deferred - requires bone system first
 
     // Build animations from JSON
     for (size_t animIdx = 0; animIdx < document.animations.size(); ++animIdx)
