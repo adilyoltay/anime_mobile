@@ -1,0 +1,17 @@
+{
+  "artboard": {
+    "name": "Demo",
+    "width": 400,
+    "height": 300
+  },
+  "shapes": [
+    {
+      "type": "rectangle",
+      "x": 80,
+      "y": 60,
+      "width": 200,
+      "height": 140,
+      "color": "#00AAFF"
+    }
+  ]
+}

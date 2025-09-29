@@ -1,0 +1,13 @@
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/working_converter.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/edit_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/rebuild_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/list_install_components.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/install.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/install/local.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/CMakeFiles/install/strip.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/edit_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/rebuild_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/list_install_components.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/install.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/install/local.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_working/_deps/json-build/CMakeFiles/install/strip.dir

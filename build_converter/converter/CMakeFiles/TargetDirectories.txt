@@ -1,0 +1,8 @@
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rive_convert.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rive_convert_cli.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/import_test.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/import_check.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/edit_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rebuild_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/_deps/json-build/CMakeFiles/edit_cache.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/_deps/json-build/CMakeFiles/rebuild_cache.dir

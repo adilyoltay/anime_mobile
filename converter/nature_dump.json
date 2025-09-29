@@ -1,0 +1,152 @@
+{
+  "riveMeta": {
+    "nature": {
+      "assets": {
+        "n1": {
+          "name": "1",
+          "type": "image",
+          "assetId": "4291238",
+          "cdnUuid": "",
+          "cdnBaseUrl": "https://public.rive.app/cdn/uuid"
+        }
+      },
+      "artboards": {
+        "v1ForRive2": {
+          "name": "v_1 for Rive 2",
+          "animations": {
+            "z10": "Z 10",
+            "z9": "Z 9",
+            "z8": "Z 8",
+            "z7": "Z 7",
+            "z6": "Z 6",
+            "z5": "Z 5",
+            "z4": "Z 4",
+            "z3": "Z 3",
+            "z2": "Z 2",
+            "zOff2": "Z off 2",
+            "zOff": "Z off",
+            "zOn": "Z on",
+            "zOnToOff": "Z on to off",
+            "zOffToOn": "Z off to on",
+            "z": "Z",
+            "envrDay": "ENVR Day",
+            "envrColorsSheepsInv": "ENVR Colors Sheeps inv",
+            "envrColorsDay2": "ENVR Colors Day2",
+            "envrColorsSheepsInv2": "ENVR Colors Sheeps inv 2",
+            "envrColorsSheeps": "ENVR Colors Sheeps",
+            "sheep11DownToUp": "Sheep 11 down to up",
+            "sheep11Up": "Sheep 11 up",
+            "sheep11UpToDown": "Sheep 11 up to down",
+            "sheep11NoEatToEatTrans": "Sheep 11 NO eat to eat trans",
+            "sheep11EatToNoEatTrans": "Sheep 11 eat to No eat trans",
+            "sheep11Eating": "Sheep 11 eating",
+            "sheep11Ears": "Sheep 11 ears",
+            "sheep10DownToUpTrans": "Sheep 10 down to up trans",
+            "sheep10Up": "Sheep 10 up",
+            "sheep10UpToDownTrans": "Sheep 10 up to down trans",
+            "sheep10NoEatToEatTrans": "Sheep 10 no eat to eat trans",
+            "sheep10EatToNoEatTrans": "Sheep 10 eat to no eat trans",
+            "sheep10Eating": "Sheep 10 eating",
+            "sheep10Ears": "Sheep 10 ears",
+            "sheep9DownToUp": "Sheep 9 down to up",
+            "sheep9Up": "Sheep 9 up",
+            "sheep9UpToDown": "Sheep 9 up to down",
+            "sheep9NoEatToEatTrans": "Sheep 9 no eat to eat trans",
+            "sheep9EatToNoEatTrans": "Sheep 9 eat to no eat trans",
+            "sheep9Eating": "Sheep 9 eating",
+            "sheep9Ears": "Sheep 9 ears",
+            "sheep8UpToDown": "Sheep 8 up to down",
+            "sheep8NoEatToEatTrans": "Sheep 8 no eat to eat trans",
+            "sheep8EatToNoEatTrans": "Sheep 8 eat to no eat trans",
+            "sheep8Eating": "Sheep 8 eating",
+            "sheep7DownToUp": "Sheep 7 down to up",
+            "sheep7Up": "Sheep 7 up",
+            "sheep7UpToDown": "Sheep 7 up to down",
+            "sheep7NoEatToEatTrans": "Sheep 7 NO eat to eat trans",
+            "sheep7Eat": "Sheep 7 eat",
+            "sheep7EatToNoEatTrans": "Sheep 7 eat to no eat trans",
+            "sheep7Eating": "Sheep 7 eating",
+            "sheep7Ears": "Sheep 7 ears",
+            "sheep6NotEatToEat": "Sheep 6 NOT eat to eat",
+            "sheep6EatToNotEat": "Sheep 6 eat to NOT eat",
+            "sheep6DownToUp": "Sheep 6 down to up",
+            "sheep6Up": "Sheep 6 up",
+            "sheep6UpToDownTrans": "Sheep 6 up to down trans",
+            "sheep6Ears": "Sheep 6 ears",
+            "sheep6Eating": "Sheep 6 eating",
+            "sheep5NoEatToEat": "Sheep 5 NO eat to eat",
+            "sheep5EatToNoEat": "Sheep 5 eat to NO eat",
+            "sheep5DownToUp": "Sheep 5 down to up",
+            "sheep5Up": "Sheep 5 up",
+            "sheep5UpToDown": "Sheep 5 up to down",
+            "sheep5Ears": "Sheep 5 ears",
+            "sheep5Eating": "Sheep 5 eating",
+            "sheep4NoEatToEat": "Sheep 4 NO eat to eat",
+            "sheep4EatToNoEat": "Sheep 4 eat to no eat",
+            "sheep4DownToUp": "Sheep 4 down to UP",
+            "sheep4Up": "Sheep 4 up",
+            "sheep4UpToDown": "Sheep 4 up to down",
+            "sheep4Ears": "Sheep 4 ears",
+            "sheep4Eating": "Sheep 4 eating",
+            "sheep3DownToUp": "Sheep 3 Down to UP",
+            "sheep3Up": "Sheep 3 up",
+            "sheep3UpToDownTrans": "Sheep 3 up to down trans",
+            "sheep3Ears": "Sheep 3 ears",
+            "sheep3NoEatToEatTrans": "Sheep 3 NO eat to eat trans",
+            "sheep3EatToNoEatTrans": "Sheep 3 eat to no eat trans",
+            "sheep3Eating": "Sheep 3 eating",
+            "sheep2DownToUp": "Sheep 2 down to up",
+            "sheep2Up": "Sheep 2 up",
+            "sheep2UpToDownTrans": "Sheep 2 up to down trans",
+            "sheep2Ears": "Sheep 2 ears",
+            "sheep2NoEatToEat": "Sheep 2 NO eat to eat",
+            "sheep2EatToNoEat": "Sheep 2 eat to no eat",
+            "sheep2Eating": "Sheep 2 eating",
+            "starsFromOnToOff": "Stars from On to Off",
+            "starsJustOff": "Stars just OFF",
+            "starsFromOffToOn": "Stars from Off to On",
+            "starsMoving": "Stars Moving",
+            "environmentNightToSunTrans": "Environment Night to Sun trans",
+            "environmentNight": "Environment Night",
+            "environmentSun": "Environment Sun",
+            "environmentSunToNightTrans": "Environment Sun to Night trans",
+            "sUp": "S up",
+            "sGoDownToUp": "S go down to up",
+            "sGoDown": "S go down",
+            "sheepsEars1": "Sheeps ears 1",
+            "sheepsNotEatingTransitionInverted": "Sheeps NOT Eating transition inverted",
+            "sheepsNotEatingTransition": "Sheeps NOT Eating transition",
+            "sheepsNotEating": "Sheeps NOT Eating",
+            "sheepsEating": "Sheeps Eating",
+            "skySunToMoonStart": "SKY Sun to Moon START",
+            "skyMoonToSky": "SKY Moon to Sky",
+            "skySunToMoon": "SKY Sun to Moon",
+            "startMoon": "Start Moon",
+            "startSun": "Start Sun",
+            "moonToSun": "Moon to Sun",
+            "sunToMoon": "Sun to Moon",
+            "all": "All"
+          },
+          "textValueRuns": {
+            
+          },
+          "nestedTextValueRuns": [
+            
+          ],
+          "stateMachines": {
+            "start": {
+              "name": "Start",
+              "inputs": {
+                "onoff": {
+                  "name": "on/off",
+                  "type": "boolean",
+                  "defaultValue": "false"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

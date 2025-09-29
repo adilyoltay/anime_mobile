@@ -1,0 +1,2 @@
+/Applications/xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc librive_convert.a CMakeFiles/rive_convert.dir/src/json_loader.cpp.o CMakeFiles/rive_convert.dir/src/core_builder.cpp.o CMakeFiles/rive_convert.dir/src/serializer.cpp.o
+/Applications/xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib librive_convert.a

@@ -1,0 +1,1194 @@
+{
+  "1": {
+    "class": "Artboard",
+    "file": "artboard_base.hpp"
+  },
+  "2": {
+    "class": "Node",
+    "file": "node_base.hpp"
+  },
+  "3": {
+    "class": "Shape",
+    "file": "shapes/shape_base.hpp"
+  },
+  "4": {
+    "class": "Ellipse",
+    "file": "shapes/ellipse_base.hpp"
+  },
+  "5": {
+    "class": "StraightVertex",
+    "file": "shapes/straight_vertex_base.hpp"
+  },
+  "6": {
+    "class": "CubicDetachedVertex",
+    "file": "shapes/cubic_detached_vertex_base.hpp"
+  },
+  "7": {
+    "class": "Rectangle",
+    "file": "shapes/rectangle_base.hpp"
+  },
+  "8": {
+    "class": "Triangle",
+    "file": "shapes/triangle_base.hpp"
+  },
+  "9": {
+    "class": "BindableProperty",
+    "file": "data_bind/bindable_property_base.hpp"
+  },
+  "10": {
+    "class": "Component",
+    "file": "component_base.hpp"
+  },
+  "11": {
+    "class": "ContainerComponent",
+    "file": "container_component_base.hpp"
+  },
+  "12": {
+    "class": "Path",
+    "file": "shapes/path_base.hpp"
+  },
+  "13": {
+    "class": "Drawable",
+    "file": "drawable_base.hpp"
+  },
+  "14": {
+    "class": "PathVertex",
+    "file": "shapes/path_vertex_base.hpp"
+  },
+  "15": {
+    "class": "ParametricPath",
+    "file": "shapes/parametric_path_base.hpp"
+  },
+  "16": {
+    "class": "PointsPath",
+    "file": "shapes/points_path_base.hpp"
+  },
+  "17": {
+    "class": "RadialGradient",
+    "file": "shapes/paint/radial_gradient_base.hpp"
+  },
+  "18": {
+    "class": "SolidColor",
+    "file": "shapes/paint/solid_color_base.hpp"
+  },
+  "19": {
+    "class": "GradientStop",
+    "file": "shapes/paint/gradient_stop_base.hpp"
+  },
+  "20": {
+    "class": "Fill",
+    "file": "shapes/paint/fill_base.hpp"
+  },
+  "21": {
+    "class": "ShapePaint",
+    "file": "shapes/paint/shape_paint_base.hpp"
+  },
+  "22": {
+    "class": "LinearGradient",
+    "file": "shapes/paint/linear_gradient_base.hpp"
+  },
+  "23": {
+    "class": "Backboard",
+    "file": "backboard_base.hpp"
+  },
+  "24": {
+    "class": "Stroke",
+    "file": "shapes/paint/stroke_base.hpp"
+  },
+  "25": {
+    "class": "KeyedObject",
+    "file": "animation/keyed_object_base.hpp"
+  },
+  "26": {
+    "class": "KeyedProperty",
+    "file": "animation/keyed_property_base.hpp"
+  },
+  "27": {
+    "class": "Animation",
+    "file": "animation/animation_base.hpp"
+  },
+  "28": {
+    "class": "CubicEaseInterpolator",
+    "file": "animation/cubic_ease_interpolator_base.hpp"
+  },
+  "29": {
+    "class": "KeyFrame",
+    "file": "animation/keyframe_base.hpp"
+  },
+  "30": {
+    "class": "KeyFrameDouble",
+    "file": "animation/keyframe_double_base.hpp"
+  },
+  "31": {
+    "class": "LinearAnimation",
+    "file": "animation/linear_animation_base.hpp"
+  },
+  "34": {
+    "class": "CubicAsymmetricVertex",
+    "file": "shapes/cubic_asymmetric_vertex_base.hpp"
+  },
+  "35": {
+    "class": "CubicMirroredVertex",
+    "file": "shapes/cubic_mirrored_vertex_base.hpp"
+  },
+  "36": {
+    "class": "CubicVertex",
+    "file": "shapes/cubic_vertex_base.hpp"
+  },
+  "37": {
+    "class": "KeyFrameColor",
+    "file": "animation/keyframe_color_base.hpp"
+  },
+  "38": {
+    "class": "TransformComponent",
+    "file": "transform_component_base.hpp"
+  },
+  "39": {
+    "class": "SkeletalComponent",
+    "file": "bones/skeletal_component_base.hpp"
+  },
+  "40": {
+    "class": "Bone",
+    "file": "bones/bone_base.hpp"
+  },
+  "41": {
+    "class": "RootBone",
+    "file": "bones/root_bone_base.hpp"
+  },
+  "42": {
+    "class": "ClippingShape",
+    "file": "shapes/clipping_shape_base.hpp"
+  },
+  "43": {
+    "class": "Skin",
+    "file": "bones/skin_base.hpp"
+  },
+  "44": {
+    "class": "Tendon",
+    "file": "bones/tendon_base.hpp"
+  },
+  "45": {
+    "class": "Weight",
+    "file": "bones/weight_base.hpp"
+  },
+  "46": {
+    "class": "CubicWeight",
+    "file": "bones/cubic_weight_base.hpp"
+  },
+  "47": {
+    "class": "TrimPath",
+    "file": "shapes/paint/trim_path_base.hpp"
+  },
+  "48": {
+    "class": "DrawTarget",
+    "file": "draw_target_base.hpp"
+  },
+  "49": {
+    "class": "DrawRules",
+    "file": "draw_rules_base.hpp"
+  },
+  "50": {
+    "class": "KeyFrameId",
+    "file": "animation/keyframe_id_base.hpp"
+  },
+  "51": {
+    "class": "Polygon",
+    "file": "shapes/polygon_base.hpp"
+  },
+  "52": {
+    "class": "Star",
+    "file": "shapes/star_base.hpp"
+  },
+  "53": {
+    "class": "StateMachine",
+    "file": "animation/state_machine_base.hpp"
+  },
+  "54": {
+    "class": "StateMachineComponent",
+    "file": "animation/state_machine_component_base.hpp"
+  },
+  "55": {
+    "class": "StateMachineInput",
+    "file": "animation/state_machine_input_base.hpp"
+  },
+  "56": {
+    "class": "StateMachineNumber",
+    "file": "animation/state_machine_number_base.hpp"
+  },
+  "57": {
+    "class": "StateMachineLayer",
+    "file": "animation/state_machine_layer_base.hpp"
+  },
+  "58": {
+    "class": "StateMachineTrigger",
+    "file": "animation/state_machine_trigger_base.hpp"
+  },
+  "59": {
+    "class": "StateMachineBool",
+    "file": "animation/state_machine_bool_base.hpp"
+  },
+  "60": {
+    "class": "LayerState",
+    "file": "animation/layer_state_base.hpp"
+  },
+  "61": {
+    "class": "AnimationState",
+    "file": "animation/animation_state_base.hpp"
+  },
+  "62": {
+    "class": "AnyState",
+    "file": "animation/any_state_base.hpp"
+  },
+  "63": {
+    "class": "EntryState",
+    "file": "animation/entry_state_base.hpp"
+  },
+  "64": {
+    "class": "ExitState",
+    "file": "animation/exit_state_base.hpp"
+  },
+  "65": {
+    "class": "StateTransition",
+    "file": "animation/state_transition_base.hpp"
+  },
+  "66": {
+    "class": "StateMachineLayerComponent",
+    "file": "animation/state_machine_layer_component_base.hpp"
+  },
+  "67": {
+    "class": "TransitionInputCondition",
+    "file": "animation/transition_input_condition_base.hpp"
+  },
+  "68": {
+    "class": "TransitionTriggerCondition",
+    "file": "animation/transition_trigger_condition_base.hpp"
+  },
+  "69": {
+    "class": "TransitionValueCondition",
+    "file": "animation/transition_value_condition_base.hpp"
+  },
+  "70": {
+    "class": "TransitionNumberCondition",
+    "file": "animation/transition_number_condition_base.hpp"
+  },
+  "71": {
+    "class": "TransitionBoolCondition",
+    "file": "animation/transition_bool_condition_base.hpp"
+  },
+  "72": {
+    "class": "BlendState",
+    "file": "animation/blend_state_base.hpp"
+  },
+  "73": {
+    "class": "BlendStateDirect",
+    "file": "animation/blend_state_direct_base.hpp"
+  },
+  "74": {
+    "class": "BlendAnimation",
+    "file": "animation/blend_animation_base.hpp"
+  },
+  "75": {
+    "class": "BlendAnimation1D",
+    "file": "animation/blend_animation_1d_base.hpp"
+  },
+  "76": {
+    "class": "BlendState1DInput",
+    "file": "animation/blend_state_1d_input_base.hpp"
+  },
+  "77": {
+    "class": "BlendAnimationDirect",
+    "file": "animation/blend_animation_direct_base.hpp"
+  },
+  "78": {
+    "class": "BlendStateTransition",
+    "file": "animation/blend_state_transition_base.hpp"
+  },
+  "79": {
+    "class": "Constraint",
+    "file": "constraints/constraint_base.hpp"
+  },
+  "80": {
+    "class": "TargetedConstraint",
+    "file": "constraints/targeted_constraint_base.hpp"
+  },
+  "81": {
+    "class": "IKConstraint",
+    "file": "constraints/ik_constraint_base.hpp"
+  },
+  "82": {
+    "class": "DistanceConstraint",
+    "file": "constraints/distance_constraint_base.hpp"
+  },
+  "83": {
+    "class": "TransformConstraint",
+    "file": "constraints/transform_constraint_base.hpp"
+  },
+  "84": {
+    "class": "KeyFrameBool",
+    "file": "animation/keyframe_bool_base.hpp"
+  },
+  "85": {
+    "class": "TransformComponentConstraint",
+    "file": "constraints/transform_component_constraint_base.hpp"
+  },
+  "86": {
+    "class": "TransformComponentConstraintY",
+    "file": "constraints/transform_component_constraint_y_base.hpp"
+  },
+  "87": {
+    "class": "TranslationConstraint",
+    "file": "constraints/translation_constraint_base.hpp"
+  },
+  "88": {
+    "class": "ScaleConstraint",
+    "file": "constraints/scale_constraint_base.hpp"
+  },
+  "89": {
+    "class": "RotationConstraint",
+    "file": "constraints/rotation_constraint_base.hpp"
+  },
+  "90": {
+    "class": "TransformSpaceConstraint",
+    "file": "constraints/transform_space_constraint_base.hpp"
+  },
+  "91": {
+    "class": "WorldTransformComponent",
+    "file": "world_transform_component_base.hpp"
+  },
+  "92": {
+    "class": "NestedArtboard",
+    "file": "nested_artboard_base.hpp"
+  },
+  "93": {
+    "class": "NestedAnimation",
+    "file": "nested_animation_base.hpp"
+  },
+  "95": {
+    "class": "NestedStateMachine",
+    "file": "animation/nested_state_machine_base.hpp"
+  },
+  "96": {
+    "class": "NestedSimpleAnimation",
+    "file": "animation/nested_simple_animation_base.hpp"
+  },
+  "97": {
+    "class": "NestedLinearAnimation",
+    "file": "animation/nested_linear_animation_base.hpp"
+  },
+  "98": {
+    "class": "NestedRemapAnimation",
+    "file": "animation/nested_remap_animation_base.hpp"
+  },
+  "99": {
+    "class": "Asset",
+    "file": "assets/asset_base.hpp"
+  },
+  "100": {
+    "class": "Image",
+    "file": "shapes/image_base.hpp"
+  },
+  "102": {
+    "class": "Folder",
+    "file": "assets/folder_base.hpp"
+  },
+  "103": {
+    "class": "FileAsset",
+    "file": "assets/file_asset_base.hpp"
+  },
+  "104": {
+    "class": "DrawableAsset",
+    "file": "assets/drawable_asset_base.hpp"
+  },
+  "105": {
+    "class": "ImageAsset",
+    "file": "assets/image_asset_base.hpp"
+  },
+  "106": {
+    "class": "FileAssetContents",
+    "file": "assets/file_asset_contents_base.hpp"
+  },
+  "107": {
+    "class": "Vertex",
+    "file": "shapes/vertex_base.hpp"
+  },
+  "108": {
+    "class": "MeshVertex",
+    "file": "shapes/mesh_vertex_base.hpp"
+  },
+  "109": {
+    "class": "Mesh",
+    "file": "shapes/mesh_base.hpp"
+  },
+  "111": {
+    "class": "ContourMeshVertex",
+    "file": "shapes/contour_mesh_vertex_base.hpp"
+  },
+  "114": {
+    "class": "StateMachineListener",
+    "file": "animation/state_machine_listener_base.hpp"
+  },
+  "115": {
+    "class": "ListenerTriggerChange",
+    "file": "animation/listener_trigger_change_base.hpp"
+  },
+  "116": {
+    "class": "ListenerInputChange",
+    "file": "animation/listener_input_change_base.hpp"
+  },
+  "117": {
+    "class": "ListenerBoolChange",
+    "file": "animation/listener_bool_change_base.hpp"
+  },
+  "118": {
+    "class": "ListenerNumberChange",
+    "file": "animation/listener_number_change_base.hpp"
+  },
+  "121": {
+    "class": "NestedInput",
+    "file": "animation/nested_input_base.hpp"
+  },
+  "122": {
+    "class": "NestedTrigger",
+    "file": "animation/nested_trigger_base.hpp"
+  },
+  "123": {
+    "class": "NestedBool",
+    "file": "animation/nested_bool_base.hpp"
+  },
+  "124": {
+    "class": "NestedNumber",
+    "file": "animation/nested_number_base.hpp"
+  },
+  "125": {
+    "class": "ListenerAction",
+    "file": "animation/listener_action_base.hpp"
+  },
+  "126": {
+    "class": "ListenerAlignTarget",
+    "file": "animation/listener_align_target_base.hpp"
+  },
+  "127": {
+    "class": "CustomPropertyNumber",
+    "file": "custom_property_number_base.hpp"
+  },
+  "128": {
+    "class": "Event",
+    "file": "event_base.hpp"
+  },
+  "129": {
+    "class": "CustomPropertyBoolean",
+    "file": "custom_property_boolean_base.hpp"
+  },
+  "130": {
+    "class": "CustomPropertyString",
+    "file": "custom_property_string_base.hpp"
+  },
+  "131": {
+    "class": "OpenUrlEvent",
+    "file": "open_url_event_base.hpp"
+  },
+  "134": {
+    "class": "Text",
+    "file": "text/text_base.hpp"
+  },
+  "135": {
+    "class": "TextValueRun",
+    "file": "text/text_value_run_base.hpp"
+  },
+  "137": {
+    "class": "TextStylePaint",
+    "file": "text/text_style_paint_base.hpp"
+  },
+  "138": {
+    "class": "CubicValueInterpolator",
+    "file": "animation/cubic_value_interpolator_base.hpp"
+  },
+  "139": {
+    "class": "CubicInterpolator",
+    "file": "animation/cubic_interpolator_base.hpp"
+  },
+  "141": {
+    "class": "FontAsset",
+    "file": "assets/font_asset_base.hpp"
+  },
+  "142": {
+    "class": "KeyFrameString",
+    "file": "animation/keyframe_string_base.hpp"
+  },
+  "144": {
+    "class": "TextStyleAxis",
+    "file": "text/text_style_axis_base.hpp"
+  },
+  "145": {
+    "class": "AdvanceableState",
+    "file": "animation/advanceable_state_base.hpp"
+  },
+  "147": {
+    "class": "Solo",
+    "file": "solo_base.hpp"
+  },
+  "148": {
+    "class": "Joystick",
+    "file": "joystick_base.hpp"
+  },
+  "158": {
+    "class": "TextModifierRange",
+    "file": "text/text_modifier_range_base.hpp"
+  },
+  "159": {
+    "class": "TextModifierGroup",
+    "file": "text/text_modifier_group_base.hpp"
+  },
+  "160": {
+    "class": "TextModifier",
+    "file": "text/text_modifier_base.hpp"
+  },
+  "161": {
+    "class": "TextShapeModifier",
+    "file": "text/text_shape_modifier_base.hpp"
+  },
+  "162": {
+    "class": "TextVariationModifier",
+    "file": "text/text_variation_modifier_base.hpp"
+  },
+  "163": {
+    "class": "CubicInterpolatorComponent",
+    "file": "animation/cubic_interpolator_component_base.hpp"
+  },
+  "164": {
+    "class": "TextStyleFeature",
+    "file": "text/text_style_feature_base.hpp"
+  },
+  "165": {
+    "class": "FollowPathConstraint",
+    "file": "constraints/follow_path_constraint_base.hpp"
+  },
+  "167": {
+    "class": "CustomProperty",
+    "file": "custom_property_base.hpp"
+  },
+  "168": {
+    "class": "ListenerFireEvent",
+    "file": "animation/listener_fire_event_base.hpp"
+  },
+  "169": {
+    "class": "StateMachineFireEvent",
+    "file": "animation/state_machine_fire_event_base.hpp"
+  },
+  "170": {
+    "class": "InterpolatingKeyFrame",
+    "file": "animation/interpolating_keyframe_base.hpp"
+  },
+  "171": {
+    "class": "KeyFrameCallback",
+    "file": "animation/keyframe_callback_base.hpp"
+  },
+  "174": {
+    "class": "ElasticInterpolator",
+    "file": "animation/elastic_interpolator_base.hpp"
+  },
+  "175": {
+    "class": "KeyFrameInterpolator",
+    "file": "animation/keyframe_interpolator_base.hpp"
+  },
+  "406": {
+    "class": "AudioAsset",
+    "file": "assets/audio_asset_base.hpp"
+  },
+  "407": {
+    "class": "AudioEvent",
+    "file": "audio_event_base.hpp"
+  },
+  "409": {
+    "class": "LayoutComponent",
+    "file": "layout_component_base.hpp"
+  },
+  "420": {
+    "class": "LayoutComponentStyle",
+    "file": "layout/layout_component_style_base.hpp"
+  },
+  "422": {
+    "class": "ExportAudio",
+    "file": "assets/export_audio_base.hpp"
+  },
+  "426": {
+    "class": "ViewModelInstanceColor",
+    "file": "viewmodel/viewmodel_instance_color_base.hpp"
+  },
+  "427": {
+    "class": "ViewModelInstanceListItem",
+    "file": "viewmodel/viewmodel_instance_list_item_base.hpp"
+  },
+  "428": {
+    "class": "ViewModelInstanceValue",
+    "file": "viewmodel/viewmodel_instance_value_base.hpp"
+  },
+  "429": {
+    "class": "ViewModelComponent",
+    "file": "viewmodel/viewmodel_component_base.hpp"
+  },
+  "430": {
+    "class": "ViewModelProperty",
+    "file": "viewmodel/viewmodel_property_base.hpp"
+  },
+  "431": {
+    "class": "ViewModelPropertyNumber",
+    "file": "viewmodel/viewmodel_property_number_base.hpp"
+  },
+  "432": {
+    "class": "ViewModelInstanceEnum",
+    "file": "viewmodel/viewmodel_instance_enum_base.hpp"
+  },
+  "433": {
+    "class": "ViewModelInstanceString",
+    "file": "viewmodel/viewmodel_instance_string_base.hpp"
+  },
+  "434": {
+    "class": "ViewModelPropertyList",
+    "file": "viewmodel/viewmodel_property_list_base.hpp"
+  },
+  "435": {
+    "class": "ViewModel",
+    "file": "viewmodel/viewmodel_base.hpp"
+  },
+  "436": {
+    "class": "ViewModelPropertyViewModel",
+    "file": "viewmodel/viewmodel_property_viewmodel_base.hpp"
+  },
+  "437": {
+    "class": "ViewModelInstance",
+    "file": "viewmodel/viewmodel_instance_base.hpp"
+  },
+  "438": {
+    "class": "DataEnumCustom",
+    "file": "viewmodel/data_enum_custom_base.hpp"
+  },
+  "439": {
+    "class": "ViewModelPropertyEnumCustom",
+    "file": "viewmodel/viewmodel_property_enum_custom_base.hpp"
+  },
+  "440": {
+    "class": "ViewModelPropertyColor",
+    "file": "viewmodel/viewmodel_property_color_base.hpp"
+  },
+  "441": {
+    "class": "ViewModelInstanceList",
+    "file": "viewmodel/viewmodel_instance_list_base.hpp"
+  },
+  "442": {
+    "class": "ViewModelInstanceNumber",
+    "file": "viewmodel/viewmodel_instance_number_base.hpp"
+  },
+  "443": {
+    "class": "ViewModelPropertyString",
+    "file": "viewmodel/viewmodel_property_string_base.hpp"
+  },
+  "444": {
+    "class": "ViewModelInstanceViewModel",
+    "file": "viewmodel/viewmodel_instance_viewmodel_base.hpp"
+  },
+  "445": {
+    "class": "DataEnumValue",
+    "file": "viewmodel/data_enum_value_base.hpp"
+  },
+  "446": {
+    "class": "DataBind",
+    "file": "data_bind/data_bind_base.hpp"
+  },
+  "447": {
+    "class": "DataBindContext",
+    "file": "data_bind/data_bind_context_base.hpp"
+  },
+  "448": {
+    "class": "ViewModelPropertyBoolean",
+    "file": "viewmodel/viewmodel_property_boolean_base.hpp"
+  },
+  "449": {
+    "class": "ViewModelInstanceBoolean",
+    "file": "viewmodel/viewmodel_instance_boolean_base.hpp"
+  },
+  "450": {
+    "class": "KeyFrameUint",
+    "file": "animation/keyframe_uint_base.hpp"
+  },
+  "451": {
+    "class": "NestedArtboardLeaf",
+    "file": "nested_artboard_leaf_base.hpp"
+  },
+  "452": {
+    "class": "NestedArtboardLayout",
+    "file": "nested_artboard_layout_base.hpp"
+  },
+  "471": {
+    "class": "BindablePropertyString",
+    "file": "data_bind/bindable_property_string_base.hpp"
+  },
+  "472": {
+    "class": "BindablePropertyBoolean",
+    "file": "data_bind/bindable_property_boolean_base.hpp"
+  },
+  "473": {
+    "class": "BindablePropertyNumber",
+    "file": "data_bind/bindable_property_number_base.hpp"
+  },
+  "474": {
+    "class": "BindablePropertyEnum",
+    "file": "data_bind/bindable_property_enum_base.hpp"
+  },
+  "475": {
+    "class": "BindablePropertyColor",
+    "file": "data_bind/bindable_property_color_base.hpp"
+  },
+  "476": {
+    "class": "TransitionCondition",
+    "file": "animation/transition_condition_base.hpp"
+  },
+  "477": {
+    "class": "TransitionComparator",
+    "file": "animation/transition_comparator_base.hpp"
+  },
+  "478": {
+    "class": "TransitionPropertyComparator",
+    "file": "animation/transition_property_comparator_base.hpp"
+  },
+  "479": {
+    "class": "TransitionPropertyViewModelComparator",
+    "file": "animation/transition_property_viewmodel_comparator_base.hpp"
+  },
+  "480": {
+    "class": "TransitionValueComparator",
+    "file": "animation/transition_value_comparator_base.hpp"
+  },
+  "481": {
+    "class": "TransitionValueBooleanComparator",
+    "file": "animation/transition_value_boolean_comparator_base.hpp"
+  },
+  "482": {
+    "class": "TransitionViewModelCondition",
+    "file": "animation/transition_viewmodel_condition_base.hpp"
+  },
+  "483": {
+    "class": "TransitionValueColorComparator",
+    "file": "animation/transition_value_color_comparator_base.hpp"
+  },
+  "484": {
+    "class": "TransitionValueNumberComparator",
+    "file": "animation/transition_value_number_comparator_base.hpp"
+  },
+  "485": {
+    "class": "TransitionValueEnumComparator",
+    "file": "animation/transition_value_enum_comparator_base.hpp"
+  },
+  "486": {
+    "class": "TransitionValueStringComparator",
+    "file": "animation/transition_value_string_comparator_base.hpp"
+  },
+  "487": {
+    "class": "ListenerViewModelChange",
+    "file": "animation/listener_viewmodel_change_base.hpp"
+  },
+  "488": {
+    "class": "DataConverter",
+    "file": "data_bind/converters/data_converter_base.hpp"
+  },
+  "489": {
+    "class": "DataConverterRounder",
+    "file": "data_bind/converters/data_converter_rounder_base.hpp"
+  },
+  "490": {
+    "class": "DataConverterToString",
+    "file": "data_bind/converters/data_converter_to_string_base.hpp"
+  },
+  "491": {
+    "class": "NSlicerTileMode",
+    "file": "layout/n_slicer_tile_mode_base.hpp"
+  },
+  "492": {
+    "class": "Axis",
+    "file": "layout/axis_base.hpp"
+  },
+  "493": {
+    "class": "NSlicer",
+    "file": "layout/n_slicer_base.hpp"
+  },
+  "494": {
+    "class": "AxisY",
+    "file": "layout/axis_y_base.hpp"
+  },
+  "495": {
+    "class": "AxisX",
+    "file": "layout/axis_x_base.hpp"
+  },
+  "496": {
+    "class": "TransitionPropertyArtboardComparator",
+    "file": "animation/transition_property_artboard_comparator_base.hpp"
+  },
+  "497": {
+    "class": "TransitionArtboardCondition",
+    "file": "animation/transition_artboard_condition_base.hpp"
+  },
+  "498": {
+    "class": "DataConverterGroupItem",
+    "file": "data_bind/converters/data_converter_group_item_base.hpp"
+  },
+  "499": {
+    "class": "DataConverterGroup",
+    "file": "data_bind/converters/data_converter_group_base.hpp"
+  },
+  "500": {
+    "class": "DataConverterOperationValue",
+    "file": "data_bind/converters/data_converter_operation_value_base.hpp"
+  },
+  "501": {
+    "class": "ViewModelInstanceTrigger",
+    "file": "viewmodel/viewmodel_instance_trigger_base.hpp"
+  },
+  "502": {
+    "class": "ViewModelPropertyTrigger",
+    "file": "viewmodel/viewmodel_property_trigger_base.hpp"
+  },
+  "503": {
+    "class": "BindablePropertyTrigger",
+    "file": "data_bind/bindable_property_trigger_base.hpp"
+  },
+  "504": {
+    "class": "DataConverterTrigger",
+    "file": "data_bind/converters/data_converter_trigger_base.hpp"
+  },
+  "505": {
+    "class": "TransitionValueTriggerComparator",
+    "file": "animation/transition_value_trigger_comparator_base.hpp"
+  },
+  "506": {
+    "class": "DashPath",
+    "file": "shapes/paint/dash_path_base.hpp"
+  },
+  "507": {
+    "class": "Dash",
+    "file": "shapes/paint/dash_base.hpp"
+  },
+  "508": {
+    "class": "NSlicedNode",
+    "file": "layout/n_sliced_node_base.hpp"
+  },
+  "509": {
+    "class": "ViewModelPropertyEnum",
+    "file": "viewmodel/viewmodel_property_enum_base.hpp"
+  },
+  "510": {
+    "class": "DataEnum",
+    "file": "viewmodel/data_enum_base.hpp"
+  },
+  "511": {
+    "class": "ViewModelPropertyEnumSystem",
+    "file": "viewmodel/viewmodel_property_enum_system_base.hpp"
+  },
+  "512": {
+    "class": "DataEnumSystem",
+    "file": "viewmodel/data_enum_system_base.hpp"
+  },
+  "513": {
+    "class": "ForegroundLayoutDrawable",
+    "file": "foreground_layout_drawable_base.hpp"
+  },
+  "514": {
+    "class": "DataConverterSystemDegsToRads",
+    "file": "data_bind/converters/data_converter_system_degs_to_rads_base.hpp"
+  },
+  "515": {
+    "class": "DataConverterSystemNormalizer",
+    "file": "data_bind/converters/data_converter_system_normalizer_base.hpp"
+  },
+  "516": {
+    "class": "DataConverterOperation",
+    "file": "data_bind/converters/data_converter_operation_base.hpp"
+  },
+  "517": {
+    "class": "DataConverterOperationViewModel",
+    "file": "data_bind/converters/data_converter_operation_viewmodel_base.hpp"
+  },
+  "519": {
+    "class": "DataConverterRangeMapper",
+    "file": "data_bind/converters/data_converter_range_mapper_base.hpp"
+  },
+  "520": {
+    "class": "DraggableConstraint",
+    "file": "constraints/draggable_constraint_base.hpp"
+  },
+  "521": {
+    "class": "ScrollConstraint",
+    "file": "constraints/scrolling/scroll_constraint_base.hpp"
+  },
+  "522": {
+    "class": "ScrollBarConstraint",
+    "file": "constraints/scrolling/scroll_bar_constraint_base.hpp"
+  },
+  "523": {
+    "class": "ScrollPhysics",
+    "file": "constraints/scrolling/scroll_physics_base.hpp"
+  },
+  "524": {
+    "class": "ClampedScrollPhysics",
+    "file": "constraints/scrolling/clamped_scroll_physics_base.hpp"
+  },
+  "525": {
+    "class": "ElasticScrollPhysics",
+    "file": "constraints/scrolling/elastic_scroll_physics_base.hpp"
+  },
+  "527": {
+    "class": "BlendState1D",
+    "file": "animation/blend_state_1d_base.hpp"
+  },
+  "528": {
+    "class": "BlendState1DViewModel",
+    "file": "animation/blend_state_1d_viewmodel_base.hpp"
+  },
+  "530": {
+    "class": "DataConverterStringPad",
+    "file": "data_bind/converters/data_converter_string_pad_base.hpp"
+  },
+  "531": {
+    "class": "DataConverterStringRemoveZeros",
+    "file": "data_bind/converters/data_converter_string_remove_zeros_base.hpp"
+  },
+  "532": {
+    "class": "DataConverterStringTrim",
+    "file": "data_bind/converters/data_converter_string_trim_base.hpp"
+  },
+  "533": {
+    "class": "Feather",
+    "file": "shapes/paint/feather_base.hpp"
+  },
+  "534": {
+    "class": "DataConverterInterpolator",
+    "file": "data_bind/converters/data_converter_interpolator_base.hpp"
+  },
+  "535": {
+    "class": "DataConverterBooleanNegate",
+    "file": "data_bind/converters/data_converter_boolean_negate_base.hpp"
+  },
+  "536": {
+    "class": "DataConverterFormula",
+    "file": "data_bind/converters/data_converter_formula_base.hpp"
+  },
+  "537": {
+    "class": "FormulaToken",
+    "file": "data_bind/converters/formula/formula_token_base.hpp"
+  },
+  "538": {
+    "class": "FormulaTokenArgumentSeparator",
+    "file": "data_bind/converters/formula/formula_token_argument_separator_base.hpp"
+  },
+  "539": {
+    "class": "FormulaTokenParenthesis",
+    "file": "data_bind/converters/formula/formula_token_parenthesis_base.hpp"
+  },
+  "540": {
+    "class": "FormulaTokenParenthesisClose",
+    "file": "data_bind/converters/formula/formula_token_parenthesis_close_base.hpp"
+  },
+  "541": {
+    "class": "FormulaTokenOperation",
+    "file": "data_bind/converters/formula/formula_token_operation_base.hpp"
+  },
+  "542": {
+    "class": "FormulaTokenFunction",
+    "file": "data_bind/converters/formula/formula_token_function_base.hpp"
+  },
+  "543": {
+    "class": "FormulaTokenValue",
+    "file": "data_bind/converters/formula/formula_token_value_base.hpp"
+  },
+  "544": {
+    "class": "FormulaTokenParenthesisOpen",
+    "file": "data_bind/converters/formula/formula_token_parenthesis_open_base.hpp"
+  },
+  "545": {
+    "class": "FormulaTokenInput",
+    "file": "data_bind/converters/formula/formula_token_input_base.hpp"
+  },
+  "546": {
+    "class": "TextTargetModifier",
+    "file": "text/text_target_modifier_base.hpp"
+  },
+  "547": {
+    "class": "TextFollowPathModifier",
+    "file": "text/text_follow_path_modifier_base.hpp"
+  },
+  "548": {
+    "class": "CustomPropertyGroup",
+    "file": "custom_property_group_base.hpp"
+  },
+  "559": {
+    "class": "ArtboardComponentList",
+    "file": "artboard_component_list_base.hpp"
+  },
+  "563": {
+    "class": "ViewModelPropertySymbol",
+    "file": "viewmodel/viewmodel_property_symbol_base.hpp"
+  },
+  "564": {
+    "class": "ViewModelPropertySymbolListIndex",
+    "file": "viewmodel/viewmodel_property_symbol_list_index_base.hpp"
+  },
+  "565": {
+    "class": "ViewModelInstanceSymbol",
+    "file": "viewmodel/viewmodel_instance_symbol_base.hpp"
+  },
+  "566": {
+    "class": "ViewModelInstanceSymbolListIndex",
+    "file": "viewmodel/viewmodel_instance_symbol_list_index_base.hpp"
+  },
+  "567": {
+    "class": "BindablePropertyInteger",
+    "file": "data_bind/bindable_property_integer_base.hpp"
+  },
+  "568": {
+    "class": "DataConverterNumberToList",
+    "file": "data_bind/converters/data_converter_number_to_list_base.hpp"
+  },
+  "569": {
+    "class": "TextInput",
+    "file": "text/text_input_base.hpp"
+  },
+  "570": {
+    "class": "TextInputDrawable",
+    "file": "text/text_input_drawable_base.hpp"
+  },
+  "571": {
+    "class": "TextInputCursor",
+    "file": "text/text_input_cursor_base.hpp"
+  },
+  "572": {
+    "class": "TextInputText",
+    "file": "text/text_input_text_base.hpp"
+  },
+  "573": {
+    "class": "TextStyle",
+    "file": "text/text_style_base.hpp"
+  },
+  "574": {
+    "class": "TextInputSelection",
+    "file": "text/text_input_selection_base.hpp"
+  },
+  "575": {
+    "class": "TextInputSelectedText",
+    "file": "text/text_input_selected_text_base.hpp"
+  },
+  "584": {
+    "class": "ViewModelPropertyAsset",
+    "file": "viewmodel/viewmodel_property_asset_base.hpp"
+  },
+  "585": {
+    "class": "ViewModelPropertyAssetImage",
+    "file": "viewmodel/viewmodel_property_asset_image_base.hpp"
+  },
+  "586": {
+    "class": "ViewModelInstanceAsset",
+    "file": "viewmodel/viewmodel_instance_asset_base.hpp"
+  },
+  "587": {
+    "class": "ViewModelInstanceAssetImage",
+    "file": "viewmodel/viewmodel_instance_asset_image_base.hpp"
+  },
+  "588": {
+    "class": "BindablePropertyAsset",
+    "file": "data_bind/bindable_property_asset_base.hpp"
+  },
+  "590": {
+    "class": "BindablePropertyList",
+    "file": "data_bind/bindable_property_list_base.hpp"
+  },
+  "591": {
+    "class": "DataConverterListToLength",
+    "file": "data_bind/converters/data_converter_list_to_length_base.hpp"
+  },
+  "592": {
+    "class": "CustomPropertyColor",
+    "file": "custom_property_color_base.hpp"
+  },
+  "593": {
+    "class": "TransitionSelfComparator",
+    "file": "animation/transition_self_comparator_base.hpp"
+  },
+  "596": {
+    "class": "BindablePropertyId",
+    "file": "data_bind/bindable_property_id_base.hpp"
+  },
+  "597": {
+    "class": "BindablePropertyArtboard",
+    "file": "data_bind/bindable_property_artboard_base.hpp"
+  },
+  "598": {
+    "class": "ViewModelPropertyArtboard",
+    "file": "viewmodel/viewmodel_property_artboard_base.hpp"
+  },
+  "599": {
+    "class": "ViewModelInstanceArtboard",
+    "file": "viewmodel/viewmodel_instance_artboard_base.hpp"
+  },
+  "601": {
+    "class": "TransitionValueIdComparator",
+    "file": "animation/transition_value_id_comparator_base.hpp"
+  },
+  "602": {
+    "class": "TransitionValueAssetComparator",
+    "file": "animation/transition_value_asset_comparator_base.hpp"
+  },
+  "606": {
+    "class": "ArtboardComponentListOverride",
+    "file": "layout/artboard_component_list_override_base.hpp"
+  },
+  "613": {
+    "class": "CustomPropertyTrigger",
+    "file": "custom_property_trigger_base.hpp"
+  },
+  "614": {
+    "class": "StateMachineFireTrigger",
+    "file": "animation/state_machine_fire_trigger_base.hpp"
+  },
+  "615": {
+    "class": "StateMachineFireAction",
+    "file": "animation/state_machine_fire_action_base.hpp"
+  },
+  "616": {
+    "class": "CustomPropertyEnum",
+    "file": "custom_property_enum_base.hpp"
+  },
+  "617": {
+    "class": "DataConverterToNumber",
+    "file": "data_bind/converters/data_converter_to_number_base.hpp"
+  },
+  "619": {
+    "class": "ListPath",
+    "file": "shapes/list_path_base.hpp"
+  },
+  "620": {
+    "class": "PointsCommonPath",
+    "file": "shapes/points_common_path_base.hpp"
+  },
+  "625": {
+    "class": "ListFollowPathConstraint",
+    "file": "constraints/list_follow_path_constraint_base.hpp"
+  },
+  "8698": {
+    "class": "Unknown_8698",
+    "file": "unknown",
+    "source": "riv_analysis"
+  },
+  "8726": {
+    "class": "ArtboardList",
+    "file": "unknown",
+    "source": "riv_analysis"
+  },
+  "8776": {
+    "class": "ArtboardListItem",
+    "file": "unknown",
+    "source": "riv_analysis"
+  },
+  "1098432": {
+    "class": "Unknown_1098432",
+    "file": "unknown",
+    "source": "riv_analysis"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "riveMeta": {
+    "newFile": {
+      "assets": {
+        
+      },
+      "artboards": {
+        "newArtboard": {
+          "name": "New Artboard",
+          "animations": {
+            "back": "Back",
+            "pressed": "Pressed",
+            "idle": "Idle",
+            "thumbnail": "Thumbnail"
+          },
+          "textValueRuns": {
+            
+          },
+          "nestedTextValueRuns": [
+            
+          ],
+          "stateMachines": {
+            "stateMachine1": {
+              "name": "State Machine 1",
+              "inputs": {
+                "pressed": {
+                  "name": "Pressed",
+                  "type": "trigger",
+                  "defaultValue": "false"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

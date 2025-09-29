@@ -1,0 +1,13 @@
+
+// rive_generated.dart
+
+// ignore_for_file: lines_longer_than_80_chars, unused_field
+
+// ignore: avoid_classes_with_only_static_members
+/// Main entry point for accessing Rive metadata.
+/// This class provides static getters for each Rive file's metadata.
+abstract class RiveMeta {
+  
+}
+
+

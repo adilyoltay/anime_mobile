@@ -9,12 +9,14 @@
 ### Current Status (2025-09-29)
 - ✅ CLI tools (`rive_convert_cli`, `import_test`, `analyze_riv.py`) build and run locally.
 - ✅ Generated RIVs import via `import_test` and artboards instantiate.
-- ✅ **Multi-chunk support added**: Serializer now writes Asset Pack (typeKey 105) and Artboard Catalog (typeKey 8776) chunks.
-- ⚠️ **Testing Required**: Need to verify multi-chunk RIVs work in Rive Play. Example: `converter/test_multi_chunk.riv`.
+- ✅ **Core RIV generation working**: Serializer produces valid single-chunk RIVs with correct bitmap packing.  
+- ✅ **Property alignment fixed**: All "Unknown property key" errors resolved via proper header/stream alignment.
+- ✅ **CLI validation passing**: Generated RIVs import successfully with no errors. Example: `build_converter/test_clean.riv` (31 bytes).
+- 🔄 **Multi-chunk support**: Temporarily disabled pending official typeKey verification via code generator analysis.
 
 ### Reference `.riv` Structure (taken from `converter/exampleriv/nature.riv`)
-- **Asset Pack (typeKey 105/106)**: contains image/meta blobs; required by Play even if empty.
-- **Artboard Catalog (typeKey 8726/8776)**: registers artboards before the actual `typeKey 2` Artboard object.
+- **Asset Pack (typeKey 106)**: wraps file asset contents; empty chunk still expected by Rive Play. `typeKey 105` belongs to `ImageAsset` and is not used for the container blob.
+- **Artboard Catalog (typeKey TBD)**: container list used to register artboards before the actual `typeKey 2` Artboard object. Confirm exact keys via official JSON dump before documenting.
 - **Drawable Chain (typeKey 6)**: draw order entries referencing paints and paths.
 - **Header Property Keys**: includes extended asset/draw keys (e.g., 203–208, 236, 494, …) beyond our minimal set.
 

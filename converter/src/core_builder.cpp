@@ -7,6 +7,9 @@
 #include "rive/shapes/paint/fill.hpp"
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
+#include "rive/animation/linear_animation.hpp"
+#include "rive/generated/animation/animation_base.hpp"
+#include "rive/generated/animation/linear_animation_base.hpp"
 #include "rive/generated/component_base.hpp"
 #include "rive/generated/layout_component_base.hpp"
 #include "rive/generated/node_base.hpp"
@@ -39,8 +42,6 @@ CoreObject& CoreBuilder::addCore(rive::Core* core)
 
 void CoreBuilder::setParent(CoreObject& object, uint32_t parentId)
 {
-    // Parent-child relationships are handled by the importer
-    // We don't explicitly write parentId to the property stream
     object.parentId = parentId;
 }
 
@@ -78,26 +79,44 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
 
         for (const auto& prop : object.properties)
         {
-            uint8_t type = 0;
-            if (std::holds_alternative<uint32_t>(prop.value))
+            uint8_t type = rive::CoreUintType::id;
+            switch (prop.key)
             {
-                type = rive::CoreUintType::id;
-                if (prop.key == rive::SolidColorBase::colorValuePropertyKey)
-                {
+                case rive::LayoutComponentBase::widthPropertyKey:
+                case rive::LayoutComponentBase::heightPropertyKey:
+                case rive::NodeBase::xPropertyKey:
+                case rive::NodeBase::yPropertyKey:
+                case rive::ParametricPathBase::widthPropertyKey:
+                case rive::ParametricPathBase::heightPropertyKey:
+                case rive::StrokeBase::thicknessPropertyKey:
+                    type = rive::CoreDoubleType::id;
+                    break;
+                case rive::SolidColorBase::colorValuePropertyKey:
                     type = rive::CoreColorType::id;
-                }
-            }
-            else if (std::holds_alternative<float>(prop.value))
-            {
-                type = rive::CoreDoubleType::id;
-            }
-            else if (std::holds_alternative<std::string>(prop.value))
-            {
-                type = rive::CoreStringType::id;
-            }
-            else if (std::holds_alternative<bool>(prop.value))
-            {
-                type = rive::CoreUintType::id;
+                    break;
+                case rive::ComponentBase::namePropertyKey:
+                    type = rive::CoreStringType::id;
+                    break;
+                case rive::ShapePaintBase::isVisiblePropertyKey:
+                case rive::LayoutComponentBase::clipPropertyKey:
+                case rive::RectangleBase::linkCornerRadiusPropertyKey:
+                    type = rive::CoreUintType::id;
+                    break;
+                default:
+                    if (std::holds_alternative<std::string>(prop.value))
+                    {
+                        type = rive::CoreStringType::id;
+                    }
+                    else if (std::holds_alternative<float>(prop.value))
+                    {
+                        type = rive::CoreDoubleType::id;
+                    }
+                    else if (prop.key == rive::ShapePaintBase::blendModeValuePropertyKey ||
+                             prop.key == rive::ComponentBase::parentIdPropertyKey)
+                    {
+                        type = rive::CoreUintType::id;
+                    }
+                    break;
             }
             typeMap[prop.key] = type;
         }
@@ -116,19 +135,35 @@ CoreDocument build_core_document(const Document& document,
     CoreBuilder builder;
 
     auto& backboard = builder.addCore(new rive::Backboard());
+    builder.set(backboard, static_cast<uint16_t>(44u), static_cast<uint32_t>(0));
 
     auto& artboard = builder.addCore(new rive::Artboard());
-    // Only write essential properties (not id/parentId)
+    builder.set(artboard, rive::ComponentBase::namePropertyKey,
+                document.artboard.name);
     builder.set(artboard, rive::LayoutComponentBase::widthPropertyKey,
                 document.artboard.width);
     builder.set(artboard, rive::LayoutComponentBase::heightPropertyKey,
                 document.artboard.height);
+    builder.set(artboard, rive::LayoutComponentBase::clipPropertyKey, true);
 
+    // Provide a default animation so runtimes expecting index 0 don't crash.
+    auto& animation = builder.addCore(new rive::LinearAnimation());
+    builder.set(animation, rive::AnimationBase::namePropertyKey,
+                std::string("Default"));
+    builder.set(animation, rive::LinearAnimationBase::fpsPropertyKey,
+                static_cast<uint32_t>(60));
+    builder.set(animation, rive::LinearAnimationBase::durationPropertyKey,
+                static_cast<uint32_t>(60));
+    builder.set(animation, rive::LinearAnimationBase::loopValuePropertyKey,
+                static_cast<uint32_t>(1));
+
+    // Shapes disabled for Artboard-only variant
     for (const auto& shapeData : document.shapes)
     {
         auto& shape = builder.addCore(new rive::Shape());
         builder.setParent(shape, artboard.id);
-        // No properties for Shape - position is inherited from Rectangle
+        builder.set(shape, rive::NodeBase::xPropertyKey, shapeData.x);
+        builder.set(shape, rive::NodeBase::yPropertyKey, shapeData.y);
 
         switch (shapeData.type)
         {
@@ -136,20 +171,22 @@ CoreDocument build_core_document(const Document& document,
             {
                 auto& rectangle = builder.addCore(new rive::Rectangle());
                 builder.setParent(rectangle, shape.id);
-                builder.set(rectangle, rive::NodeBase::xPropertyKey, shapeData.x);
-                builder.set(rectangle, rive::NodeBase::yPropertyKey, shapeData.y);
+                builder.set(rectangle, rive::NodeBase::xPropertyKey, 0.0f);
+                builder.set(rectangle, rive::NodeBase::yPropertyKey, 0.0f);
                 builder.set(rectangle, rive::ParametricPathBase::widthPropertyKey,
                             shapeData.width);
                 builder.set(rectangle, rive::ParametricPathBase::heightPropertyKey,
                             shapeData.height);
+                builder.set(rectangle, rive::RectangleBase::linkCornerRadiusPropertyKey,
+                            false);
                 break;
             }
             case ShapeType::ellipse:
             {
                 auto& ellipse = builder.addCore(new rive::Ellipse());
                 builder.setParent(ellipse, shape.id);
-                builder.set(ellipse, rive::NodeBase::xPropertyKey, shapeData.x);
-                builder.set(ellipse, rive::NodeBase::yPropertyKey, shapeData.y);
+                builder.set(ellipse, rive::NodeBase::xPropertyKey, 0.0f);
+                builder.set(ellipse, rive::NodeBase::yPropertyKey, 0.0f);
                 builder.set(ellipse, rive::ParametricPathBase::widthPropertyKey,
                             shapeData.width);
                 builder.set(ellipse, rive::ParametricPathBase::heightPropertyKey,
@@ -162,6 +199,7 @@ CoreDocument build_core_document(const Document& document,
         {
             auto& fill = builder.addCore(new rive::Fill());
             builder.setParent(fill, shape.id);
+            builder.set(fill, rive::ShapePaintBase::isVisiblePropertyKey, true);
 
             auto& solid = builder.addCore(new rive::SolidColor());
             builder.setParent(solid, fill.id);

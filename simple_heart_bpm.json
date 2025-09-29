@@ -1,0 +1,711 @@
+{
+  "artboard": {
+    "name": "SimpleHeartBPM",
+    "width": 400,
+    "height": 400,
+    "backgroundColor": "#1a1a2e",
+    "clip": true
+  },
+  "objects": [
+    {
+      "type": "ellipse",
+      "name": "heart_left",
+      "id": 1,
+      "x": 170,
+      "y": 180,
+      "width": 60,
+      "height": 80,
+      "fill": {
+        "type": "solid",
+        "color": "#ff6b6b"
+      },
+      "stroke": {
+        "color": "#ffffff",
+        "thickness": 2
+      }
+    },
+    {
+      "type": "ellipse",
+      "name": "heart_right",
+      "id": 2,
+      "x": 230,
+      "y": 180,
+      "width": 60,
+      "height": 80,
+      "fill": {
+        "type": "solid",
+        "color": "#ff6b6b"
+      },
+      "stroke": {
+        "color": "#ffffff",
+        "thickness": 2
+      }
+    },
+    {
+      "type": "triangle",
+      "name": "heart_bottom",
+      "id": 3,
+      "x": 200,
+      "y": 240,
+      "width": 80,
+      "height": 60,
+      "rotation": 180,
+      "fill": {
+        "type": "solid",
+        "color": "#ff6b6b"
+      },
+      "stroke": {
+        "color": "#ffffff",
+        "thickness": 2
+      }
+    },
+    {
+      "type": "rectangle",
+      "name": "bpm_display",
+      "id": 4,
+      "x": 150,
+      "y": 50,
+      "width": 100,
+      "height": 40,
+      "cornerRadius": 20,
+      "fill": {
+        "type": "solid",
+        "color": "#16213e"
+      },
+      "stroke": {
+        "color": "#4ecdc4",
+        "thickness": 2
+      }
+    },
+    {
+      "type": "text",
+      "name": "bpm_text",
+      "id": 5,
+      "x": 200,
+      "y": 70,
+      "text": "72 BPM",
+      "fontSize": 18,
+      "fontFamily": "Arial",
+      "color": "#4ecdc4",
+      "align": "center",
+      "fontWeight": "bold"
+    },
+    {
+      "type": "ellipse",
+      "name": "pulse_ring",
+      "id": 6,
+      "x": 200,
+      "y": 210,
+      "width": 140,
+      "height": 140,
+      "fill": {
+        "type": "solid",
+        "color": "transparent"
+      },
+      "stroke": {
+        "color": "#ff6b6b",
+        "thickness": 3,
+        "opacity": 0.4
+      }
+    }
+  ],
+  "stateMachines": [
+    {
+      "name": "HeartBPMController",
+      "inputs": [
+        {
+          "name": "bpm",
+          "type": "number",
+          "defaultValue": 72,
+          "minValue": 40,
+          "maxValue": 180,
+          "description": "Beats per minute"
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "defaultValue": true,
+          "description": "Start/stop heart animation"
+        },
+        {
+          "name": "intensity",
+          "type": "number",
+          "defaultValue": 1.0,
+          "minValue": 0.5,
+          "maxValue": 2.0,
+          "description": "Animation intensity multiplier"
+        }
+      ],
+      "states": [
+        {
+          "name": "Idle",
+          "isDefault": true,
+          "animations": []
+        },
+        {
+          "name": "Beating",
+          "animations": ["heartbeat", "pulse_effect"]
+        },
+        {
+          "name": "FastBeat",
+          "animations": ["heartbeat_fast", "pulse_effect"]
+        }
+      ],
+      "transitions": [
+        {
+          "from": "Idle",
+          "to": "Beating",
+          "condition": {
+            "input": "isActive",
+            "value": true,
+            "operator": "=="
+          }
+        },
+        {
+          "from": "Beating",
+          "to": "Idle",
+          "condition": {
+            "input": "isActive",
+            "value": false,
+            "operator": "=="
+          }
+        },
+        {
+          "from": "Beating",
+          "to": "FastBeat",
+          "condition": {
+            "input": "bpm",
+            "value": 100,
+            "operator": ">"
+          }
+        },
+        {
+          "from": "FastBeat",
+          "to": "Beating",
+          "condition": {
+            "input": "bpm",
+            "value": 100,
+            "operator": "<="
+          }
+        }
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "name": "heartbeat",
+      "duration": 0.83,
+      "fps": 60,
+      "loop": true,
+      "keyframes": [
+        {
+          "objectId": 1,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.15,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.95,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.08,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 1,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.15,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.95,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.08,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 2,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.15,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.95,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.08,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 2,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.15,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.95,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.08,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 3,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.1,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.98,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.05,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 3,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.1,
+              "value": 1.1,
+              "interpolationType": "cubic",
+              "easeIn": true,
+              "easeOut": true
+            },
+            {
+              "time": 0.2,
+              "value": 0.98,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.3,
+              "value": 1.05,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pulse_effect",
+      "duration": 0.83,
+      "fps": 60,
+      "loop": true,
+      "keyframes": [
+        {
+          "objectId": 6,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.15,
+              "value": 1.4,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 6,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic",
+              "easeOut": true
+            },
+            {
+              "time": 0.15,
+              "value": 1.4,
+              "interpolationType": "cubic",
+              "easeIn": true
+            },
+            {
+              "time": 0.4,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 6,
+          "property": "opacity",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 0.4,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 0.8,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.4,
+              "value": 0.1,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.83,
+              "value": 0.4,
+              "interpolationType": "linear"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "heartbeat_fast",
+      "duration": 0.5,
+      "fps": 60,
+      "loop": true,
+      "keyframes": [
+        {
+          "objectId": 1,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.25,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 1,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.25,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 2,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.25,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 2,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.25,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 3,
+          "property": "scaleX",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.2,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        },
+        {
+          "objectId": 3,
+          "property": "scaleY",
+          "keyframes": [
+            {
+              "time": 0.0,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.05,
+              "value": 1.2,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.15,
+              "value": 1.0,
+              "interpolationType": "cubic"
+            },
+            {
+              "time": 0.5,
+              "value": 1.0,
+              "interpolationType": "linear"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "description": "Simple heart BPM monitor using basic shapes",
+    "heartDesign": "2 ellipses + 1 triangle = heart shape",
+    "bpmFormula": "duration = 60 / bpm",
+    "medicalUse": "Heart rate monitoring visualization"
+  }
+}
+

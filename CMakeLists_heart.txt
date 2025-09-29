@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 3.16)
+project(HeartBpmConverter)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Include nlohmann/json (header-only library)
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(json)
+
+# Heart BPM converter executable
+add_executable(heart_bpm_converter
+    heart_bpm_converter.cpp
+)
+
+target_link_libraries(heart_bpm_converter
+    nlohmann_json::nlohmann_json
+)
+
+# Install targets
+install(TARGETS heart_bpm_converter
+    RUNTIME DESTINATION bin
+)
+
+install(FILES 
+    heart_bpm.json
+    DESTINATION share/examples
+)
+
+# Print configuration info
+message(STATUS "Heart BPM Converter - Creates heart animations with BPM state machine control")

@@ -1,0 +1,455 @@
+{
+  "file": "build_converter_new/test_simple_fix.riv",
+  "version": "7.0",
+  "fileId": 0,
+  "headerKeys": [
+    {
+      "key": 3,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 4,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 5,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 7,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 8,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 11,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 12,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 13,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 14,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 15,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 16,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 17,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 20,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 21,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 23,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 37,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 40,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 41,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 123,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 124,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 129,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 164,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 196,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 236,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 747,
+      "names": [
+        "?"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "typeKey": 23,
+      "typeName": "type_23",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        }
+      ]
+    },
+    {
+      "typeKey": 1,
+      "typeName": "type_1",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 4,
+          "names": [
+            "?"
+          ],
+          "category": "string"
+        },
+        {
+          "key": 7,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 8,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 196,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 11,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 12,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 236,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        }
+      ]
+    },
+    {
+      "typeKey": 3,
+      "typeName": "type_3",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 4,
+          "names": [
+            "?"
+          ],
+          "category": "string"
+        },
+        {
+          "key": 13,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 14,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 15,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 16,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 17,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 23,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 129,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        }
+      ]
+    },
+    {
+      "typeKey": 7,
+      "typeName": "type_7",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 13,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 14,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 20,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 21,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 164,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 123,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        },
+        {
+          "key": 124,
+          "names": [
+            "?"
+          ],
+          "category": "double"
+        }
+      ]
+    },
+    {
+      "typeKey": 20,
+      "typeName": "type_20",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 41,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 747,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 40,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        }
+      ]
+    },
+    {
+      "typeKey": 18,
+      "typeName": "type_18",
+      "properties": [
+        {
+          "key": 3,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "uint"
+        },
+        {
+          "key": 37,
+          "names": [
+            "?"
+          ],
+          "category": "color"
+        }
+      ]
+    }
+  ],
+  "remainingBytes": 0
+}

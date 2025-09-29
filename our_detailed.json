@@ -1,0 +1,55 @@
+{
+  "file": "build_converter/test_clean.riv",
+  "version": "7.0",
+  "fileId": 0,
+  "headerKeys": [
+    {
+      "key": 5,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 7,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 8,
+      "names": [
+        "?"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "typeKey": 23,
+      "typeName": "type_23",
+      "properties": []
+    },
+    {
+      "typeKey": 1,
+      "typeName": "type_1",
+      "properties": [
+        {
+          "key": 7,
+          "names": [
+            "?"
+          ],
+          "category": "double",
+          "value": 400.0
+        },
+        {
+          "key": 8,
+          "names": [
+            "?"
+          ],
+          "category": "double",
+          "value": 600.0
+        }
+      ]
+    }
+  ],
+  "remainingBytes": 0
+}
