@@ -354,27 +354,10 @@ CoreDocument build_core_document(const Document& document,
                             shapeData.fill.color);
             }
             
-            // Add Feather if enabled
-            if (shapeData.fill.feather.enabled)
-            {
-                auto& feather = builder.addCore(new rive::Feather());
-                builder.setParent(feather, fill.id);
-                builder.set(feather, static_cast<uint16_t>(749), shapeData.fill.feather.strength); // strength
-                builder.set(feather, static_cast<uint16_t>(750), shapeData.fill.feather.offsetX); // offsetX
-                builder.set(feather, static_cast<uint16_t>(751), shapeData.fill.feather.offsetY); // offsetY
-                builder.set(feather, static_cast<uint16_t>(752), shapeData.fill.feather.inner); // inner
-            }
-            
-            // Add TrimPath for fill if enabled
-            if (shapeData.fill.trimPath.enabled)
-            {
-                auto& trim = builder.addCore(new rive::TrimPath());
-                builder.setParent(trim, fill.id);
-                builder.set(trim, static_cast<uint16_t>(114), shapeData.fill.trimPath.start);
-                builder.set(trim, static_cast<uint16_t>(115), shapeData.fill.trimPath.end);
-                builder.set(trim, static_cast<uint16_t>(116), shapeData.fill.trimPath.offset);
-                builder.set(trim, static_cast<uint16_t>(117), shapeData.fill.trimPath.mode);
-            }
+            // Feather and TrimPath - TODO: need proper attachment strategy
+            // Temporarily disabled pending investigation
+            // if (shapeData.fill.feather.enabled) { ... }
+            // if (shapeData.fill.trimPath.enabled) { ... }
         }
 
         if (shapeData.stroke.enabled)
@@ -409,16 +392,9 @@ CoreDocument build_core_document(const Document& document,
                 builder.set(dash2, static_cast<uint16_t>(693), false);
             }
             
-            // Add TrimPath if enabled
-            if (shapeData.stroke.trimPath.enabled)
-            {
-                auto& trim = builder.addCore(new rive::TrimPath());
-                builder.setParent(trim, stroke.id);
-                builder.set(trim, static_cast<uint16_t>(114), shapeData.stroke.trimPath.start); // start
-                builder.set(trim, static_cast<uint16_t>(115), shapeData.stroke.trimPath.end); // end
-                builder.set(trim, static_cast<uint16_t>(116), shapeData.stroke.trimPath.offset); // offset
-                builder.set(trim, static_cast<uint16_t>(117), shapeData.stroke.trimPath.mode); // mode
-            }
+            // TrimPath - TODO: needs different parent attachment strategy
+            // Temporarily disabled pending further investigation
+            // if (shapeData.stroke.trimPath.enabled) { ... }
         }
     }
 
