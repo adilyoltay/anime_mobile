@@ -1,143 +1,133 @@
-# RIV Runtime Format — Tersine Mühendislik Özeti
+# RIV Runtime Format - Reverse Engineering Notes
 
-Bu doküman, bu repo içindeki Rive Runtime’ın gerçek okuma yoluna dayanarak `.riv` dosya yapısını ve üretici tarafında uymamız gereken kuralları derler. Tüm çıkarımlar kaynak koda (özellikle src/file.cpp, include/rive/runtime_header.hpp ve core field type implementasyonları) ve yaptığımız hexdump/importer testlerine dayanmaktadır.
+Bu belge, `converter/` altindaki JSON -> RIV hattinin *bugunku* davranisini ozetler. Icerik resmi Rive runtime kaynak kodu (`include/rive/...`), kendi serializer implementasyonumuz (`converter/src/serializer.cpp`, `core_builder.cpp`) ve Rive Play ile yaptigimiz denemelerden turetilmistir. Amac sonraki oturumlarda ayni hatalari tekrarlamamak ve yeni tipler eklerken hangi kurallara uyuldugunu net bicimde hatirlamaktir.
 
-## 1) Üstbilgi (Header)
+## 1. Temel Ikili Yapilar
+- **VarUint**: Runtime LEB128 kullanir. Tum property anahtarlari ve tamsayi degerler bu sekilde yazilir.
+- **Float**: Runtime "double" alanlari 4 bayt little-endian float32 olarak bekler. Yazarken `VectorBinaryWriter::writeFloat` kullaniyoruz.
+- **Color**: 32 bit RGBA little-endian (0xAARRGGBB). `SolidColor` boyalarinda alfa belirtmek gerekirse burada set edilir.
+- **String**: VarUint uzunluk + ham UTF-8 bayt dizisi.
+- **Bool**: Header bitmapinde `uint` sayilir, payload tarafinda VarUint 0 veya 1 olarak yazilir.
 
-Sıralama (include/rive/runtime_header.hpp):
-- Magic: `"RIVE"` (4 bayt)
-- `majorVersion` (varuint)
-- `minorVersion` (varuint)
-- `fileId` (varuint)
-- Property ToC (Table of Contents): dosyada kullanılacak TÜM property key’leri, varuint olarak, `0` ile sonlanır. ToC yalnızca gerçekten yazılan anahtarları içermelidir.
-- Property “field type” bitmap’i: ToC’deki her property için 2‑bit’lik tür kodları.
+## 2. Dosya Basligi
+1. Magic: `RIVE`
+2. `majorVersion`, `minorVersion`: runtime sabitlerinden (bugun 7 ve 0) alinir.
+3. `fileId`: Simdilik 0.
+4. **Property ToC**: Dosyada kullanilan tum property anahtarlarinin sirali listesi. VarUint sirasi 0 ile biter. Biz `std::sort` ile artan sirada yaziyoruz.
+5. **Field-type bitmap**: ToC sirasi ile birebir ilerler. Runtime 32 bitlik kelime basina 4 adet 2-bit kod okur (shift 0, 2, 4, 6). Kodlar:
+   - 00 -> `CoreUintType`
+    - Bool alanlar dahil.
+   - 01 -> `CoreStringType`
+   - 10 -> `CoreDoubleType` (float32 yaziyoruz)
+   - 11 -> `CoreColorType`
 
-Alan türleri ve 2‑bit kodları (field_types ve src/file.cpp):
-- `CoreUintType::id = 0`  → header kodu 0
-- `CoreStringType::id = 1`→ header kodu 1
-- `CoreDoubleType::id = 2`→ header kodu 2 (runtime okuması 4B float32)
-- `CoreColorType::id = 3` → header kodu 3 (32‑bit RGBA)
-- `bool` alanlar header bitmap’te `uint` (0) olarak değerlendirilir ve payload’da varuint `0/1` yazılır.
+> ToC ile stream ayni anahtar setini tasimazsa importer "Unknown property key ... missing from property ToC" hatasi verir. Yeni property eklerken ToC ve bitmapi mutlaka guncelleyin.
 
-ÖNEMLİ ÇEŞİT (Bu Runtime’a özgü): Header bitmap okuması 32‑bit başına 4 adet 2‑bit kod tüketiyor.
-- Kod (include/rive/runtime_header.hpp) akışı: `currentBit` 8’den başlar; `currentBit == 8` olduğunda yeni `uint32` okunur, `currentBit=0` yapılır; her property’de `fieldIndex = (currentInt >> currentBit) & 3` ve `currentBit += 2` ilerler.
-- Bu davranış “32‑bit’te 4 kod” demektir (shift 0,2,4,6). Klasik 2‑bit×16/uint32 anlatımlarıyla uyumsuzdur. Converter’ın bitmap yazımı bu varyanta uymalıdır; aksi halde akış kayar ve importer yanlış tiplerle decode edip “Unknown property …/type_72” gibi hatalar verir.
+## 3. Nesne Sirasi ve Property'ler
+Serializer su akisi yazar:
 
-## 2) Nesne Akışı (Object Stream)
+1. **Backboard** (`typeKey 23`)
+   - `mainArtboardId (44)` -> 0
+2. **Artboard** (`typeKey 1`)
+   - `name (4)` -> JSON `artboard.name`
+   - `width (7)`, `height (8)` -> JSON boyutlari
+   - `clip (196)` -> true
+3. **LinearAnimation** (`typeKey 31`)
+   - Varsayilan "Default" animasyonu, UI'lerin bos listeyle calismadigi durumlari onlemek icin.
+   - Property'ler: `name (4)`="Default", `fps (56)`=60, `duration (57)`=60, `loopValue (59)`=1.
+   - `workStart (60)` ve `workEnd (61)` yazilmiyor. Runtime default olarak 0xFFFFFFFF kullaniyor; Play JSON ciktilarinda gorulen deger budur.
+4. Her **Shape** (`typeKey 3`)
+   - `x (13)` ve `y (14)` JSON `shape.x`, `shape.y` degerleri.
+5. **Parametric Path**
+   - Rectangle (`typeKey 7`): `width (20)`, `height (21)`, `linkCornerRadius (382)=false`.
+   - Ellipse (`typeKey 4`): `width (20)`, `height (21)`.
+6. **Fill / Stroke** ve **SolidColor** boyalar
+   - Fill (`typeKey 20`): `isVisible (41)`=true.
+   - Stroke (`typeKey 24`): `thickness (140)` JSON `stroke.thickness`.
+   - SolidColor (`typeKey 18`): `colorValue (37)` -> 0xAARRGGBB (JSON `#RRGGBB` parser sonucunda).
+7. **Asset placeholder'lari**
+   - `ImageAsset` (`typeKey 105`): `assetId (204)`=0.
+   - `FileAssetContents` (`typeKey 106`): `bytes (212)` -> bos (uzunluk 0, veri 0 bayt).
+   - Bu blok Backboard'dan sonra tek sefer yazilir. Rive Play asset chunk beklediginden placeholder'i tutuyoruz.
 
-Okuma (src/file.cpp → `readRuntimeObject`):
-1) `coreType` (varuint) → `CoreRegistry::makeCoreInstance(coreType)`.
-2) `propertyKey` (varuint) döngüsü; `0` görülünce nesne biter.
-3) Nesne property’yi tanımazsa tip belirleme sırası:
-   - `CoreRegistry::propertyFieldId(key)` → bulunamazsa
-   - Header ToC bitmap’inden `fieldId`
-   - Her ikisi de yoksa: `Unknown property key … missing from property ToC.`
+Her nesnenin property listesi `0` ile kapanir. Dosya sonunda ekstra 0 yazmiyoruz; importer buna gerek duymuyor.
 
-Property değer kodlaması:
-- `uint`/`Id`: varuint (LEB128)
-- “double” (runtime’da float32): 4B LE IEEE754 (ham kopya güvenli)
-- `color`: 32‑bit RGBA (0xAARRGGBB) tek `uint32` LE
-- `string`: varuint uzunluk + ham baytlar
-- `bool`: varuint `0/1`
+## 4. Component ID ve Parent Indexleme
+- Serializer artboard baslarken `localComponentIndex` haritasini sifirlar. Artboard id=0 olarak kaydedilir.
+- Tum `Component` turevleri icin `id (3)` local siraya gore yazilir. JSON'daki ham ID'ler kullanilmiyor.
+- `parentId (5)` ayarlanirken ebeveynin artboard ici index'i kullanilir.
+- Top-level (ebeveynsiz) component'lerde `parentId` yazilmaz. Importer bunu -1 olarak yorumlar.
+- Backboard component sayilmaz; `id` ve `parentId` eklenmez.
 
-Sonlandırmalar:
-- Her nesne property listesi `0` ile biter.
-- Akış sonunda tek bir `0` daha (null object) görülebilir; importer bunu no‑op sayar.
+## 5. Kullanilan Property Anahtarlarinin Ozeti
 
-## 3) Önemli TypeKey’ler ve Property Key’ler
+| Key | Aciklama |
+|-----|----------|
+| 3   | `ComponentBase::id`
+| 4   | `ComponentBase::name`
+| 5   | `ComponentBase::parentId`
+| 7   | `LayoutComponentBase::width`
+| 8   | `LayoutComponentBase::height`
+| 13  | `NodeBase::x`
+| 14  | `NodeBase::y`
+| 20  | `ParametricPathBase::width`
+| 21  | `ParametricPathBase::height`
+| 37  | `SolidColorBase::colorValue`
+| 41  | `ShapePaintBase::isVisible`
+| 44  | `Backboard::mainArtboardId`
+| 56  | `LinearAnimationBase::fps`
+| 57  | `LinearAnimationBase::duration`
+| 59  | `LinearAnimationBase::loopValue`
+| 140 | `StrokeBase::thickness`
+| 196 | `LayoutComponentBase::clip`
+| 204 | `FileAssetBase::assetId`
+| 212 | `FileAssetContentsBase::bytes`
+| 382 | `RectangleBase::linkCornerRadius`
 
-Sık TypeKey’ler (converter/typekey_mapping.json, generated headerlar):
-- `23` Backboard
-- `1`  Artboard
-- `3`  Shape
-- `7`  Rectangle
-- `4`  Ellipse
-- `20` Fill
-- `24` Stroke
-- `18` SolidColor
+Yeni property eklerken hem ToC'ye hem de bu tabloya not dusun.
 
-Sık Property Key’ler:
-- `3`  ComponentBase::id (uint) — biz yazıyoruz (eşleştirme/analiz için yararlı)
-- `5`  ComponentBase::parentId (uint) — hiyerarşi çözümü için kritik
-- `4`  ComponentBase::name (string)
-- `7`  LayoutComponentBase::width (float32)
-- `8`  LayoutComponentBase::height (float32)
-- `13` NodeBase::x (float32)
-- `14` NodeBase::y (float32)
-- `20` ParametricPathBase::width (float32)
-- `21` ParametricPathBase::height (float32)
-- `37` SolidColorBase::colorValue (color 0xAARRGGBB)
-- `41` ShapePaintBase::isVisible (bool→uint/0)
-- `196` LayoutComponentBase::clip (bool→uint/0)
-- `44` Backboard::mainArtboardId (Id/uint) — varsayılan artboard’u işaretlemek için faydalı
+## 6. JSON -> RIV Ornek Haritasi
+`shapes_demo.json` girdisi icin olusan hiyerarsi (typeKey -> local id):
+```
+Backboard(23)
+ \- Artboard(1) id=0
+     |- LinearAnimation(31) id=1
+     |- Shape(3) id=2
+     |   |- Rectangle(7) id=3
+     |   |- Fill(20) id=4
+     |   |   \- SolidColor(18) id=5
+     |   \- Stroke(24) id=6
+     |       \- SolidColor(18) id=7
+     \- Shape(3) id=8
+         |- Ellipse(4) id=9
+         \- Fill(20) id=10
+             \- SolidColor(18) id=11
 
-Notlar:
-- “Computed” alanlar (worldX, computedWidth vb.) serialize edilmez; ToC’ye de eklenmez.
-- `bool` payload’da varuint yazılır, header bitmap’te `uint(0)` kodlanır.
+ImageAsset(105)
+FileAssetContents(106)
+```
+`parentId` degerleri bu tabloya gore set edilir. Rive Play ve resmi importer artboard-local indexleme beklediginden bu siralama kritik.
 
-## 4) Hiyerarşi ve `parentId` Semantiği
+## 7. Asset Prelude Hakkinda
+- Placeholder blok, reel asset veri gerektirmeyen senaryolarda bile Play tarafinda bos asset listesi gorunmesini saglar.
+- Gercek dosya gommek istenirse `FileAssetContents::bytes` alanina `CoreBytesType` ile elde edilen veri yazilmalidir. Header ToC'de `212` kodunun olmasi zorunludur.
+- Ilerde farkli asset tipleri eklenecekse (mesela Artboard Catalog veya Drawable chain), ToC'yi genisletmek ve serializer akisini buna gore duzenlemek gerekir.
 
-Importer hiyerarşiyi `Component::validate` ve `onAddedDirty` (src/component.cpp) aşamalarında çözer:
-- `parentId(5)`, ARTBOARD İÇİ yerel indeksleri referanslar (artboard’ın `objects()` listesine göre). `id(3)` ile karıştırılmamalıdır; importer ebeveyn ararken `id(3)`’e bakmaz.
+## 8. Dogrulama Adimlari
+1. `cmake --build build_converter --target rive_convert_cli import_test`
+2. `./build_converter/converter/rive_convert_cli shapes_demo.json out.riv`
+3. `./build_converter/converter/import_test out.riv` -> SUCCESS mesajini bekleyin.
+4. `python3 converter/analyze_riv.py out.riv` calistirip `toc` ile `streamProps` listelerinin ayni oldugunu teyit edin.
+5. Rive Play uzerine surukleyip calismasini test edin.
 
-Minimal zincir için indeksleme örneği:
-- Artboard → indeks 0
-- İlk `Shape` → `parentId = 0`
-- `Rectangle` → `parentId = 1` (ebeveyn: Shape)
-- `Fill`/`Stroke` → `parentId = 1` (ebeveyn: Shape)
-- `SolidColor` → `parentId` = bağlı olduğu paint’in indeksi
+Hata durumunda tipik nedenler:
+- ToC ile stream arasinda fark (yeni property eklendi ama ToC guncellenmedi).
+- Parent indexleri karismis (artik artboard degistiginde `localComponentIndex` resetlenmediyse).
+- Asset placeholder'lari eksik (Play bos asset chunk bekliyor).
 
-Uygulama kuralları:
-- `Backboard` bir `Component` değildir; `id(3)`/`parentId(5)` yazmayın.
-- `id(3)` yazmak zorunlu değil ama analiz/izleme için yararlıdır.
-- `Backboard.mainArtboardId(44)`’ü ilgili artboard indeksine ayarlamak varsayılanı belirlemeye yardımcı olur.
+## 9. Acik Noktalar ve Yapilacaklar
+- **StateMachine** ve **ViewModel** destegi alinmadi. Runtime typeKey 33 ve iliskili property'lere gecilecekse serializer'a yeni blok eklenmeli.
+- **Drawable chain** ve **Artboard catalog** gibi yuksek seviye tipler referans `.riv` dosyalarinda yer aliyor. Komple sahneler icin bunlarin eklenmesi gerekebilir.
+- **Gercek asset verisi** icin `ImageAsset` uzerindeki diger property'ler (width, height, file path) arastirilacak.
 
-## 5) Sıra, ToC ve Terminasyon
-
-Önerilen nesne sırası: `Backboard (23) → Artboard (1) → Shape (3) → Rectangle (7) → Fill (20) → SolidColor (18)`.
-
-Önerilen property sırası (kolay teşhis için): `3 (id) → 5 (parent) → 7/8/13/14/20/21 (float32) → 4 (string) → 41/196 (bool/uint) → 37 (color)`.
-
-ToC:
-- Yalnızca gerçekten yazılan anahtarları içerir.
-- Bitmap, bu runtime’daki “32‑bit başına 4 kod” okuma düzeniyle uyumlu yazılmalıdır.
-
-Terminasyon:
-- Nesne sonu: tek `0`
-- Akış sonu: tek `0` (null)
-
-## 6) Asset ve Katalog Blokları
-
-Importer düz akışı kabul eder; asset/katalog olmadan da dosya yüklenebilir. Bazı araçlar (ör. Rive Play) beklentiler ekleyebilir:
-- `FileAssetContents` TypeKey: **106** — asset paketlerini taşır (boş paket de olabilir).
-- “Artboard Catalog” benzeri listeler: resmi tanım import akışında özel bir tip olarak yer almıyor; Play’e özel bir üst katman olabilir. Şimdilik “TBD”.
-
-Öneri: Önce hiyerarşi ve property hizasını sağlamlaştırın; ardından gerektiğinde asset/katalog placeholder’larını ekleyin.
-
-## 7) Saha Hataları ve Teşhis İpuçları
-
-Belirtiler → Olası Nedenler:
-- `Unknown property key 8648/...`, `type_72` gibi sahte nesneler → Header bitmap paketi runtime varyantıyla uyumsuz (özellikle 2‑bit paketlemenin yanlış grup boyu) veya ToC≠stream.
-- Artboard‑only dosya bile `Malformed` → `parentId` karışıklığı (id(3) vs artboard‑local indeks), Backboard/Artboard property sonlandırmalarında fazladan/eksik `0`.
-- Hiyerarşi çözülemiyor → `parentId` artboard‑local indeksleri işaret etmiyor; builder ID’leri doğrudan kullanılmış.
-
-Kontrol listesi:
-- ToC ⟷ stream birebir (serializer sonunda eşitlik kontrolü yapın).
-- Bitmap paketi bu runtime’ın okuma biçimine uyumlu.
-- `float` 4B LE ham yazım; `string` varlen+bytes; `bool` varuint 0/1; `color` 4B RGBA.
-- Her nesnede tek `0`, akış sonunda tek `0`.
-- `Backboard` için component alanı yazmayın; gerekirse `mainArtboardId(44)` ayarlayın.
-
-## 8) Mevcut Uygulama Durumu (Converter)
-
-- Serializer: ToC’yi dinamik toplar, field türlerini 2‑bit’e map’ler ve unified writer ile değerleri doğru ikili formda yazar.
-- Builder: Artboard/Shape/Rectangle/Fill/Stroke/SolidColor için gerekli property’leri sağlar. `parentId` tekrar yazımı kaldırılmalı ve artboard‑local indeks remap’i uygulanmalıdır.
-- Asset/katalog placeholder’ları şu an devre dışı; hiyerarşi stabilize edildikten sonra eklenecek.
-
-## 9) Minimal Örnekler
-
-- Artboard‑Only: Backboard(23), Artboard(1) → ToC: `[3,5,7,8]` (isteğe bağlı `44`).
-- Shape/Rectangle: Artboard’a ek olarak Shape(3)[`5`], Rectangle(7)[`5,13,14,(20,21)`].
-- Boyutsal alanlar (7,8,13,14,20,21) 4B float32 LE yazılır.
-
-Bu doküman, her yeni doğrulama ve import davranışı tespitinde güncellenecektir.
+Bu dokumani guncel tutun. Yeni tip ekledigimizde veya runtime davranisi degistiginde once burada not alin, sonra kodu degistirin.
