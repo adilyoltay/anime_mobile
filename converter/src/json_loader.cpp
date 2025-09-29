@@ -44,9 +44,21 @@ rive_converter::ShapeType parse_shape_type(const std::string& type)
     std::string lowered = type;
     std::transform(lowered.begin(), lowered.end(), lowered.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    if (lowered == "ellipse")
+    if (lowered == "ellipse" || lowered == "circle")
     {
         return rive_converter::ShapeType::ellipse;
+    }
+    else if (lowered == "triangle")
+    {
+        return rive_converter::ShapeType::triangle;
+    }
+    else if (lowered == "polygon")
+    {
+        return rive_converter::ShapeType::polygon;
+    }
+    else if (lowered == "star")
+    {
+        return rive_converter::ShapeType::star;
     }
     return rive_converter::ShapeType::rectangle;
 }
@@ -76,6 +88,9 @@ Document parse_json(const std::string& json_content)
             data.y = shape.value("y", data.y);
             data.width = shape.value("width", data.width);
             data.height = shape.value("height", data.height);
+            data.points = shape.value("points", data.points);
+            data.cornerRadius = shape.value("cornerRadius", data.cornerRadius);
+            data.innerRadius = shape.value("innerRadius", data.innerRadius);
 
             if (shape.contains("fill"))
             {

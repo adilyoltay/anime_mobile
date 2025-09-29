@@ -4,6 +4,9 @@
 #include "rive/shapes/rectangle.hpp"
 #include "rive/shapes/shape.hpp"
 #include "rive/shapes/ellipse.hpp"
+#include "rive/shapes/triangle.hpp"
+#include "rive/shapes/polygon.hpp"
+#include "rive/shapes/star.hpp"
 #include "rive/shapes/paint/fill.hpp"
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
@@ -20,6 +23,9 @@
 #include "rive/generated/layout_component_base.hpp"
 #include "rive/generated/node_base.hpp"
 #include "rive/generated/shapes/rectangle_base.hpp"
+#include "rive/generated/shapes/triangle_base.hpp"
+#include "rive/generated/shapes/polygon_base.hpp"
+#include "rive/generated/shapes/star_base.hpp"
 #include "rive/generated/shapes/paint/fill_base.hpp"
 #include "rive/generated/shapes/paint/solid_color_base.hpp"
 #include "rive/generated/shapes/paint/stroke_base.hpp"
@@ -111,11 +117,14 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case rive::ShapePaintBase::isVisiblePropertyKey:
                 case rive::LayoutComponentBase::clipPropertyKey:
                 case rive::RectangleBase::linkCornerRadiusPropertyKey:
+                case rive::PolygonBase::pointsPropertyKey:
                 case 51: // KeyedObject::objectId
                 case 53: // KeyedProperty::propertyKey
                 case 67: // KeyFrame::frame
                     type = rive::CoreUintType::id;
                     break;
+                case rive::PolygonBase::cornerRadiusPropertyKey:
+                case rive::StarBase::innerRadiusPropertyKey:
                 case 70: // KeyFrameDouble::value
                     type = rive::CoreDoubleType::id;
                     break;
@@ -208,6 +217,52 @@ CoreDocument build_core_document(const Document& document,
                             shapeData.height);
                 break;
             }
+            case ShapeType::triangle:
+            {
+                auto& triangle = builder.addCore(new rive::Triangle());
+                builder.setParent(triangle, shape.id);
+                builder.set(triangle, rive::NodeBase::xPropertyKey, 0.0f);
+                builder.set(triangle, rive::NodeBase::yPropertyKey, 0.0f);
+                builder.set(triangle, rive::ParametricPathBase::widthPropertyKey,
+                            shapeData.width);
+                builder.set(triangle, rive::ParametricPathBase::heightPropertyKey,
+                            shapeData.height);
+                break;
+            }
+            case ShapeType::polygon:
+            {
+                auto& polygon = builder.addCore(new rive::Polygon());
+                builder.setParent(polygon, shape.id);
+                builder.set(polygon, rive::NodeBase::xPropertyKey, 0.0f);
+                builder.set(polygon, rive::NodeBase::yPropertyKey, 0.0f);
+                builder.set(polygon, rive::ParametricPathBase::widthPropertyKey,
+                            shapeData.width);
+                builder.set(polygon, rive::ParametricPathBase::heightPropertyKey,
+                            shapeData.height);
+                builder.set(polygon, rive::PolygonBase::pointsPropertyKey,
+                            shapeData.points);
+                builder.set(polygon, rive::PolygonBase::cornerRadiusPropertyKey,
+                            shapeData.cornerRadius);
+                break;
+            }
+            case ShapeType::star:
+            {
+                auto& star = builder.addCore(new rive::Star());
+                builder.setParent(star, shape.id);
+                builder.set(star, rive::NodeBase::xPropertyKey, 0.0f);
+                builder.set(star, rive::NodeBase::yPropertyKey, 0.0f);
+                builder.set(star, rive::ParametricPathBase::widthPropertyKey,
+                            shapeData.width);
+                builder.set(star, rive::ParametricPathBase::heightPropertyKey,
+                            shapeData.height);
+                builder.set(star, rive::PolygonBase::pointsPropertyKey,
+                            shapeData.points);
+                builder.set(star, rive::PolygonBase::cornerRadiusPropertyKey,
+                            shapeData.cornerRadius);
+                builder.set(star, rive::StarBase::innerRadiusPropertyKey,
+                            shapeData.innerRadius);
+                break;
+            }
         }
 
         if (shapeData.fill.enabled)
@@ -264,6 +319,7 @@ CoreDocument build_core_document(const Document& document,
                 auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
                 builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame)); // frame
                 builder.set(keyframe, static_cast<uint16_t>(70), kf.value); // value
+                builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // interpolationType = 1 (cubic)
             }
         }
     }

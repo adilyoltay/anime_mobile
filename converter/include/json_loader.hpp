@@ -10,7 +10,10 @@ namespace rive_converter
 enum class ShapeType
 {
     rectangle,
-    ellipse
+    ellipse,
+    triangle,
+    polygon,
+    star
 };
 
 struct ShapePaint
@@ -33,6 +36,10 @@ struct ShapeData
     float y = 0.0f;
     float width = 100.0f;
     float height = 100.0f;
+    // Polygon/Star specific
+    uint32_t points = 5;
+    float cornerRadius = 0.0f;
+    float innerRadius = 0.5f; // Star only
     ShapePaint fill;
     ShapeStroke stroke;
 };
