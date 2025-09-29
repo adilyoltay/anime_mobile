@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/adilyoltay/Desktop/rive-runtime/converter/analyze_riv.py", line 269, in <module>
+    main()
+  File "/Users/adilyoltay/Desktop/rive-runtime/converter/analyze_riv.py", line 263, in main
+    info = analyze(args.file, return_data=True)
+  File "/Users/adilyoltay/Desktop/rive-runtime/converter/analyze_riv.py", line 194, in analyze
+    pos, objects = parse_objects(data, pos_bitmap_end, header_keys)
+  File "/Users/adilyoltay/Desktop/rive-runtime/converter/analyze_riv.py", line 140, in parse_objects
+    type_key, pos = read_varuint(data, pos)
+  File "/Users/adilyoltay/Desktop/rive-runtime/converter/analyze_riv.py", line 100, in read_varuint
+    raise EOFError("Unexpected EOF while reading varuint")
+EOFError: Unexpected EOF while reading varuint

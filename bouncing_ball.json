@@ -2,115 +2,16 @@
   "artboard": {
     "name": "BouncingBall",
     "width": 400,
-    "height": 600,
-    "backgroundColor": "#87CEEB",
-    "clip": true
+    "height": 600
   },
-  "objects": [
+  "shapes": [
     {
       "type": "ellipse",
-      "name": "ball",
-      "id": 1,
       "x": 200,
       "y": 100,
-      "width": 50,
-      "height": 50,
-      "fill": {
-        "type": "solid",
-        "color": "#FF4444"
-      },
-      "stroke": {
-        "color": "#CC0000",
-        "thickness": 2
-      }
-    },
-    {
-      "type": "rectangle",
-      "name": "ground",
-      "id": 2,
-      "x": 0,
-      "y": 550,
-      "width": 400,
-      "height": 50,
-      "fill": {
-        "type": "solid",
-        "color": "#228B22"
-      }
+      "width": 80,
+      "height": 80,
+      "fill": { "color": "#FF5733" }
     }
-  ],
-  "animations": [
-    {
-      "name": "bounce",
-      "duration": 2.0,
-      "workArea": {
-        "start": 0,
-        "end": 2.0
-      },
-      "fps": 60,
-      "loop": true,
-      "keyframes": [
-        {
-          "objectId": 1,
-          "property": "y",
-          "keyframes": [
-            {
-              "time": 0.0,
-              "value": 100,
-              "interpolationType": "cubic",
-              "easeIn": true
-            },
-            {
-              "time": 0.8,
-              "value": 500,
-              "interpolationType": "cubic",
-              "easeOut": true
-            },
-            {
-              "time": 1.6,
-              "value": 200,
-              "interpolationType": "cubic",
-              "easeOut": true
-            },
-            {
-              "time": 2.0,
-              "value": 100,
-              "interpolationType": "cubic"
-            }
-          ]
-        },
-        {
-          "objectId": 1,
-          "property": "scaleY",
-          "keyframes": [
-            {
-              "time": 0.0,
-              "value": 1.0,
-              "interpolationType": "linear"
-            },
-            {
-              "time": 0.7,
-              "value": 1.0,
-              "interpolationType": "cubic"
-            },
-            {
-              "time": 0.8,
-              "value": 0.8,
-              "interpolationType": "cubic"
-            },
-            {
-              "time": 0.9,
-              "value": 1.2,
-              "interpolationType": "cubic"
-            },
-            {
-              "time": 1.0,
-              "value": 1.0,
-              "interpolationType": "linear"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "stateMachines": []
+  ]
 }

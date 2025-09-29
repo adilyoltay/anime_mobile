@@ -1,0 +1,268 @@
+{
+  "file": "converter/exampleriv/rectangle.riv",
+  "version": "7.0",
+  "fileId": 1731482,
+  "headerKeys": [
+    {
+      "key": 196,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 236,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 494,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 613,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 614,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 615,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 616,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 617,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 618,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 619,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 620,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 625,
+      "names": [
+        "?"
+      ]
+    },
+    {
+      "key": 626,
+      "names": [
+        "?"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "typeKey": 23,
+      "typeName": "type_23",
+      "properties": []
+    },
+    {
+      "typeKey": 1,
+      "typeName": "type_1",
+      "properties": [
+        {
+          "key": 196,
+          "names": [
+            "?"
+          ],
+          "category": "uint",
+          "value": 0
+        },
+        {
+          "key": 7,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "typeKey": 8698,
+      "typeName": "type_8698",
+      "properties": [
+        {
+          "key": 8,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "typeKey": 8698,
+      "typeName": "type_8698",
+      "properties": [
+        {
+          "key": 494,
+          "names": [
+            "?"
+          ],
+          "category": "uint",
+          "value": 5
+        },
+        {
+          "key": 236,
+          "names": [
+            "?"
+          ],
+          "category": "uint",
+          "value": 0
+        },
+        {
+          "key": 4,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 8
+        },
+        {
+          "key": 65,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 114
+        },
+        {
+          "key": 116,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 98
+        },
+        {
+          "key": 111,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 97
+        },
+        {
+          "key": 114,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "typeKey": 3,
+      "typeName": "type_3",
+      "properties": [
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 0
+        },
+        {
+          "key": 13,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "typeKey": 127,
+      "typeName": "type_127",
+      "properties": [
+        {
+          "key": 67,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 14
+        }
+      ]
+    },
+    {
+      "typeKey": 1098432,
+      "typeName": "type_1098432",
+      "properties": []
+    },
+    {
+      "typeKey": 7,
+      "typeName": "type_7",
+      "properties": [
+        {
+          "key": 5,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 1
+        },
+        {
+          "key": 20,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "typeKey": 88,
+      "typeName": "type_88",
+      "properties": [
+        {
+          "key": 67,
+          "names": [
+            "?"
+          ],
+          "category": "unknown",
+          "value": 21
+        }
+      ]
+    }
+  ],
+  "remainingBytes": 119
+}

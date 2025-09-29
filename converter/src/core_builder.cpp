@@ -18,6 +18,7 @@
 #include "rive/generated/shapes/paint/solid_color_base.hpp"
 #include "rive/generated/shapes/paint/stroke_base.hpp"
 #include "rive/generated/transform_component_base.hpp"
+#include "rive/generated/world_transform_component_base.hpp"
 #include "rive/generated/drawable_base.hpp"
 #include "rive/generated/shapes/parametric_path_base.hpp"
 #include "rive/generated/shapes/paint/shape_paint_base.hpp"
@@ -89,6 +90,10 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case rive::ParametricPathBase::widthPropertyKey:
                 case rive::ParametricPathBase::heightPropertyKey:
                 case rive::StrokeBase::thicknessPropertyKey:
+                case rive::TransformComponentBase::rotationPropertyKey:
+                case rive::TransformComponentBase::scaleXPropertyKey:
+                case rive::TransformComponentBase::scaleYPropertyKey:
+                case rive::WorldTransformComponentBase::opacityPropertyKey:
                     type = rive::CoreDoubleType::id;
                     break;
                 case rive::SolidColorBase::colorValuePropertyKey:
@@ -164,6 +169,11 @@ CoreDocument build_core_document(const Document& document,
         builder.setParent(shape, artboard.id);
         builder.set(shape, rive::NodeBase::xPropertyKey, shapeData.x);
         builder.set(shape, rive::NodeBase::yPropertyKey, shapeData.y);
+        // Transform defaults
+        builder.set(shape, rive::TransformComponentBase::rotationPropertyKey, 0.0f);
+        builder.set(shape, rive::TransformComponentBase::scaleXPropertyKey, 1.0f);
+        builder.set(shape, rive::TransformComponentBase::scaleYPropertyKey, 1.0f);
+        builder.set(shape, rive::WorldTransformComponentBase::opacityPropertyKey, 1.0f);
 
         switch (shapeData.type)
         {
