@@ -1,0 +1,69 @@
+{
+  "artboard": {
+    "name": "HealthBreathe",
+    "width": 600,
+    "height": 600
+  },
+  "shapes": [
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 300,
+      "height": 300,
+      "gradient": {
+        "type": "radial",
+        "stops": [
+          {"position": 0.0, "color": "#4A90E2"},
+          {"position": 0.5, "color": "#67B7F7"},
+          {"position": 1.0, "color": "#A8D5FF"}
+        ]
+      }
+    },
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 250,
+      "height": 250,
+      "gradient": {
+        "type": "radial",
+        "stops": [
+          {"position": 0.0, "color": "#67B7F7"},
+          {"position": 0.7, "color": "#A8D5FF"},
+          {"position": 1.0, "color": "#E3F2FF"}
+        ]
+      }
+    },
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 150,
+      "height": 150,
+      "fill": { "color": "#FFFFFF" }
+    }
+  ],
+  "animations": [
+    {
+      "name": "Breathe",
+      "fps": 60,
+      "duration": 600,
+      "loop": 1,
+      "scaleKeyframes": [
+        {"frame": 0, "value": 0.6},
+        {"frame": 180, "value": 1.0},
+        {"frame": 240, "value": 1.0},
+        {"frame": 420, "value": 0.6},
+        {"frame": 600, "value": 0.6}
+      ],
+      "opacityKeyframes": [
+        {"frame": 0, "value": 0.5},
+        {"frame": 180, "value": 1.0},
+        {"frame": 240, "value": 1.0},
+        {"frame": 420, "value": 0.5},
+        {"frame": 600, "value": 0.5}
+      ]
+    }
+  ]
+}

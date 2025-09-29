@@ -16,10 +16,24 @@ enum class ShapeType
     star
 };
 
+struct GradientStop
+{
+    float position = 0.0f;
+    uint32_t color = 0xFFFFFFFF;
+};
+
+struct GradientData
+{
+    std::string type = "radial"; // "radial" or "linear"
+    std::vector<GradientStop> stops;
+};
+
 struct ShapePaint
 {
     bool enabled = false;
     uint32_t color = 0xFFFFFFFF;
+    bool hasGradient = false;
+    GradientData gradient;
 };
 
 struct ShapeStroke

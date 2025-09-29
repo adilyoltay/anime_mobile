@@ -10,6 +10,9 @@
 #include "rive/shapes/paint/fill.hpp"
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
+#include "rive/shapes/paint/radial_gradient.hpp"
+#include "rive/shapes/paint/linear_gradient.hpp"
+#include "rive/shapes/paint/gradient_stop.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
@@ -109,6 +112,7 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     type = rive::CoreDoubleType::id;
                     break;
                 case rive::SolidColorBase::colorValuePropertyKey:
+                case 38: // GradientStop::colorValue
                     type = rive::CoreColorType::id;
                     break;
                 case rive::ComponentBase::namePropertyKey:
@@ -125,6 +129,7 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
                 case rive::StarBase::innerRadiusPropertyKey:
+                case 39: // GradientStop::position
                 case 70: // KeyFrameDouble::value
                     type = rive::CoreDoubleType::id;
                     break;
@@ -271,10 +276,38 @@ CoreDocument build_core_document(const Document& document,
             builder.setParent(fill, shape.id);
             builder.set(fill, rive::ShapePaintBase::isVisiblePropertyKey, true);
 
-            auto& solid = builder.addCore(new rive::SolidColor());
-            builder.setParent(solid, fill.id);
-            builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
-                        shapeData.fill.color);
+            if (shapeData.fill.hasGradient)
+            {
+                // Create gradient (radial or linear)
+                rive::Core* gradientCore = nullptr;
+                if (shapeData.fill.gradient.type == "radial")
+                {
+                    gradientCore = new rive::RadialGradient();
+                }
+                else
+                {
+                    gradientCore = new rive::LinearGradient();
+                }
+                
+                auto& gradient = builder.addCore(gradientCore);
+                builder.setParent(gradient, fill.id);
+                
+                // Add gradient stops
+                for (const auto& stopData : shapeData.fill.gradient.stops)
+                {
+                    auto& stop = builder.addCore(new rive::GradientStop());
+                    builder.setParent(stop, gradient.id);
+                    builder.set(stop, static_cast<uint16_t>(38), stopData.color); // colorValue
+                    builder.set(stop, static_cast<uint16_t>(39), stopData.position); // position
+                }
+            }
+            else
+            {
+                auto& solid = builder.addCore(new rive::SolidColor());
+                builder.setParent(solid, fill.id);
+                builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
+                            shapeData.fill.color);
+            }
         }
 
         if (shapeData.stroke.enabled)

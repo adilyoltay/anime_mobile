@@ -92,7 +92,27 @@ Document parse_json(const std::string& json_content)
             data.cornerRadius = shape.value("cornerRadius", data.cornerRadius);
             data.innerRadius = shape.value("innerRadius", data.innerRadius);
 
-            if (shape.contains("fill"))
+            // Parse gradient
+            if (shape.contains("gradient"))
+            {
+                const auto& grad = shape["gradient"];
+                data.fill.hasGradient = true;
+                data.fill.enabled = true;
+                data.fill.gradient.type = grad.value("type", std::string("radial"));
+                
+                if (grad.contains("stops"))
+                {
+                    for (const auto& stop : grad["stops"])
+                    {
+                        GradientStop gs;
+                        gs.position = stop.value("position", 0.0f);
+                        std::string color = stop.value("color", std::string("#FFFFFF"));
+                        gs.color = parse_color_string(color, 0xFFFFFFFF);
+                        data.fill.gradient.stops.push_back(gs);
+                    }
+                }
+            }
+            else if (shape.contains("fill"))
             {
                 const auto& fill = shape["fill"];
                 std::string color = fill.value("color", std::string());
