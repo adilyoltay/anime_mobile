@@ -892,6 +892,11 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/advance_flags.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/advancing_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/animation.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/interpolating_keyframe.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyed_object.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyed_property.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_double.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_interpolator.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/linear_animation.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/loop.hpp
@@ -934,6 +939,11 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/enum_bitset.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/event.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/animation_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/interpolating_keyframe_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyed_object_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyed_property_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_double_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_interpolator_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/linear_animation_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_base.hpp

@@ -237,8 +237,9 @@ CoreDocument build_core_document(const Document& document,
     }
 
     // Build animations from JSON
-    for (const auto& animData : document.animations)
+    for (size_t animIdx = 0; animIdx < document.animations.size(); ++animIdx)
     {
+        const auto& animData = document.animations[animIdx];
         auto& anim = builder.addCore(new rive::LinearAnimation());
         builder.set(anim, rive::AnimationBase::namePropertyKey, animData.name);
         builder.set(anim, rive::LinearAnimationBase::fpsPropertyKey, animData.fps);
@@ -248,8 +249,12 @@ CoreDocument build_core_document(const Document& document,
         // For now, only support y-position animation on first shape
         if (!animData.yKeyframes.empty() && !shapeIds.empty())
         {
+            // Calculate artboard-local index for the first shape
+            // Artboard = 0, animations come next, then shapes
+            uint32_t shapeLocalIndex = 1 + static_cast<uint32_t>(document.animations.size());
+            
             auto& keyedObj = builder.addCore(new rive::KeyedObject());
-            builder.set(keyedObj, static_cast<uint16_t>(51), shapeIds[0]); // objectId
+            builder.set(keyedObj, static_cast<uint16_t>(51), shapeLocalIndex); // objectId (artboard-local)
 
             auto& keyedProp = builder.addCore(new rive::KeyedProperty());
             builder.set(keyedProp, static_cast<uint16_t>(53), static_cast<uint32_t>(14)); // propertyKey = y (14)
