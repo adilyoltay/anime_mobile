@@ -13,7 +13,9 @@ enum class ShapeType
     ellipse,
     triangle,
     polygon,
-    star
+    star,
+    image,
+    clipping
 };
 
 struct GradientStop
@@ -54,6 +56,14 @@ struct ShapeData
     uint32_t points = 5;
     float cornerRadius = 0.0f;
     float innerRadius = 0.5f; // Star only
+    // Image specific
+    uint32_t assetId = 0;
+    float originX = 0.5f;
+    float originY = 0.5f;
+    // ClippingShape specific
+    uint32_t sourceId = 0; // ID of shape to use as clip source
+    uint32_t fillRule = 0; // 0=nonZero, 1=evenOdd
+    bool clipVisible = true;
     ShapePaint fill;
     ShapeStroke stroke;
 };

@@ -7,6 +7,8 @@
 #include "rive/shapes/triangle.hpp"
 #include "rive/shapes/polygon.hpp"
 #include "rive/shapes/star.hpp"
+#include "rive/shapes/clipping_shape.hpp"
+#include "rive/shapes/image.hpp"
 #include "rive/shapes/paint/fill.hpp"
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
@@ -29,6 +31,8 @@
 #include "rive/generated/shapes/triangle_base.hpp"
 #include "rive/generated/shapes/polygon_base.hpp"
 #include "rive/generated/shapes/star_base.hpp"
+#include "rive/generated/shapes/clipping_shape_base.hpp"
+#include "rive/generated/shapes/image_base.hpp"
 #include "rive/generated/shapes/paint/fill_base.hpp"
 #include "rive/generated/shapes/paint/solid_color_base.hpp"
 #include "rive/generated/shapes/paint/stroke_base.hpp"
@@ -125,12 +129,18 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 51: // KeyedObject::objectId
                 case 53: // KeyedProperty::propertyKey
                 case 67: // KeyFrame::frame
+                case 92: // ClippingShape::sourceId
+                case 93: // ClippingShape::fillRule
+                case 94: // ClippingShape::isVisible
+                case 206: // Image::assetId
                     type = rive::CoreUintType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
                 case rive::StarBase::innerRadiusPropertyKey:
                 case 39: // GradientStop::position
                 case 70: // KeyFrameDouble::value
+                case 380: // Image::originX
+                case 381: // Image::originY
                     type = rive::CoreDoubleType::id;
                     break;
                 default:
@@ -266,6 +276,24 @@ CoreDocument build_core_document(const Document& document,
                             shapeData.cornerRadius);
                 builder.set(star, rive::StarBase::innerRadiusPropertyKey,
                             shapeData.innerRadius);
+                break;
+            }
+            case ShapeType::image:
+            {
+                auto& image = builder.addCore(new rive::Image());
+                builder.setParent(image, shape.id);
+                builder.set(image, static_cast<uint16_t>(206), shapeData.assetId); // assetId
+                builder.set(image, static_cast<uint16_t>(380), shapeData.originX); // originX
+                builder.set(image, static_cast<uint16_t>(381), shapeData.originY); // originY
+                break;
+            }
+            case ShapeType::clipping:
+            {
+                auto& clip = builder.addCore(new rive::ClippingShape());
+                builder.setParent(clip, artboard.id);
+                builder.set(clip, static_cast<uint16_t>(92), shapeData.sourceId); // sourceId
+                builder.set(clip, static_cast<uint16_t>(93), shapeData.fillRule); // fillRule
+                builder.set(clip, static_cast<uint16_t>(94), shapeData.clipVisible); // isVisible
                 break;
             }
         }

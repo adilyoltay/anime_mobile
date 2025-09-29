@@ -60,6 +60,14 @@ rive_converter::ShapeType parse_shape_type(const std::string& type)
     {
         return rive_converter::ShapeType::star;
     }
+    else if (lowered == "image")
+    {
+        return rive_converter::ShapeType::image;
+    }
+    else if (lowered == "clipping" || lowered == "clip")
+    {
+        return rive_converter::ShapeType::clipping;
+    }
     return rive_converter::ShapeType::rectangle;
 }
 } // namespace
@@ -91,6 +99,12 @@ Document parse_json(const std::string& json_content)
             data.points = shape.value("points", data.points);
             data.cornerRadius = shape.value("cornerRadius", data.cornerRadius);
             data.innerRadius = shape.value("innerRadius", data.innerRadius);
+            data.assetId = shape.value("assetId", data.assetId);
+            data.originX = shape.value("originX", data.originX);
+            data.originY = shape.value("originY", data.originY);
+            data.sourceId = shape.value("sourceId", data.sourceId);
+            data.fillRule = shape.value("fillRule", data.fillRule);
+            data.clipVisible = shape.value("clipVisible", data.clipVisible);
 
             // Parse gradient
             if (shape.contains("gradient"))
