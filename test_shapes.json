@@ -1,0 +1,16 @@
+{
+  "artboard": {
+    "name": "TestShapes",
+    "width": 500,
+    "height": 400
+  },
+  "rectangles": [
+    {
+      "x": 100,
+      "y": 100,
+      "width": 150,
+      "height": 100,
+      "color": 4278255615
+    }
+  ]
+}
