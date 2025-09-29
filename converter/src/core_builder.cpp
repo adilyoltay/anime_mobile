@@ -15,6 +15,10 @@
 #include "rive/shapes/paint/radial_gradient.hpp"
 #include "rive/shapes/paint/linear_gradient.hpp"
 #include "rive/shapes/paint/gradient_stop.hpp"
+#include "rive/shapes/paint/dash.hpp"
+#include "rive/shapes/paint/dash_path.hpp"
+#include "rive/shapes/paint/trim_path.hpp"
+#include "rive/shapes/paint/feather.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
@@ -133,6 +137,11 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 93: // ClippingShape::fillRule
                 case 94: // ClippingShape::isVisible
                 case 206: // Image::assetId
+                case 117: // TrimPath::modeValue
+                case 693: // Dash::lengthIsPercentage
+                case 691: // DashPath::offsetIsPercentage
+                case 752: // Feather::inner
+                case 748: // Feather::spaceValue
                     type = rive::CoreUintType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
@@ -141,6 +150,14 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 70: // KeyFrameDouble::value
                 case 380: // Image::originX
                 case 381: // Image::originY
+                case 114: // TrimPath::start
+                case 115: // TrimPath::end
+                case 116: // TrimPath::offset
+                case 692: // Dash::length
+                case 690: // DashPath::offset
+                case 749: // Feather::strength
+                case 750: // Feather::offsetX
+                case 751: // Feather::offsetY
                     type = rive::CoreDoubleType::id;
                     break;
                 default:
@@ -336,6 +353,28 @@ CoreDocument build_core_document(const Document& document,
                 builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
                             shapeData.fill.color);
             }
+            
+            // Add Feather if enabled
+            if (shapeData.fill.feather.enabled)
+            {
+                auto& feather = builder.addCore(new rive::Feather());
+                builder.setParent(feather, fill.id);
+                builder.set(feather, static_cast<uint16_t>(749), shapeData.fill.feather.strength); // strength
+                builder.set(feather, static_cast<uint16_t>(750), shapeData.fill.feather.offsetX); // offsetX
+                builder.set(feather, static_cast<uint16_t>(751), shapeData.fill.feather.offsetY); // offsetY
+                builder.set(feather, static_cast<uint16_t>(752), shapeData.fill.feather.inner); // inner
+            }
+            
+            // Add TrimPath for fill if enabled
+            if (shapeData.fill.trimPath.enabled)
+            {
+                auto& trim = builder.addCore(new rive::TrimPath());
+                builder.setParent(trim, fill.id);
+                builder.set(trim, static_cast<uint16_t>(114), shapeData.fill.trimPath.start);
+                builder.set(trim, static_cast<uint16_t>(115), shapeData.fill.trimPath.end);
+                builder.set(trim, static_cast<uint16_t>(116), shapeData.fill.trimPath.offset);
+                builder.set(trim, static_cast<uint16_t>(117), shapeData.fill.trimPath.mode);
+            }
         }
 
         if (shapeData.stroke.enabled)
@@ -349,6 +388,37 @@ CoreDocument build_core_document(const Document& document,
             builder.setParent(solid, stroke.id);
             builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
                         shapeData.stroke.color);
+            
+            // Add Dash if enabled
+            if (shapeData.stroke.dash.enabled)
+            {
+                auto& dashPath = builder.addCore(new rive::DashPath());
+                builder.setParent(dashPath, stroke.id);
+                builder.set(dashPath, static_cast<uint16_t>(690), 0.0f); // offset
+                builder.set(dashPath, static_cast<uint16_t>(691), false); // offsetIsPercentage
+                
+                // Add dash segments
+                auto& dash1 = builder.addCore(new rive::Dash());
+                builder.setParent(dash1, dashPath.id);
+                builder.set(dash1, static_cast<uint16_t>(692), shapeData.stroke.dash.length);
+                builder.set(dash1, static_cast<uint16_t>(693), shapeData.stroke.dash.lengthIsPercentage);
+                
+                auto& dash2 = builder.addCore(new rive::Dash());
+                builder.setParent(dash2, dashPath.id);
+                builder.set(dash2, static_cast<uint16_t>(692), shapeData.stroke.dash.gap);
+                builder.set(dash2, static_cast<uint16_t>(693), false);
+            }
+            
+            // Add TrimPath if enabled
+            if (shapeData.stroke.trimPath.enabled)
+            {
+                auto& trim = builder.addCore(new rive::TrimPath());
+                builder.setParent(trim, stroke.id);
+                builder.set(trim, static_cast<uint16_t>(114), shapeData.stroke.trimPath.start); // start
+                builder.set(trim, static_cast<uint16_t>(115), shapeData.stroke.trimPath.end); // end
+                builder.set(trim, static_cast<uint16_t>(116), shapeData.stroke.trimPath.offset); // offset
+                builder.set(trim, static_cast<uint16_t>(117), shapeData.stroke.trimPath.mode); // mode
+            }
         }
     }
 

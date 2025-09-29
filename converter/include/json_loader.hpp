@@ -30,12 +30,40 @@ struct GradientData
     std::vector<GradientStop> stops;
 };
 
+struct DashData
+{
+    bool enabled = false;
+    float length = 10.0f;
+    float gap = 10.0f;
+    bool lengthIsPercentage = false;
+};
+
+struct TrimPathData
+{
+    bool enabled = false;
+    float start = 0.0f;
+    float end = 1.0f;
+    float offset = 0.0f;
+    uint32_t mode = 0; // 0=sequential, 1=synced
+};
+
+struct FeatherData
+{
+    bool enabled = false;
+    float strength = 12.0f;
+    float offsetX = 0.0f;
+    float offsetY = 0.0f;
+    bool inner = false;
+};
+
 struct ShapePaint
 {
     bool enabled = false;
     uint32_t color = 0xFFFFFFFF;
     bool hasGradient = false;
     GradientData gradient;
+    TrimPathData trimPath;
+    FeatherData feather;
 };
 
 struct ShapeStroke
@@ -43,6 +71,8 @@ struct ShapeStroke
     bool enabled = false;
     uint32_t color = 0xFF000000;
     float thickness = 1.0f;
+    DashData dash;
+    TrimPathData trimPath;
 };
 
 struct ShapeData

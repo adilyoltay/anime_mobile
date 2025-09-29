@@ -154,6 +154,38 @@ Document parse_json(const std::string& json_content)
                     data.stroke.color =
                         parse_color_string(color, data.stroke.color);
                 }
+                
+                // Parse dash
+                if (stroke.contains("dash"))
+                {
+                    const auto& dash = stroke["dash"];
+                    data.stroke.dash.enabled = true;
+                    data.stroke.dash.length = dash.value("length", data.stroke.dash.length);
+                    data.stroke.dash.gap = dash.value("gap", data.stroke.dash.gap);
+                    data.stroke.dash.lengthIsPercentage = dash.value("isPercentage", false);
+                }
+                
+                // Parse trimPath for stroke
+                if (stroke.contains("trimPath"))
+                {
+                    const auto& trim = stroke["trimPath"];
+                    data.stroke.trimPath.enabled = true;
+                    data.stroke.trimPath.start = trim.value("start", data.stroke.trimPath.start);
+                    data.stroke.trimPath.end = trim.value("end", data.stroke.trimPath.end);
+                    data.stroke.trimPath.offset = trim.value("offset", data.stroke.trimPath.offset);
+                    data.stroke.trimPath.mode = trim.value("mode", data.stroke.trimPath.mode);
+                }
+            }
+            
+            // Parse feather (can be on fill or shape)
+            if (shape.contains("feather"))
+            {
+                const auto& feather = shape["feather"];
+                data.fill.feather.enabled = true;
+                data.fill.feather.strength = feather.value("strength", data.fill.feather.strength);
+                data.fill.feather.offsetX = feather.value("offsetX", data.fill.feather.offsetX);
+                data.fill.feather.offsetY = feather.value("offsetY", data.fill.feather.offsetY);
+                data.fill.feather.inner = feather.value("inner", false);
             }
 
             doc.shapes.push_back(data);

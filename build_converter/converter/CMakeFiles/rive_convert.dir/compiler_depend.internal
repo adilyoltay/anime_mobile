@@ -903,6 +903,9 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine_input_instance.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/artboard.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/assets/asset.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/assets/file_asset.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/assets/file_asset_referencer.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/audio/audio_engine.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/backboard.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/bones/weight.hpp
@@ -948,6 +951,8 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/linear_animation_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/artboard_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/assets/asset_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/assets/file_asset_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/backboard_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/bones/weight_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/component_base.hpp
@@ -960,9 +965,14 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/event_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/layout_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/node_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/clipping_shape_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_detached_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/ellipse_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/image_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/dash_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/dash_path_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/feather_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/fill_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/gradient_stop_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/linear_gradient_base.hpp
@@ -970,6 +980,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/shape_paint_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/solid_color_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/stroke_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/trim_path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/parametric_path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/path_vertex_base.hpp
@@ -989,6 +1000,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/viewmodel/viewmodel_property_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/world_transform_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/hit_info.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/importers/import_stack.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/intrinsically_sizeable.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/layout.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/layout/layout_enums.hpp
@@ -996,6 +1008,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/layout/layout_node_provider.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/layout_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/math/aabb.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/math/contour_measure.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/math/mat2d.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/math/path_types.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/math/raw_path.hpp
@@ -1006,11 +1019,16 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/renderer.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/resetting_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/rive_types.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/clipping_shape.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/cubic_detached_vertex.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/cubic_vertex.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/ellipse.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/image.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/blend_mode.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/color.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/dash.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/dash_path.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/feather.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/fill.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/gradient_stop.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/image_sampler.hpp
@@ -1021,7 +1039,9 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/solid_color.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/stroke.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/stroke_cap.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/stroke_effect.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/stroke_join.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/trim_path.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/parametric_path.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/path.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/path_composer.hpp
@@ -1043,6 +1063,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/utf.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text_engine.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/transform_component.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/transform_space.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/typed_children.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/viewmodel/symbol_type.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/viewmodel/viewmodel_component.hpp

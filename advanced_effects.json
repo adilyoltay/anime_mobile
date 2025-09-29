@@ -1,0 +1,72 @@
+{
+  "artboard": {
+    "name": "AdvancedEffects",
+    "width": 800,
+    "height": 600
+  },
+  "shapes": [
+    {
+      "type": "rectangle",
+      "x": 50,
+      "y": 50,
+      "width": 150,
+      "height": 100,
+      "stroke": {
+        "color": "#FF0000",
+        "thickness": 4,
+        "dash": {
+          "length": 10,
+          "gap": 5
+        }
+      }
+    },
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 100,
+      "width": 120,
+      "height": 120,
+      "stroke": {
+        "color": "#00FF00",
+        "thickness": 8,
+        "trimPath": {
+          "start": 0.0,
+          "end": 0.75,
+          "offset": 0.0
+        }
+      }
+    },
+    {
+      "type": "rectangle",
+      "x": 550,
+      "y": 50,
+      "width": 150,
+      "height": 100,
+      "fill": {
+        "color": "#0000FF"
+      },
+      "feather": {
+        "strength": 20,
+        "offsetX": 5,
+        "offsetY": 5,
+        "inner": false
+      }
+    },
+    {
+      "type": "star",
+      "x": 200,
+      "y": 350,
+      "width": 150,
+      "height": 150,
+      "points": 5,
+      "innerRadius": 0.5,
+      "fill": {
+        "color": "#FFAA00"
+      },
+      "feather": {
+        "strength": 15,
+        "inner": true
+      }
+    }
+  ]
+}

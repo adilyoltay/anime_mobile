@@ -1,0 +1,24 @@
+{
+  "artboard": {
+    "name": "TrimTest",
+    "width": 400,
+    "height": 300
+  },
+  "shapes": [
+    {
+      "type": "circle",
+      "x": 200,
+      "y": 150,
+      "width": 120,
+      "height": 120,
+      "stroke": {
+        "color": "#00FF00",
+        "thickness": 8,
+        "trimPath": {
+          "start": 0.0,
+          "end": 0.75
+        }
+      }
+    }
+  ]
+}
