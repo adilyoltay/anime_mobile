@@ -1,0 +1,55 @@
+{
+  "artboard": {
+    "name": "BreatheExercise",
+    "width": 600,
+    "height": 600
+  },
+  "shapes": [
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 200,
+      "height": 200,
+      "fill": { "color": "#4A90E2" }
+    },
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 180,
+      "height": 180,
+      "fill": { "color": "#67B7F7" }
+    },
+    {
+      "type": "circle",
+      "x": 300,
+      "y": 300,
+      "width": 120,
+      "height": 120,
+      "fill": { "color": "#A8D5FF" }
+    }
+  ],
+  "animations": [
+    {
+      "name": "Breathe",
+      "fps": 60,
+      "duration": 720,
+      "loop": 1,
+      "scaleKeyframes": [
+        {"frame": 0, "value": 0.5},
+        {"frame": 240, "value": 1.0},
+        {"frame": 360, "value": 1.0},
+        {"frame": 600, "value": 0.5},
+        {"frame": 720, "value": 0.5}
+      ],
+      "opacityKeyframes": [
+        {"frame": 0, "value": 0.4},
+        {"frame": 240, "value": 1.0},
+        {"frame": 360, "value": 1.0},
+        {"frame": 600, "value": 0.4},
+        {"frame": 720, "value": 0.4}
+      ]
+    }
+  ]
+}

@@ -970,9 +970,12 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/parametric_path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/path_vertex_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/polygon_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/rectangle_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/shape_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/star_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/straight_vertex_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/triangle_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_value_run_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/transform_component_base.hpp
@@ -1018,11 +1021,14 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/path_composer.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/path_flags.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/path_vertex.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/polygon.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/rectangle.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/shape.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/shape_paint_container.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/shape_paint_path.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/star.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/straight_vertex.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/triangle.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/vertex.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/simple_array.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/span.hpp

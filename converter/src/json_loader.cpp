@@ -157,6 +157,28 @@ Document parse_json(const std::string& json_content)
                 }
             }
             
+            if (anim.contains("scaleKeyframes"))
+            {
+                for (const auto& kf : anim["scaleKeyframes"])
+                {
+                    KeyFrameData keyframe;
+                    keyframe.frame = kf.value("frame", keyframe.frame);
+                    keyframe.value = kf.value("value", keyframe.value);
+                    animData.scaleKeyframes.push_back(keyframe);
+                }
+            }
+            
+            if (anim.contains("opacityKeyframes"))
+            {
+                for (const auto& kf : anim["opacityKeyframes"])
+                {
+                    KeyFrameData keyframe;
+                    keyframe.frame = kf.value("frame", keyframe.frame);
+                    keyframe.value = kf.value("value", keyframe.value);
+                    animData.opacityKeyframes.push_back(keyframe);
+                }
+            }
+            
             doc.animations.push_back(animData);
         }
     }

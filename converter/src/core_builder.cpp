@@ -301,25 +301,80 @@ CoreDocument build_core_document(const Document& document,
         builder.set(anim, rive::LinearAnimationBase::durationPropertyKey, animData.duration);
         builder.set(anim, rive::LinearAnimationBase::loopValuePropertyKey, animData.loop);
 
-        // For now, only support y-position animation on first shape
-        if (!animData.yKeyframes.empty() && !shapeIds.empty())
+        if (!shapeIds.empty())
         {
             // Calculate artboard-local index for the first shape
             // Artboard = 0, animations come next, then shapes
             uint32_t shapeLocalIndex = 1 + static_cast<uint32_t>(document.animations.size());
             
-            auto& keyedObj = builder.addCore(new rive::KeyedObject());
-            builder.set(keyedObj, static_cast<uint16_t>(51), shapeLocalIndex); // objectId (artboard-local)
-
-            auto& keyedProp = builder.addCore(new rive::KeyedProperty());
-            builder.set(keyedProp, static_cast<uint16_t>(53), static_cast<uint32_t>(14)); // propertyKey = y (14)
-
-            for (const auto& kf : animData.yKeyframes)
+            // Y-position animation
+            if (!animData.yKeyframes.empty())
             {
-                auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
-                builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame)); // frame
-                builder.set(keyframe, static_cast<uint16_t>(70), kf.value); // value
-                builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // interpolationType = 1 (cubic)
+                auto& keyedObj = builder.addCore(new rive::KeyedObject());
+                builder.set(keyedObj, static_cast<uint16_t>(51), shapeLocalIndex);
+
+                auto& keyedProp = builder.addCore(new rive::KeyedProperty());
+                builder.set(keyedProp, static_cast<uint16_t>(53), static_cast<uint32_t>(14)); // y property
+
+                for (const auto& kf : animData.yKeyframes)
+                {
+                    auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
+                    builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame));
+                    builder.set(keyframe, static_cast<uint16_t>(70), kf.value);
+                    builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // cubic
+                }
+            }
+            
+            // Scale animation (uniform: scaleX and scaleY together)
+            if (!animData.scaleKeyframes.empty())
+            {
+                // ScaleX animation
+                auto& keyedObjX = builder.addCore(new rive::KeyedObject());
+                builder.set(keyedObjX, static_cast<uint16_t>(51), shapeLocalIndex);
+
+                auto& keyedPropX = builder.addCore(new rive::KeyedProperty());
+                builder.set(keyedPropX, static_cast<uint16_t>(53), static_cast<uint32_t>(16)); // scaleX
+
+                for (const auto& kf : animData.scaleKeyframes)
+                {
+                    auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
+                    builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame));
+                    builder.set(keyframe, static_cast<uint16_t>(70), kf.value);
+                    builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // cubic
+                }
+                
+                // ScaleY animation (same values)
+                auto& keyedObjY = builder.addCore(new rive::KeyedObject());
+                builder.set(keyedObjY, static_cast<uint16_t>(51), shapeLocalIndex);
+
+                auto& keyedPropY = builder.addCore(new rive::KeyedProperty());
+                builder.set(keyedPropY, static_cast<uint16_t>(53), static_cast<uint32_t>(17)); // scaleY
+
+                for (const auto& kf : animData.scaleKeyframes)
+                {
+                    auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
+                    builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame));
+                    builder.set(keyframe, static_cast<uint16_t>(70), kf.value);
+                    builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // cubic
+                }
+            }
+            
+            // Opacity animation
+            if (!animData.opacityKeyframes.empty())
+            {
+                auto& keyedObj = builder.addCore(new rive::KeyedObject());
+                builder.set(keyedObj, static_cast<uint16_t>(51), shapeLocalIndex);
+
+                auto& keyedProp = builder.addCore(new rive::KeyedProperty());
+                builder.set(keyedProp, static_cast<uint16_t>(53), static_cast<uint32_t>(18)); // opacity
+
+                for (const auto& kf : animData.opacityKeyframes)
+                {
+                    auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
+                    builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame));
+                    builder.set(keyframe, static_cast<uint16_t>(70), kf.value);
+                    builder.set(keyframe, static_cast<uint16_t>(68), static_cast<uint32_t>(1)); // cubic
+                }
             }
         }
     }

@@ -63,7 +63,9 @@ struct AnimationData
     uint32_t fps = 60;
     uint32_t duration = 60;
     uint32_t loop = 1;
-    std::vector<KeyFrameData> yKeyframes; // For now, only support y-position animation
+    std::vector<KeyFrameData> yKeyframes;
+    std::vector<KeyFrameData> scaleKeyframes;
+    std::vector<KeyFrameData> opacityKeyframes;
 };
 
 struct Document
