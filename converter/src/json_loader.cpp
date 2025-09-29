@@ -120,6 +120,32 @@ Document parse_json(const std::string& json_content)
         parse_shape_array(json["rectangles"]);
     }
 
+    // Parse animations
+    if (json.contains("animations"))
+    {
+        for (const auto& anim : json["animations"])
+        {
+            AnimationData animData;
+            animData.name = anim.value("name", animData.name);
+            animData.fps = anim.value("fps", animData.fps);
+            animData.duration = anim.value("duration", animData.duration);
+            animData.loop = anim.value("loop", animData.loop);
+            
+            if (anim.contains("yKeyframes"))
+            {
+                for (const auto& kf : anim["yKeyframes"])
+                {
+                    KeyFrameData keyframe;
+                    keyframe.frame = kf.value("frame", keyframe.frame);
+                    keyframe.value = kf.value("value", keyframe.value);
+                    animData.yKeyframes.push_back(keyframe);
+                }
+            }
+            
+            doc.animations.push_back(animData);
+        }
+    }
+
     return doc;
 }
 } // namespace rive_converter

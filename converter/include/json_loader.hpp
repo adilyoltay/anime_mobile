@@ -44,10 +44,26 @@ struct ArtboardData
     float height = 300.0f;
 };
 
+struct KeyFrameData
+{
+    uint32_t frame = 0;
+    float value = 0.0f;
+};
+
+struct AnimationData
+{
+    std::string name = "Animation";
+    uint32_t fps = 60;
+    uint32_t duration = 60;
+    uint32_t loop = 1;
+    std::vector<KeyFrameData> yKeyframes; // For now, only support y-position animation
+};
+
 struct Document
 {
     ArtboardData artboard;
     std::vector<ShapeData> shapes;
+    std::vector<AnimationData> animations;
 };
 
 Document parse_json(const std::string& json_content);

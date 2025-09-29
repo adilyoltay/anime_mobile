@@ -13,5 +13,18 @@
       "height": 80,
       "fill": { "color": "#FF5733" }
     }
+  ],
+  "animations": [
+    {
+      "name": "Bounce",
+      "fps": 60,
+      "duration": 120,
+      "loop": 1,
+      "yKeyframes": [
+        {"frame": 0, "value": 100},
+        {"frame": 60, "value": 500},
+        {"frame": 120, "value": 100}
+      ]
+    }
   ]
 }

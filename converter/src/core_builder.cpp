@@ -8,8 +8,14 @@
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
 #include "rive/animation/linear_animation.hpp"
+#include "rive/animation/keyed_object.hpp"
+#include "rive/animation/keyed_property.hpp"
+#include "rive/animation/keyframe_double.hpp"
 #include "rive/generated/animation/animation_base.hpp"
 #include "rive/generated/animation/linear_animation_base.hpp"
+#include "rive/generated/animation/keyed_object_base.hpp"
+#include "rive/generated/animation/keyed_property_base.hpp"
+#include "rive/generated/animation/keyframe_double_base.hpp"
 #include "rive/generated/component_base.hpp"
 #include "rive/generated/layout_component_base.hpp"
 #include "rive/generated/node_base.hpp"
@@ -105,7 +111,13 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case rive::ShapePaintBase::isVisiblePropertyKey:
                 case rive::LayoutComponentBase::clipPropertyKey:
                 case rive::RectangleBase::linkCornerRadiusPropertyKey:
+                case 51: // KeyedObject::objectId
+                case 53: // KeyedProperty::propertyKey
+                case 67: // KeyFrame::frame
                     type = rive::CoreUintType::id;
+                    break;
+                case 70: // KeyFrameDouble::value
+                    type = rive::CoreDoubleType::id;
                     break;
                 default:
                     if (std::holds_alternative<std::string>(prop.value))
@@ -151,21 +163,14 @@ CoreDocument build_core_document(const Document& document,
                 document.artboard.height);
     builder.set(artboard, rive::LayoutComponentBase::clipPropertyKey, true);
 
-    // Provide a default animation so runtimes expecting index 0 don't crash.
-    auto& animation = builder.addCore(new rive::LinearAnimation());
-    builder.set(animation, rive::AnimationBase::namePropertyKey,
-                std::string("Default"));
-    builder.set(animation, rive::LinearAnimationBase::fpsPropertyKey,
-                static_cast<uint32_t>(60));
-    builder.set(animation, rive::LinearAnimationBase::durationPropertyKey,
-                static_cast<uint32_t>(60));
-    builder.set(animation, rive::LinearAnimationBase::loopValuePropertyKey,
-                static_cast<uint32_t>(1));
+    // Store shape IDs for animation keyframe references
+    std::vector<uint32_t> shapeIds;
 
     // Shapes disabled for Artboard-only variant
     for (const auto& shapeData : document.shapes)
     {
         auto& shape = builder.addCore(new rive::Shape());
+        shapeIds.push_back(shape.id);
         builder.setParent(shape, artboard.id);
         builder.set(shape, rive::NodeBase::xPropertyKey, shapeData.x);
         builder.set(shape, rive::NodeBase::yPropertyKey, shapeData.y);
@@ -229,6 +234,47 @@ CoreDocument build_core_document(const Document& document,
             builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
                         shapeData.stroke.color);
         }
+    }
+
+    // Build animations from JSON
+    for (const auto& animData : document.animations)
+    {
+        auto& anim = builder.addCore(new rive::LinearAnimation());
+        builder.set(anim, rive::AnimationBase::namePropertyKey, animData.name);
+        builder.set(anim, rive::LinearAnimationBase::fpsPropertyKey, animData.fps);
+        builder.set(anim, rive::LinearAnimationBase::durationPropertyKey, animData.duration);
+        builder.set(anim, rive::LinearAnimationBase::loopValuePropertyKey, animData.loop);
+
+        // For now, only support y-position animation on first shape
+        if (!animData.yKeyframes.empty() && !shapeIds.empty())
+        {
+            auto& keyedObj = builder.addCore(new rive::KeyedObject());
+            builder.set(keyedObj, static_cast<uint16_t>(51), shapeIds[0]); // objectId
+
+            auto& keyedProp = builder.addCore(new rive::KeyedProperty());
+            builder.set(keyedProp, static_cast<uint16_t>(53), static_cast<uint32_t>(14)); // propertyKey = y (14)
+
+            for (const auto& kf : animData.yKeyframes)
+            {
+                auto& keyframe = builder.addCore(new rive::KeyFrameDouble());
+                builder.set(keyframe, static_cast<uint16_t>(67), static_cast<uint32_t>(kf.frame)); // frame
+                builder.set(keyframe, static_cast<uint16_t>(70), kf.value); // value
+            }
+        }
+    }
+
+    // Provide default animation if none specified
+    if (document.animations.empty())
+    {
+        auto& animation = builder.addCore(new rive::LinearAnimation());
+        builder.set(animation, rive::AnimationBase::namePropertyKey,
+                    std::string("Default"));
+        builder.set(animation, rive::LinearAnimationBase::fpsPropertyKey,
+                    static_cast<uint32_t>(60));
+        builder.set(animation, rive::LinearAnimationBase::durationPropertyKey,
+                    static_cast<uint32_t>(60));
+        builder.set(animation, rive::LinearAnimationBase::loopValuePropertyKey,
+                    static_cast<uint32_t>(1));
     }
 
     return builder.build(typeMap);
