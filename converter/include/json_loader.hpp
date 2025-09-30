@@ -15,7 +15,8 @@ enum class ShapeType
     polygon,
     star,
     image,
-    clipping
+    clipping,
+    path
 };
 
 struct GradientStop

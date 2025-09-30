@@ -991,6 +991,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/straight_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/triangle_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/vertex_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_value_run_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/transform_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/viewmodel/viewmodel_component_base.hpp
@@ -1059,6 +1060,9 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/simple_array.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/span.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/status_code.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/glyph_lookup.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_interface.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_value_run.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/utf.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text_engine.hpp

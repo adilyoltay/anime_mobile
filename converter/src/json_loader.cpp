@@ -68,6 +68,10 @@ rive_converter::ShapeType parse_shape_type(const std::string& type)
     {
         return rive_converter::ShapeType::clipping;
     }
+    else if (lowered == "path")
+    {
+        return rive_converter::ShapeType::path;
+    }
     return rive_converter::ShapeType::rectangle;
 }
 } // namespace

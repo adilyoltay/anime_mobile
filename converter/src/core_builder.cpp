@@ -9,6 +9,7 @@
 #include "rive/shapes/star.hpp"
 #include "rive/shapes/clipping_shape.hpp"
 #include "rive/shapes/image.hpp"
+#include "rive/shapes/path.hpp"
 #include "rive/shapes/paint/fill.hpp"
 #include "rive/shapes/paint/solid_color.hpp"
 #include "rive/shapes/paint/stroke.hpp"
@@ -149,6 +150,8 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 281: // Text::alignValue
                 case 284: // Text::sizingValue
                 case 287: // Text::overflowValue
+                case 128: // Path::pathFlags
+                case 770: // Path::isHole
                     type = rive::CoreUintType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
@@ -232,6 +235,10 @@ CoreDocument build_core_document(const Document& document,
         builder.set(shape, rive::TransformComponentBase::scaleXPropertyKey, 1.0f);
         builder.set(shape, rive::TransformComponentBase::scaleYPropertyKey, 1.0f);
         builder.set(shape, rive::WorldTransformComponentBase::opacityPropertyKey, 1.0f);
+
+        // TrimPath - TODO: Requires special path/paint relationship
+        // Disabled pending further investigation of Rive's trim system
+        // if (shapeData.fill.trimPath.enabled || shapeData.stroke.trimPath.enabled) { ... }
 
         switch (shapeData.type)
         {
@@ -325,6 +332,16 @@ CoreDocument build_core_document(const Document& document,
                 builder.set(clip, static_cast<uint16_t>(94), shapeData.clipVisible); // isVisible
                 break;
             }
+            case ShapeType::path:
+            {
+                auto& path = builder.addCore(new rive::Path());
+                builder.setParent(path, shape.id);
+                builder.set(path, static_cast<uint16_t>(128), static_cast<uint32_t>(0)); // pathFlags
+                builder.set(path, static_cast<uint16_t>(770), false); // isHole
+                // Note: Full path functionality requires PathVertex objects
+                // This is a skeleton for basic path support
+                break;
+            }
         }
 
         if (shapeData.fill.enabled)
@@ -366,10 +383,17 @@ CoreDocument build_core_document(const Document& document,
                             shapeData.fill.color);
             }
             
-            // Feather and TrimPath - TODO: need proper attachment strategy
-            // Temporarily disabled pending investigation
-            // if (shapeData.fill.feather.enabled) { ... }
-            // if (shapeData.fill.trimPath.enabled) { ... }
+            // Add Feather to fill if enabled
+            if (shapeData.fill.feather.enabled)
+            {
+                auto& feather = builder.addCore(new rive::Feather());
+                builder.setParent(feather, fill.id);
+                builder.set(feather, static_cast<uint16_t>(748), static_cast<uint32_t>(0)); // spaceValue
+                builder.set(feather, static_cast<uint16_t>(749), shapeData.fill.feather.strength);
+                builder.set(feather, static_cast<uint16_t>(750), shapeData.fill.feather.offsetX);
+                builder.set(feather, static_cast<uint16_t>(751), shapeData.fill.feather.offsetY);
+                builder.set(feather, static_cast<uint16_t>(752), shapeData.fill.feather.inner);
+            }
         }
 
         if (shapeData.stroke.enabled)
@@ -404,9 +428,13 @@ CoreDocument build_core_document(const Document& document,
                 builder.set(dash2, static_cast<uint16_t>(693), false);
             }
             
-            // TrimPath - TODO: needs different parent attachment strategy
-            // Temporarily disabled pending further investigation
-            // if (shapeData.stroke.trimPath.enabled) { ... }
+        }
+        
+        // Feather can also be applied to strokes
+        if (shapeData.stroke.enabled && shapeData.fill.feather.enabled)
+        {
+            // Note: Feather is typically on Fill, but can affect stroke rendering
+            // Implementation depends on use case
         }
     }
 
