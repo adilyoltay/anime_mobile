@@ -29,10 +29,12 @@
 #include "rive/text/text_style.hpp"
 #include "rive/text/text_style_paint.hpp"
 #include "rive/text/text_value_run.hpp"
+#include "rive/assets/font_asset.hpp"
 #include "rive/generated/text/text_base.hpp"
 #include "rive/generated/text/text_style_base.hpp"
 #include "rive/generated/text/text_style_paint_base.hpp"
 #include "rive/generated/text/text_value_run_base.hpp"
+#include "rive/generated/assets/font_asset_base.hpp"
 // State machine support (skeleton)  
 #include "rive/animation/state_machine.hpp"
 #include "rive/generated/animation/animation_base.hpp"
@@ -137,6 +139,7 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     break;
                 case rive::ComponentBase::namePropertyKey:
                 case 271: // TextValueRun::text
+                case 203: // Asset::name
                     type = rive::CoreStringType::id;
                     break;
                 case rive::ShapePaintBase::isVisiblePropertyKey:
@@ -224,6 +227,11 @@ CoreDocument build_core_document(const Document& document,
 
     auto& backboard = builder.addCore(new rive::Backboard());
     builder.set(backboard, static_cast<uint16_t>(44u), static_cast<uint32_t>(0));
+
+    // Add default font asset for text rendering
+    auto& fontAsset = builder.addCore(new rive::FontAsset());
+    builder.set(fontAsset, static_cast<uint16_t>(203), std::string("SystemFont")); // Asset::name
+    builder.set(fontAsset, static_cast<uint16_t>(204), static_cast<uint32_t>(0)); // FileAsset::assetId
 
     auto& artboard = builder.addCore(new rive::Artboard());
     builder.set(artboard, rive::ComponentBase::namePropertyKey,
@@ -476,7 +484,7 @@ CoreDocument build_core_document(const Document& document,
         builder.set(textStylePaint, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
         builder.set(textStylePaint, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
         builder.set(textStylePaint, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
-        builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId
+        builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(0)); // fontAssetId (refs FontAsset)
         
         // Add SolidColor for text color
         auto& textColor = builder.addCore(new rive::SolidColor());

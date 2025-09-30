@@ -995,6 +995,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_style_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_style_paint_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/text/text_value_run_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/transform_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/viewmodel/viewmodel_component_base.hpp
@@ -1067,6 +1068,7 @@ converter/CMakeFiles/rive_convert.dir/src/core_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_interface.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_style.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_style_paint.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_value_run.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/text_variation_helper.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/text/utf.hpp
