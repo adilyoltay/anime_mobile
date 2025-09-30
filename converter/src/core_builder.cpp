@@ -24,8 +24,13 @@
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
 #include "rive/animation/keyframe_double.hpp"
-// Text support (skeleton)
+// Text support (full)
 #include "rive/text/text.hpp"
+#include "rive/text/text_style.hpp"
+#include "rive/text/text_value_run.hpp"
+#include "rive/generated/text/text_base.hpp"
+#include "rive/generated/text/text_style_base.hpp"
+#include "rive/generated/text/text_value_run_base.hpp"
 // State machine support (skeleton)  
 #include "rive/animation/state_machine.hpp"
 #include "rive/generated/animation/animation_base.hpp"
@@ -129,6 +134,7 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     type = rive::CoreColorType::id;
                     break;
                 case rive::ComponentBase::namePropertyKey:
+                case 271: // TextValueRun::text
                     type = rive::CoreStringType::id;
                     break;
                 case rive::ShapePaintBase::isVisiblePropertyKey:
@@ -152,6 +158,7 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 287: // Text::overflowValue
                 case 128: // Path::pathFlags
                 case 770: // Path::isHole
+                case 279: // TextStyle::fontAssetId
                     type = rive::CoreUintType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
@@ -173,6 +180,9 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 366: // Text::originX
                 case 367: // Text::originY
                 case 371: // Text::paragraphSpacing
+                case 274: // TextStyle::fontSize
+                case 370: // TextStyle::lineHeight
+                case 390: // TextStyle::letterSpacing
                     type = rive::CoreDoubleType::id;
                     break;
                 default:
@@ -438,19 +448,32 @@ CoreDocument build_core_document(const Document& document,
         }
     }
 
-    // Build texts (skeleton implementation)
+    // Build texts (full implementation)
     for (const auto& textData : document.texts)
     {
         auto& text = builder.addCore(new rive::Text());
         builder.setParent(text, artboard.id);
         builder.set(text, rive::NodeBase::xPropertyKey, textData.x);
         builder.set(text, rive::NodeBase::yPropertyKey, textData.y);
-        builder.set(text, static_cast<uint16_t>(285), textData.width); // Text::width
-        builder.set(text, static_cast<uint16_t>(286), textData.height); // Text::height
+        builder.set(text, static_cast<uint16_t>(285), textData.width); // width
+        builder.set(text, static_cast<uint16_t>(286), textData.height); // height
         builder.set(text, static_cast<uint16_t>(281), textData.style.align); // alignValue
+        builder.set(text, static_cast<uint16_t>(284), static_cast<uint32_t>(0)); // sizingValue (auto)
+        builder.set(text, static_cast<uint16_t>(287), static_cast<uint32_t>(0)); // overflowValue (visible)
         
-        // Note: Full text rendering requires TextStyle, TextRun, and font assets
-        // This is a minimal skeleton for future expansion
+        // Add TextStyle
+        auto& textStyle = builder.addCore(new rive::TextStyle());
+        builder.setParent(textStyle, text.id);
+        builder.set(textStyle, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
+        builder.set(textStyle, static_cast<uint16_t>(370), -1.0f); // lineHeight (auto)
+        builder.set(textStyle, static_cast<uint16_t>(390), 0.0f); // letterSpacing
+        // fontAssetId would reference a FontAsset - for now use -1 (system font)
+        builder.set(textStyle, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId
+        
+        // Add TextRun with content
+        auto& textRun = builder.addCore(new rive::TextValueRun());
+        builder.setParent(textRun, textStyle.id);
+        builder.set(textRun, static_cast<uint16_t>(271), textData.content); // text property
     }
     
     // Build state machines (skeleton implementation)
