@@ -478,18 +478,22 @@ CoreDocument build_core_document(const Document& document,
         builder.set(text, static_cast<uint16_t>(371), textData.paragraphSpacing); // paragraphSpacing
         builder.set(text, static_cast<uint16_t>(703), textData.fitFromBaseline); // fitFromBaseline
         
-        // Add TextStylePaint (not TextStyle - needs paint capability)
+        // Add Fill paint for text (similar to shapes)
+        auto& textFill = builder.addCore(new rive::Fill());
+        builder.setParent(textFill, text.id);
+        builder.set(textFill, rive::ShapePaintBase::isVisiblePropertyKey, true);
+        
+        auto& textColor = builder.addCore(new rive::SolidColor());
+        builder.setParent(textColor, textFill.id);
+        builder.set(textColor, rive::SolidColorBase::colorValuePropertyKey, textData.style.color);
+        
+        // Add TextStylePaint for typography
         auto& textStylePaint = builder.addCore(new rive::TextStylePaint());
         builder.setParent(textStylePaint, text.id);
         builder.set(textStylePaint, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
         builder.set(textStylePaint, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
         builder.set(textStylePaint, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
-        builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(0)); // fontAssetId (refs FontAsset)
-        
-        // Add SolidColor for text color
-        auto& textColor = builder.addCore(new rive::SolidColor());
-        builder.setParent(textColor, textStylePaint.id);
-        builder.set(textColor, rive::SolidColorBase::colorValuePropertyKey, textData.style.color);
+        builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(0)); // fontAssetId
         
         // Add TextRun with content
         auto& textRun = builder.addCore(new rive::TextValueRun());
