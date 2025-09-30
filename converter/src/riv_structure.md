@@ -125,9 +125,47 @@ Hata durumunda tipik nedenler:
 - Parent indexleri karismis (artik artboard degistiginde `localComponentIndex` resetlenmediyse).
 - Asset placeholder'lari eksik (Play bos asset chunk bekliyor).
 
-## 9. Acik Noktalar ve Yapilacaklar
+## 9. Text Rendering (Guncel Durum)
+
+**Implemented:**
+- Text (typeKey 134): Container with layout properties
+- TextStylePaint (typeKey 137): Font ve typography (ShapePaintContainer)
+- TextValueRun (typeKey 135): Text content
+- FontAsset (typeKey 141): Font referansi
+- FileAssetContents (typeKey 106): Font binary data (Arial.ttf, 755KB)
+
+**Text Hierarchy:**
+```
+FontAsset (font referansi)
+Artboard
+  \- Text
+      |- TextStylePaint (typography)
+      |   |- SolidColor (text rengi)
+      |   \- TextValueRun (icerik)
+      \- Transform properties (scaleX, scaleY)
+```
+
+**Text Properties:**
+- width (285), height (286): text box boyutlari
+- align (281), sizing (284), overflow (287)
+- wrap (683), verticalAlign (685)
+- scaleX (16), scaleY (17): transform (GEREKLI)
+- fontSize (274): font boyutu
+- fontAssetId (279): FontAsset referansi
+
+**Font Embedding:**
+- Font binary FileAssetContents.bytes (212) ile yazilir
+- Font yuklemek icin: `font_utils.hpp::load_font_file()`
+- Varsayilan: Arial.ttf (~755KB)
+
+**Acik Sorunlar:**
+- Text import basarili ama render edilmiyor
+- TextRun content encoding veya text layout engine eksikligi
+- Daha fazla reverse engineering gerekiyor
+
+## 10. Acik Noktalar ve Yapilacaklar
+- **Text Rendering**: Font embedded ama render etmiyor. TextRun encoding veya layout properties eksik.
 - **StateMachine** ve **ViewModel** destegi alinmadi. Runtime typeKey 33 ve iliskili property'lere gecilecekse serializer'a yeni blok eklenmeli.
 - **Drawable chain** ve **Artboard catalog** gibi yuksek seviye tipler referans `.riv` dosyalarinda yer aliyor. Komple sahneler icin bunlarin eklenmesi gerekebilir.
-- **Gercek asset verisi** icin `ImageAsset` uzerindeki diger property'ler (width, height, file path) arastirilacak.
 
 Bu dokumani guncel tutun. Yeni tip ekledigimizde veya runtime davranisi degistiginde once burada not alin, sonra kodu degistirin.
