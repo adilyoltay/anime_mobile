@@ -17,7 +17,7 @@ namespace rive_converter
 struct Property
 {
     uint16_t key = 0;
-    std::variant<float, uint32_t, std::string, bool> value;
+    std::variant<float, uint32_t, std::string, bool, std::vector<uint8_t>> value;
 };
 
 struct CoreObject
@@ -32,6 +32,7 @@ struct CoreDocument
 {
     std::vector<CoreObject> objects;
     rive::Artboard* artboard = nullptr;
+    std::vector<uint8_t> fontData; // Embedded font binary (TTF/OTF)
 };
 
 using PropertyTypeMap = std::unordered_map<uint16_t, uint8_t>;
@@ -47,6 +48,7 @@ public:
     void set(CoreObject& object, uint16_t key, uint32_t value);
     void set(CoreObject& object, uint16_t key, const std::string& value);
     void set(CoreObject& object, uint16_t key, bool value);
+    void set(CoreObject& object, uint16_t key, const std::vector<uint8_t>& value);
 
     CoreDocument build(PropertyTypeMap& typeMap);
 

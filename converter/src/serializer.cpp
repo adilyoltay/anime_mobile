@@ -1,5 +1,6 @@
 #include "serializer.hpp"
 #include "core_builder.hpp"
+#include <iostream>
 
 #include "rive/component.hpp"
 #include "rive/core/vector_binary_writer.hpp"
@@ -292,24 +293,20 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
 
             writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey));
             writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey));
-            writer.writeVarUint(uint32_t{0});
-            writer.writeVarUint(uint32_t{0});
+            
+            // Write embedded font data (Arial.ttf binary)
+            writer.writeVarUint(static_cast<uint32_t>(document.fontData.size()));
+            if (!document.fontData.empty())
+            {
+                writer.write(document.fontData.data(), document.fontData.size());
+            }
+            
+            writer.writeVarUint(uint32_t{0}); // property terminator
             assetPreludeWritten = true;
         }
     }
 
-    if (includeAssetPrelude && !assetPreludeWritten)
-    {
-        writer.writeVarUint(static_cast<uint32_t>(rive::ImageAssetBase::typeKey));
-        writer.writeVarUint(static_cast<uint32_t>(kFileAssetIdKey));
-        writer.writeVarUint(uint32_t{0});
-        writer.writeVarUint(uint32_t{0});
-
-        writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey));
-        writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey));
-        writer.writeVarUint(uint32_t{0});
-        writer.writeVarUint(uint32_t{0});
-    }
+    // Asset prelude is now written inline with Backboard (see above)
 
     return buffer;
 }

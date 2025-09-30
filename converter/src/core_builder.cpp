@@ -1,4 +1,6 @@
 #include "core_builder.hpp"
+#include "font_utils.hpp"
+#include <iostream>
 #include "rive/artboard.hpp"
 #include "rive/backboard.hpp"
 #include "rive/shapes/rectangle.hpp"
@@ -99,6 +101,11 @@ void CoreBuilder::set(CoreObject& object, uint16_t key, const std::string& value
 }
 
 void CoreBuilder::set(CoreObject& object, uint16_t key, bool value)
+{
+    object.properties.push_back({key, value});
+}
+
+void CoreBuilder::set(CoreObject& object, uint16_t key, const std::vector<uint8_t>& value)
 {
     object.properties.push_back({key, value});
 }
@@ -228,9 +235,13 @@ CoreDocument build_core_document(const Document& document,
     auto& backboard = builder.addCore(new rive::Backboard());
     builder.set(backboard, static_cast<uint16_t>(44u), static_cast<uint32_t>(0));
 
-    // Add default font asset for text rendering
+    // Load system font for text rendering (Arial.ttf ~755KB)
+    std::string fontPath = get_system_font_path("Arial");
+    std::vector<uint8_t> fontBinary = load_font_file(fontPath);
+
+    // Add font asset for text rendering
     auto& fontAsset = builder.addCore(new rive::FontAsset());
-    builder.set(fontAsset, static_cast<uint16_t>(203), std::string("SystemFont")); // Asset::name
+    builder.set(fontAsset, static_cast<uint16_t>(203), std::string("Arial")); // Asset::name
     builder.set(fontAsset, static_cast<uint16_t>(204), static_cast<uint32_t>(0)); // FileAsset::assetId
 
     auto& artboard = builder.addCore(new rive::Artboard());
@@ -616,6 +627,8 @@ CoreDocument build_core_document(const Document& document,
                     static_cast<uint32_t>(1));
     }
 
-    return builder.build(typeMap);
+    auto doc = builder.build(typeMap);
+    doc.fontData = std::move(fontBinary);
+    return doc;
 }
 } // namespace rive_converter
