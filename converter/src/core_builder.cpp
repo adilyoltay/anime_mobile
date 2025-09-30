@@ -204,15 +204,15 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     if (std::holds_alternative<std::string>(prop.value))
                     {
                         type = rive::CoreStringType::id;
-                    }
-                    else if (std::holds_alternative<float>(prop.value))
-                    {
-                        type = rive::CoreDoubleType::id;
-                    }
+            }
+            else if (std::holds_alternative<float>(prop.value))
+            {
+                type = rive::CoreDoubleType::id;
+            }
                     else if (prop.key == rive::ShapePaintBase::blendModeValuePropertyKey ||
                              prop.key == rive::ComponentBase::parentIdPropertyKey)
-                    {
-                        type = rive::CoreUintType::id;
+            {
+                type = rive::CoreUintType::id;
                     }
                     break;
             }
@@ -411,10 +411,10 @@ CoreDocument build_core_document(const Document& document,
             }
             else
             {
-                auto& solid = builder.addCore(new rive::SolidColor());
-                builder.setParent(solid, fill.id);
-                builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
-                            shapeData.fill.color);
+            auto& solid = builder.addCore(new rive::SolidColor());
+            builder.setParent(solid, fill.id);
+            builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
+                        shapeData.fill.color);
             }
             
             // Add Feather to fill if enabled
@@ -488,23 +488,20 @@ CoreDocument build_core_document(const Document& document,
         builder.set(text, static_cast<uint16_t>(685), textData.verticalAlign); // verticalAlignValue
         builder.set(text, static_cast<uint16_t>(371), textData.paragraphSpacing); // paragraphSpacing
         builder.set(text, static_cast<uint16_t>(703), textData.fitFromBaseline); // fitFromBaseline
+        // Add transform defaults for text (like shapes)
+        builder.set(text, rive::TransformComponentBase::scaleXPropertyKey, 1.0f);
+        builder.set(text, rive::TransformComponentBase::scaleYPropertyKey, 1.0f);
         
-        // Add Fill paint for text (similar to shapes)
-        auto& textFill = builder.addCore(new rive::Fill());
-        builder.setParent(textFill, text.id);
-        builder.set(textFill, rive::ShapePaintBase::isVisiblePropertyKey, true);
-        
-        auto& textColor = builder.addCore(new rive::SolidColor());
-        builder.setParent(textColor, textFill.id);
-        builder.set(textColor, rive::SolidColorBase::colorValuePropertyKey, textData.style.color);
-        
-        // Add TextStylePaint for typography
+        // Add TextStylePaint (ShapePaintContainer - no separate Fill needed)
         auto& textStylePaint = builder.addCore(new rive::TextStylePaint());
         builder.setParent(textStylePaint, text.id);
         builder.set(textStylePaint, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
-        builder.set(textStylePaint, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
-        builder.set(textStylePaint, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
         builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(0)); // fontAssetId
+        
+        // Add SolidColor directly under TextStylePaint
+        auto& textColor = builder.addCore(new rive::SolidColor());
+        builder.setParent(textColor, textStylePaint.id);
+        builder.set(textColor, rive::SolidColorBase::colorValuePropertyKey, textData.style.color);
         
         // Add TextRun with content
         auto& textRun = builder.addCore(new rive::TextValueRun());
