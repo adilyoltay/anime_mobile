@@ -232,6 +232,13 @@ Document parse_json(const std::string& json_content)
                 textData.style.fontWeight = style.value("fontWeight", textData.style.fontWeight);
                 textData.style.lineHeight = style.value("lineHeight", textData.style.lineHeight);
                 textData.style.letterSpacing = style.value("letterSpacing", textData.style.letterSpacing);
+                
+                // Parse text color
+                if (style.contains("color"))
+                {
+                    std::string color = style["color"].get<std::string>();
+                    textData.style.color = parse_color_string(color, textData.style.color);
+                }
             }
             
             doc.texts.push_back(textData);

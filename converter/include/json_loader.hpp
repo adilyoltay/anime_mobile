@@ -119,6 +119,7 @@ struct TextStyleData
     uint32_t fontWeight = 400;
     float lineHeight = -1.0f; // -1 = auto
     float letterSpacing = 0.0f;
+    uint32_t color = 0xFF000000; // Text color (default black)
 };
 
 struct TextData

@@ -27,9 +27,11 @@
 // Text support (full)
 #include "rive/text/text.hpp"
 #include "rive/text/text_style.hpp"
+#include "rive/text/text_style_paint.hpp"
 #include "rive/text/text_value_run.hpp"
 #include "rive/generated/text/text_base.hpp"
 #include "rive/generated/text/text_style_base.hpp"
+#include "rive/generated/text/text_style_paint_base.hpp"
 #include "rive/generated/text/text_value_run_base.hpp"
 // State machine support (skeleton)  
 #include "rive/animation/state_machine.hpp"
@@ -468,17 +470,22 @@ CoreDocument build_core_document(const Document& document,
         builder.set(text, static_cast<uint16_t>(371), textData.paragraphSpacing); // paragraphSpacing
         builder.set(text, static_cast<uint16_t>(703), textData.fitFromBaseline); // fitFromBaseline
         
-        // Add TextStyle
-        auto& textStyle = builder.addCore(new rive::TextStyle());
-        builder.setParent(textStyle, text.id);
-        builder.set(textStyle, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
-        builder.set(textStyle, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
-        builder.set(textStyle, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
-        builder.set(textStyle, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId (system font)
+        // Add TextStylePaint (not TextStyle - needs paint capability)
+        auto& textStylePaint = builder.addCore(new rive::TextStylePaint());
+        builder.setParent(textStylePaint, text.id);
+        builder.set(textStylePaint, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
+        builder.set(textStylePaint, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
+        builder.set(textStylePaint, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
+        builder.set(textStylePaint, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId
+        
+        // Add SolidColor for text color
+        auto& textColor = builder.addCore(new rive::SolidColor());
+        builder.setParent(textColor, textStylePaint.id);
+        builder.set(textColor, rive::SolidColorBase::colorValuePropertyKey, textData.style.color);
         
         // Add TextRun with content
         auto& textRun = builder.addCore(new rive::TextValueRun());
-        builder.setParent(textRun, textStyle.id);
+        builder.setParent(textRun, textStylePaint.id);
         builder.set(textRun, static_cast<uint16_t>(271), textData.content); // text property
     }
     
