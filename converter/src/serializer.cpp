@@ -10,6 +10,7 @@
 #include "rive/generated/assets/file_asset_base.hpp"
 #include "rive/generated/assets/file_asset_contents_base.hpp"
 #include "rive/core/field_types/core_bool_type.hpp"
+#include "rive/core/field_types/core_bytes_type.hpp"
 #include "rive/core/field_types/core_color_type.hpp"
 #include "rive/core/field_types/core_double_type.hpp"
 #include "rive/core/field_types/core_string_type.hpp"
@@ -49,8 +50,8 @@ uint8_t headerTypeCodeFor(int fieldId)
 {
     switch (fieldId)
     {
-        case CoreStringType::id:
-            return 1; // string
+        case CoreStringType::id: // Also handles CoreBytesType (same id = 1)
+            return 1; // string/bytes (length + data)
         case CoreDoubleType::id:
             return 2; // double/float
         case CoreColorType::id:
@@ -115,6 +116,7 @@ void writeProperty(VectorBinaryWriter& writer,
             writer.writeVarUint(static_cast<uint32_t>(value ? 1u : 0u));
             break;
         }
+        // Note: CoreBytesType has same id as CoreStringType (id=1), handled above
         default:
         {
             if (auto p = std::get_if<uint32_t>(&property.value))
@@ -132,6 +134,15 @@ void writeProperty(VectorBinaryWriter& writer,
             else if (auto p = std::get_if<std::string>(&property.value))
             {
                 writer.write(*p);
+            }
+            else if (auto p = std::get_if<std::vector<uint8_t>>(&property.value))
+            {
+                // Write bytes: length + raw data (same as string)
+                writer.writeVarUint(static_cast<uint32_t>(p->size()));
+                if (!p->empty())
+                {
+                    writer.write(p->data(), p->size());
+                }
             }
             else
             {
@@ -156,6 +167,9 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
             headerSet.insert(property.key);
         }
     }
+    
+    // Key 212 (FileAssetContents::bytes) is now added as normal object property,
+    // so it will be in headerSet automatically
 
     bool needsParentKey = false;
     bool needsIdKey = false;
@@ -181,14 +195,8 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
 
-    const bool includeAssetPrelude = true;
-    if (includeAssetPrelude)
-    {
-        headerSet.insert(kFileAssetIdKey);
-        typeMap[kFileAssetIdKey] = rive::CoreUintType::id;
-        headerSet.insert(kFileAssetBytesKey);
-        typeMap[kFileAssetBytesKey] = rive::CoreUintType::id;
-    }
+    // Key 212 (bytes) already in typeMap from core_builder if we have font data
+    // No need to manually add to headerSet anymore
 
     std::vector<uint16_t> headerKeys(headerSet.begin(), headerSet.end());
     std::sort(headerKeys.begin(), headerKeys.end());
@@ -224,7 +232,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         writer.write(value);
     }
 
-    bool assetPreludeWritten = !includeAssetPrelude;
+    bool assetPreludeWritten = false; // Will be set to true after FontAsset
     std::unordered_map<uint32_t, uint32_t> localComponentIndex;
     uint32_t nextLocalIndex = 0;
 
@@ -278,35 +286,42 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
 
         for (const auto& property : properties)
         {
+            // Special handling for styleId (272) - remap to artboard-local index
+            if (property.key == 272) // TextValueRun::styleId
+            {
+                if (auto p = std::get_if<uint32_t>(&property.value))
+                {
+                    uint32_t globalStyleId = *p;
+                    auto styleIt = localComponentIndex.find(globalStyleId);
+                    if (styleIt != localComponentIndex.end())
+                    {
+                        writer.writeVarUint(static_cast<uint32_t>(272)); // key
+                        writer.writeVarUint(styleIt->second); // artboard-local index
+                        continue; // Skip normal writeProperty
+                    }
+                }
+            }
+            
             int fieldId = fieldIdForKey(property.key, typeMap);
             writeProperty(writer, property.key, property, fieldId);
         }
 
         writer.writeVarUint(uint32_t{0});
-
-        if (!assetPreludeWritten && object.core->coreType() == 23)
+        
+        // Write FileAssetContents immediately after FontAsset (typeKey 141)
+        if (!assetPreludeWritten && object.core->coreType() == 141) // FontAsset
         {
-            writer.writeVarUint(static_cast<uint32_t>(rive::ImageAssetBase::typeKey));
-            writer.writeVarUint(static_cast<uint32_t>(kFileAssetIdKey));
-            writer.writeVarUint(uint32_t{0});
-            writer.writeVarUint(uint32_t{0});
-
-            writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey));
-            writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey));
-            
-            // Write embedded font data (Arial.ttf binary)
-            writer.writeVarUint(static_cast<uint32_t>(document.fontData.size()));
             if (!document.fontData.empty())
             {
+                writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey)); // 106
+                writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey)); // 212
+                writer.writeVarUint(static_cast<uint32_t>(document.fontData.size()));
                 writer.write(document.fontData.data(), document.fontData.size());
+                writer.writeVarUint(uint32_t{0}); // property terminator
+                assetPreludeWritten = true;
             }
-            
-            writer.writeVarUint(uint32_t{0}); // property terminator
-            assetPreludeWritten = true;
         }
     }
-
-    // Asset prelude is now written inline with Backboard (see above)
 
     return buffer;
 }

@@ -116,10 +116,15 @@ struct TextStyleData
 {
     std::string fontFamily = "Inter";
     float fontSize = 24.0f;
-    uint32_t fontWeight = 400;
-    float lineHeight = -1.0f; // -1 = auto
+    uint32_t fontWeight = 400; // 100-900 (400=normal, 700=bold)
+    float fontWidth = 100.0f;  // Font width/stretch (50-200, 100=normal)
+    float fontSlant = 0.0f;    // Font slant/italic (-15 to 15 degrees)
+    float lineHeight = -1.0f;  // -1 = auto
     float letterSpacing = 0.0f;
-    uint32_t color = 0xFF000000; // Text color (default black)
+    uint32_t color = 0xFF000000; // Text fill color
+    bool hasStroke = false;
+    uint32_t strokeColor = 0xFF000000; // Text stroke/outline color
+    float strokeThickness = 1.0f;
 };
 
 struct TextData
@@ -157,10 +162,40 @@ struct StateMachineInputData
     float defaultValue = 0.0f;
 };
 
+struct StateData
+{
+    std::string name = "State";
+    std::string type = "entry"; // entry, animation, exit, any
+    std::string animationName = ""; // For animation states
+};
+
+struct TransitionConditionData
+{
+    std::string input = ""; // Input name
+    std::string op = "=="; // ==, !=, <, <=, >, >=
+    float value = 0.0f;
+};
+
+struct TransitionData
+{
+    std::string from = ""; // Source state name
+    std::string to = ""; // Target state name
+    uint32_t duration = 300; // Transition duration in ms
+    std::vector<TransitionConditionData> conditions;
+};
+
+struct LayerData
+{
+    std::string name = "Layer";
+    std::vector<StateData> states;
+    std::vector<TransitionData> transitions;
+};
+
 struct StateMachineData
 {
     std::string name = "StateMachine";
     std::vector<StateMachineInputData> inputs;
+    std::vector<LayerData> layers;
 };
 
 struct ConstraintData

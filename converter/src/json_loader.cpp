@@ -230,14 +230,28 @@ Document parse_json(const std::string& json_content)
                 textData.style.fontFamily = style.value("fontFamily", textData.style.fontFamily);
                 textData.style.fontSize = style.value("fontSize", textData.style.fontSize);
                 textData.style.fontWeight = style.value("fontWeight", textData.style.fontWeight);
+                textData.style.fontWidth = style.value("fontWidth", textData.style.fontWidth);
+                textData.style.fontSlant = style.value("fontSlant", textData.style.fontSlant);
                 textData.style.lineHeight = style.value("lineHeight", textData.style.lineHeight);
                 textData.style.letterSpacing = style.value("letterSpacing", textData.style.letterSpacing);
                 
-                // Parse text color
+                // Parse text fill color
                 if (style.contains("color"))
                 {
                     std::string color = style["color"].get<std::string>();
                     textData.style.color = parse_color_string(color, textData.style.color);
+                }
+                
+                // Parse text stroke (outline)
+                textData.style.hasStroke = style.value("hasStroke", textData.style.hasStroke);
+                if (textData.style.hasStroke)
+                {
+                    textData.style.strokeThickness = style.value("strokeThickness", textData.style.strokeThickness);
+                    if (style.contains("strokeColor"))
+                    {
+                        std::string strokeColor = style["strokeColor"].get<std::string>();
+                        textData.style.strokeColor = parse_color_string(strokeColor, textData.style.strokeColor);
+                    }
                 }
             }
             
@@ -293,7 +307,7 @@ Document parse_json(const std::string& json_content)
         }
     }
     
-    // Parse state machines
+    // Parse state machines - FULL (inputs, layers, states, transitions)
     if (json.contains("stateMachines"))
     {
         for (const auto& sm : json["stateMachines"])
@@ -301,6 +315,7 @@ Document parse_json(const std::string& json_content)
             StateMachineData smData;
             smData.name = sm.value("name", smData.name);
             
+            // Parse inputs
             if (sm.contains("inputs"))
             {
                 for (const auto& input : sm["inputs"])
@@ -308,8 +323,60 @@ Document parse_json(const std::string& json_content)
                     StateMachineInputData inputData;
                     inputData.name = input.value("name", inputData.name);
                     inputData.type = input.value("type", inputData.type);
-                    inputData.defaultValue = input.value("defaultValue", inputData.defaultValue);
+                    inputData.defaultValue = input.value("value", input.value("defaultValue", inputData.defaultValue));
                     smData.inputs.push_back(inputData);
+                }
+            }
+            
+            // Parse layers
+            if (sm.contains("layers"))
+            {
+                for (const auto& layer : sm["layers"])
+                {
+                    LayerData layerData;
+                    layerData.name = layer.value("name", layerData.name);
+                    
+                    // Parse states
+                    if (layer.contains("states"))
+                    {
+                        for (const auto& state : layer["states"])
+                        {
+                            StateData stateData;
+                            stateData.name = state.value("name", stateData.name);
+                            stateData.type = state.value("type", stateData.type);
+                            stateData.animationName = state.value("animationName", stateData.animationName);
+                            layerData.states.push_back(stateData);
+                        }
+                    }
+                    
+                    // Parse transitions
+                    if (layer.contains("transitions"))
+                    {
+                        for (const auto& trans : layer["transitions"])
+                        {
+                            TransitionData transData;
+                            transData.from = trans.value("from", transData.from);
+                            transData.to = trans.value("to", transData.to);
+                            transData.duration = trans.value("duration", transData.duration);
+                            
+                            // Parse conditions
+                            if (trans.contains("conditions"))
+                            {
+                                for (const auto& cond : trans["conditions"])
+                                {
+                                    TransitionConditionData condData;
+                                    condData.input = cond.value("input", condData.input);
+                                    condData.op = cond.value("op", condData.op);
+                                    condData.value = cond.value("value", condData.value);
+                                    transData.conditions.push_back(condData);
+                                }
+                            }
+                            
+                            layerData.transitions.push_back(transData);
+                        }
+                    }
+                    
+                    smData.layers.push_back(layerData);
                 }
             }
             

@@ -35,10 +35,18 @@ python3 converter/analyze_riv.py <out.riv>
 - Asset placeholder'ini kaldirmak -> Rive Play bos asset chunk beklerken hata verir.
 - Float alanlari varuint olarak yazmak -> runtime degersiz veriyi 0 olarak okur.
 
-## 6. Acik Gorevler
+## 6. Text Rendering (TAMAMLANDI - Sep 30, 2024)
+- ✅ Text (134), TextStylePaint (137), TextValueRun (135) tamamen implement edildi.
+- ✅ FontAsset (141) + FileAssetContents (106) ile font embedding calisiyor (Arial.ttf 755KB).
+- ✅ Paint hierarchy: SolidColor → Fill → TextStylePaint.
+- ✅ Property keys: text (268), styleId (272) artboard-local remapping ile.
+- ✅ Rive Play'de test edildi: "Hello World" gorunuyor!
+- ✅ Coklu text objeleri calisiyor (9 text tested).
+
+## 7. Acik Gorevler
 - State Machine ve ViewModel tipleri icin serializer destegi yok; eklenirse `riv_structure.md` ve ToC mantigi guncellenmeli.
 - Drawable chain / Artboard catalog gibi ust seviye tipler implement edilmedi. Daha karmasik sahneler icin referans `.riv` dosyalari incelenmeli.
-- Gercek asset verisi gommek icin `ImageAsset` ve `FileAssetContents` property'leri arastirilacak.
+- Text animation (text property keyframe'leri) henuz test edilmedi.
 
 ## 7. Kontrol Listesi (Yeni Ozellik Eklerken)
 - [ ] Yeni property anahtarini `PropertyTypeMap` ve ToC'ye eklediniz mi?

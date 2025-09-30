@@ -45,7 +45,33 @@ int main(int argc, char* argv[])
             std::cout << "Artboard width: " << file->artboard()->width() << std::endl;
             std::cout << "Artboard height: " << file->artboard()->height() << std::endl;
 
-            auto instance = file->artboard()->instance();
+            // Check for Text objects
+            auto* artboard = file->artboard();
+            std::cout << "Artboard child count: " << artboard->objects().size() << std::endl;
+            
+            int textCount = 0, textStyleCount = 0, textRunCount = 0;
+            for (auto* obj : artboard->objects()) {
+                std::cout << "  Object typeKey=" << obj->coreType() << std::endl;
+                if (obj->coreType() == 134) textCount++;
+                if (obj->coreType() == 137) textStyleCount++;
+                if (obj->coreType() == 135) textRunCount++;
+            }
+            std::cout << "Total: " << textCount << " Text, " << textStyleCount << " TextStylePaint, " << textRunCount << " TextValueRun" << std::endl;
+            
+            // Check for state machines
+            std::cout << "\nState Machines:" << std::endl;
+            for (size_t i = 0; i < file->artboard()->stateMachineCount(); ++i)
+            {
+                auto* sm = file->artboard()->stateMachine(i);
+                if (sm)
+                {
+                    std::cout << "  StateMachine #" << i << ": name='" << sm->name() << "'" << std::endl;
+                    std::cout << "    Inputs: " << sm->inputCount() << std::endl;
+                    std::cout << "    Layers: " << sm->layerCount() << std::endl;
+                }
+            }
+            
+            auto instance = artboard->instance();
             if (instance == nullptr)
             {
                 std::cout << "Artboard instance could not be created" << std::endl;
@@ -53,7 +79,7 @@ int main(int argc, char* argv[])
             else
             {
                 instance->advance(0.0f);
-                std::cout << "Artboard instance initialized." << std::endl;
+                std::cout << "\nArtboard instance initialized." << std::endl;
             }
         }
     }
