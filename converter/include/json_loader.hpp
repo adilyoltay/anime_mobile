@@ -117,7 +117,8 @@ struct TextStyleData
     std::string fontFamily = "Inter";
     float fontSize = 24.0f;
     uint32_t fontWeight = 400;
-    uint32_t align = 0; // 0=left, 1=center, 2=right
+    float lineHeight = -1.0f; // -1 = auto
+    float letterSpacing = 0.0f;
 };
 
 struct TextData
@@ -127,6 +128,13 @@ struct TextData
     float y = 0.0f;
     float width = 200.0f;
     float height = 100.0f;
+    uint32_t align = 0; // 0=left, 1=center, 2=right
+    uint32_t sizing = 0; // 0=auto, 1=fixed
+    uint32_t overflow = 0; // 0=visible, 1=hidden, 2=clipped
+    uint32_t wrap = 0; // 0=off, 1=on
+    uint32_t verticalAlign = 0; // 0=top, 1=middle, 2=bottom
+    float paragraphSpacing = 0.0f;
+    bool fitFromBaseline = true;
     TextStyleData style;
 };
 

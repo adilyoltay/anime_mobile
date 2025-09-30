@@ -156,6 +156,9 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 281: // Text::alignValue
                 case 284: // Text::sizingValue
                 case 287: // Text::overflowValue
+                case 683: // Text::wrapValue
+                case 685: // Text::verticalAlignValue
+                case 703: // Text::fitFromBaseline
                 case 128: // Path::pathFlags
                 case 770: // Path::isHole
                 case 279: // TextStyle::fontAssetId
@@ -448,7 +451,7 @@ CoreDocument build_core_document(const Document& document,
         }
     }
 
-    // Build texts (full implementation)
+    // Build texts (full implementation with all properties)
     for (const auto& textData : document.texts)
     {
         auto& text = builder.addCore(new rive::Text());
@@ -457,18 +460,21 @@ CoreDocument build_core_document(const Document& document,
         builder.set(text, rive::NodeBase::yPropertyKey, textData.y);
         builder.set(text, static_cast<uint16_t>(285), textData.width); // width
         builder.set(text, static_cast<uint16_t>(286), textData.height); // height
-        builder.set(text, static_cast<uint16_t>(281), textData.style.align); // alignValue
-        builder.set(text, static_cast<uint16_t>(284), static_cast<uint32_t>(0)); // sizingValue (auto)
-        builder.set(text, static_cast<uint16_t>(287), static_cast<uint32_t>(0)); // overflowValue (visible)
+        builder.set(text, static_cast<uint16_t>(281), textData.align); // alignValue
+        builder.set(text, static_cast<uint16_t>(284), textData.sizing); // sizingValue
+        builder.set(text, static_cast<uint16_t>(287), textData.overflow); // overflowValue
+        builder.set(text, static_cast<uint16_t>(683), textData.wrap); // wrapValue
+        builder.set(text, static_cast<uint16_t>(685), textData.verticalAlign); // verticalAlignValue
+        builder.set(text, static_cast<uint16_t>(371), textData.paragraphSpacing); // paragraphSpacing
+        builder.set(text, static_cast<uint16_t>(703), textData.fitFromBaseline); // fitFromBaseline
         
         // Add TextStyle
         auto& textStyle = builder.addCore(new rive::TextStyle());
         builder.setParent(textStyle, text.id);
         builder.set(textStyle, static_cast<uint16_t>(274), textData.style.fontSize); // fontSize
-        builder.set(textStyle, static_cast<uint16_t>(370), -1.0f); // lineHeight (auto)
-        builder.set(textStyle, static_cast<uint16_t>(390), 0.0f); // letterSpacing
-        // fontAssetId would reference a FontAsset - for now use -1 (system font)
-        builder.set(textStyle, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId
+        builder.set(textStyle, static_cast<uint16_t>(370), textData.style.lineHeight); // lineHeight
+        builder.set(textStyle, static_cast<uint16_t>(390), textData.style.letterSpacing); // letterSpacing
+        builder.set(textStyle, static_cast<uint16_t>(279), static_cast<uint32_t>(-1)); // fontAssetId (system font)
         
         // Add TextRun with content
         auto& textRun = builder.addCore(new rive::TextValueRun());

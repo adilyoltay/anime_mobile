@@ -216,6 +216,13 @@ Document parse_json(const std::string& json_content)
             textData.y = text.value("y", textData.y);
             textData.width = text.value("width", textData.width);
             textData.height = text.value("height", textData.height);
+            textData.align = text.value("align", textData.align);
+            textData.sizing = text.value("sizing", textData.sizing);
+            textData.overflow = text.value("overflow", textData.overflow);
+            textData.wrap = text.value("wrap", textData.wrap);
+            textData.verticalAlign = text.value("verticalAlign", textData.verticalAlign);
+            textData.paragraphSpacing = text.value("paragraphSpacing", textData.paragraphSpacing);
+            textData.fitFromBaseline = text.value("fitFromBaseline", textData.fitFromBaseline);
             
             if (text.contains("style"))
             {
@@ -223,7 +230,8 @@ Document parse_json(const std::string& json_content)
                 textData.style.fontFamily = style.value("fontFamily", textData.style.fontFamily);
                 textData.style.fontSize = style.value("fontSize", textData.style.fontSize);
                 textData.style.fontWeight = style.value("fontWeight", textData.style.fontWeight);
-                textData.style.align = style.value("align", textData.style.align);
+                textData.style.lineHeight = style.value("lineHeight", textData.style.lineHeight);
+                textData.style.letterSpacing = style.value("letterSpacing", textData.style.letterSpacing);
             }
             
             doc.texts.push_back(textData);
