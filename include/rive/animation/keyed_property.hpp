@@ -35,6 +35,17 @@ public:
         return nullptr;
     }
 
+    // Export support for extractors
+    size_t numKeyFrames() const { return m_keyFrames.size(); }
+    const KeyFrame* getKeyFrame(size_t index) const
+    {
+        if (index < m_keyFrames.size())
+        {
+            return m_keyFrames[index].get();
+        }
+        return nullptr;
+    }
+
 private:
     int closestFrameIndex(float seconds, int exactOffset = 0) const;
     std::vector<std::unique_ptr<KeyFrame>> m_keyFrames;

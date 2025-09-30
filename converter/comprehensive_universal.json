@@ -1,0 +1,716 @@
+{
+  "format": "universal",
+  "version": "1.0",
+  "artboards": [
+    {
+      "name": "Comprehensive Universal Test",
+      "width": 1000,
+      "height": 800,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "properties": {
+            "name": "Comprehensive Universal Test",
+            "width": 1000,
+            "height": 800
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "Rectangle",
+            "x": 50,
+            "y": 50,
+            "width": 100,
+            "height": 80,
+            "rotation": 0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "opacity": 1.0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 2,
+          "parentId": 1,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 3,
+          "parentId": 2,
+          "properties": {
+            "color": "#FF5733"
+          }
+        },
+        {
+          "typeKey": 24,
+          "localId": 4,
+          "parentId": 1,
+          "properties": {
+            "thickness": 3.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 5,
+          "parentId": 4,
+          "properties": {
+            "color": "#000000"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 6,
+          "parentId": 0,
+          "properties": {
+            "name": "Ellipse",
+            "x": 200,
+            "y": 50,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 7,
+          "parentId": 6,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 8,
+          "parentId": 7,
+          "properties": {
+            "color": "#3498DB"
+          }
+        },
+        {
+          "typeKey": 3,
+          "localId": 9,
+          "parentId": 0,
+          "properties": {
+            "name": "Custom Path - Straight",
+            "x": 350,
+            "y": 50
+          }
+        },
+        {
+          "typeKey": 16,
+          "localId": 10,
+          "parentId": 9,
+          "properties": {
+            "isClosed": true
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 11,
+          "parentId": 10,
+          "properties": {
+            "x": 0,
+            "y": 0,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 12,
+          "parentId": 10,
+          "properties": {
+            "x": 80,
+            "y": 0,
+            "radius": 10
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 13,
+          "parentId": 10,
+          "properties": {
+            "x": 80,
+            "y": 80,
+            "radius": 10
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 14,
+          "parentId": 10,
+          "properties": {
+            "x": 0,
+            "y": 80,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 15,
+          "parentId": 9,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 16,
+          "parentId": 15,
+          "properties": {
+            "color": "#2ECC71"
+          }
+        },
+        {
+          "typeKey": 3,
+          "localId": 17,
+          "parentId": 0,
+          "properties": {
+            "name": "Cubic Detached Path",
+            "x": 500,
+            "y": 50
+          }
+        },
+        {
+          "typeKey": 16,
+          "localId": 18,
+          "parentId": 17,
+          "properties": {
+            "isClosed": true
+          }
+        },
+        {
+          "typeKey": 6,
+          "localId": 19,
+          "parentId": 18,
+          "properties": {
+            "x": 0,
+            "y": 0,
+            "inRotation": 0,
+            "inDistance": 0,
+            "outRotation": 0,
+            "outDistance": 30
+          }
+        },
+        {
+          "typeKey": 6,
+          "localId": 20,
+          "parentId": 18,
+          "properties": {
+            "x": 80,
+            "y": 0,
+            "inRotation": 3.14159,
+            "inDistance": 30,
+            "outRotation": 1.5708,
+            "outDistance": 30
+          }
+        },
+        {
+          "typeKey": 6,
+          "localId": 21,
+          "parentId": 18,
+          "properties": {
+            "x": 80,
+            "y": 80,
+            "inRotation": -1.5708,
+            "inDistance": 30,
+            "outRotation": 3.14159,
+            "outDistance": 30
+          }
+        },
+        {
+          "typeKey": 6,
+          "localId": 22,
+          "parentId": 18,
+          "properties": {
+            "x": 0,
+            "y": 80,
+            "inRotation": 0,
+            "inDistance": 30,
+            "outRotation": -1.5708,
+            "outDistance": 30
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 23,
+          "parentId": 17,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 24,
+          "parentId": 23,
+          "properties": {
+            "color": "#9B59B6"
+          }
+        },
+        {
+          "typeKey": 3,
+          "localId": 25,
+          "parentId": 0,
+          "properties": {
+            "name": "Cubic Mirrored Path",
+            "x": 50,
+            "y": 180
+          }
+        },
+        {
+          "typeKey": 16,
+          "localId": 26,
+          "parentId": 25,
+          "properties": {
+            "isClosed": true
+          }
+        },
+        {
+          "typeKey": 35,
+          "localId": 27,
+          "parentId": 26,
+          "properties": {
+            "x": 0,
+            "y": 0,
+            "rotation": 0,
+            "distance": 20
+          }
+        },
+        {
+          "typeKey": 35,
+          "localId": 28,
+          "parentId": 26,
+          "properties": {
+            "x": 60,
+            "y": 40,
+            "rotation": 0.785398,
+            "distance": 25
+          }
+        },
+        {
+          "typeKey": 35,
+          "localId": 29,
+          "parentId": 26,
+          "properties": {
+            "x": 0,
+            "y": 80,
+            "rotation": 1.5708,
+            "distance": 20
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 30,
+          "parentId": 25,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 31,
+          "parentId": 30,
+          "properties": {
+            "color": "#E74C3C"
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 32,
+          "parentId": 0,
+          "properties": {
+            "name": "Linear Gradient",
+            "x": 200,
+            "y": 180,
+            "width": 100,
+            "height": 80
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 33,
+          "parentId": 32,
+          "properties": {}
+        },
+        {
+          "typeKey": 22,
+          "localId": 34,
+          "parentId": 33,
+          "properties": {}
+        },
+        {
+          "typeKey": 19,
+          "localId": 35,
+          "parentId": 34,
+          "properties": {
+            "position": 0.0,
+            "color": "#FF0000"
+          }
+        },
+        {
+          "typeKey": 19,
+          "localId": 36,
+          "parentId": 34,
+          "properties": {
+            "position": 0.5,
+            "color": "#FFFF00"
+          }
+        },
+        {
+          "typeKey": 19,
+          "localId": 37,
+          "parentId": 34,
+          "properties": {
+            "position": 1.0,
+            "color": "#00FF00"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 38,
+          "parentId": 0,
+          "properties": {
+            "name": "Radial Gradient",
+            "x": 350,
+            "y": 180,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 39,
+          "parentId": 38,
+          "properties": {}
+        },
+        {
+          "typeKey": 17,
+          "localId": 40,
+          "parentId": 39,
+          "properties": {}
+        },
+        {
+          "typeKey": 19,
+          "localId": 41,
+          "parentId": 40,
+          "properties": {
+            "position": 0.0,
+            "color": "#FFFFFF"
+          }
+        },
+        {
+          "typeKey": 19,
+          "localId": 42,
+          "parentId": 40,
+          "properties": {
+            "position": 0.7,
+            "color": "#3498DB"
+          }
+        },
+        {
+          "typeKey": 19,
+          "localId": 43,
+          "parentId": 40,
+          "properties": {
+            "position": 1.0,
+            "color": "#000000"
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 44,
+          "parentId": 0,
+          "properties": {
+            "name": "Feather Effect",
+            "x": 500,
+            "y": 180,
+            "width": 80,
+            "height": 80
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 45,
+          "parentId": 44,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 46,
+          "parentId": 45,
+          "properties": {
+            "color": "#F39C12"
+          }
+        },
+        {
+          "typeKey": 533,
+          "localId": 47,
+          "parentId": 45,
+          "properties": {
+            "strength": 10.0,
+            "offsetX": 5.0,
+            "offsetY": 5.0,
+            "inner": false
+          }
+        },
+        {
+          "typeKey": 3,
+          "localId": 48,
+          "parentId": 0,
+          "properties": {
+            "name": "Multi-Path Shape",
+            "x": 650,
+            "y": 50
+          }
+        },
+        {
+          "typeKey": 16,
+          "localId": 49,
+          "parentId": 48,
+          "properties": {
+            "isClosed": true
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 50,
+          "parentId": 49,
+          "properties": {
+            "x": 0,
+            "y": 0,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 51,
+          "parentId": 49,
+          "properties": {
+            "x": 50,
+            "y": 0,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 52,
+          "parentId": 49,
+          "properties": {
+            "x": 50,
+            "y": 50,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 53,
+          "parentId": 49,
+          "properties": {
+            "x": 0,
+            "y": 50,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 16,
+          "localId": 54,
+          "parentId": 48,
+          "properties": {
+            "isClosed": true
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 55,
+          "parentId": 54,
+          "properties": {
+            "x": 10,
+            "y": 10,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 56,
+          "parentId": 54,
+          "properties": {
+            "x": 40,
+            "y": 10,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 57,
+          "parentId": 54,
+          "properties": {
+            "x": 40,
+            "y": 40,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "localId": 58,
+          "parentId": 54,
+          "properties": {
+            "x": 10,
+            "y": 40,
+            "radius": 0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 59,
+          "parentId": 48,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 60,
+          "parentId": 59,
+          "properties": {
+            "color": "#1ABC9C"
+          }
+        },
+        {
+          "typeKey": 2,
+          "localId": 61,
+          "parentId": 0,
+          "properties": {
+            "name": "Node Container",
+            "x": 750,
+            "y": 50,
+            "rotation": 0.3,
+            "scaleX": 1.2,
+            "scaleY": 1.2
+          }
+        }
+      ],
+      "animations": [
+        {
+          "name": "Bounce",
+          "fps": 60,
+          "duration": 60,
+          "loop": 1
+        },
+        {
+          "name": "Fade",
+          "fps": 60,
+          "duration": 120,
+          "loop": 2
+        }
+      ],
+      "stateMachines": [
+        {
+          "name": "Main State Machine",
+          "inputs": [
+            {
+              "name": "Toggle",
+              "typeKey": 59,
+              "value": false
+            },
+            {
+              "name": "Speed",
+              "typeKey": 56,
+              "value": 1.0
+            },
+            {
+              "name": "Action",
+              "typeKey": 58
+            }
+          ],
+          "layers": [
+            {
+              "name": "Animation Layer",
+              "states": [
+                {
+                  "typeKey": 63,
+                  "name": "Entry"
+                },
+                {
+                  "typeKey": 64,
+                  "name": "Exit"
+                },
+                {
+                  "typeKey": 62,
+                  "name": "Any"
+                },
+                {
+                  "typeKey": 61,
+                  "name": "Bounce State",
+                  "animationId": 1,
+                  "transitions": [
+                    {
+                      "stateToId": 4,
+                      "flags": 0,
+                      "duration": 150
+                    }
+                  ]
+                },
+                {
+                  "typeKey": 61,
+                  "name": "Fade State",
+                  "animationId": 2,
+                  "transitions": [
+                    {
+                      "stateToId": 3,
+                      "flags": 0,
+                      "duration": 200
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Second Artboard",
+      "width": 400,
+      "height": 300,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "properties": {
+            "name": "Second Artboard",
+            "width": 400,
+            "height": 300
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "Simple Shape",
+            "x": 100,
+            "y": 100,
+            "width": 80,
+            "height": 80
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 2,
+          "parentId": 1,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 3,
+          "parentId": 2,
+          "properties": {
+            "color": "#16A085"
+          }
+        }
+      ],
+      "animations": [
+        {
+          "name": "Spin",
+          "fps": 60,
+          "duration": 90,
+          "loop": 1
+        }
+      ]
+    }
+  ]
+}
+

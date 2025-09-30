@@ -72,41 +72,41 @@ elseif(UNIX)
     )
 endif()
 
-# JSON to RIV Converter library
-add_library(json_to_riv_converter STATIC
-    json_to_riv_converter.hpp
-    json_to_riv_converter.cpp
-)
+# JSON to RIV Converter library (archived - now in converter/)
+# add_library(json_to_riv_converter STATIC
+#     json_to_riv_converter.hpp
+#     json_to_riv_converter.cpp
+# )
+# 
+# target_link_libraries(json_to_riv_converter 
+#     rive_runtime
+#     nlohmann_json::nlohmann_json
+# )
 
-target_link_libraries(json_to_riv_converter 
-    rive_runtime
-    nlohmann_json::nlohmann_json
-)
+# Test executable (archived)
+# add_executable(test_converter
+#     test_converter.cpp
+# )
+# 
+# target_link_libraries(test_converter
+#     json_to_riv_converter
+#     rive_runtime
+#     nlohmann_json::nlohmann_json
+# )
 
-# Test executable
-add_executable(test_converter
-    test_converter.cpp
-)
+# Simple demo executable (archived)
+# add_executable(simple_demo
+#     simple_demo.cpp
+# )
+# 
+# target_link_libraries(simple_demo
+#     json_to_riv_converter
+# )
 
-target_link_libraries(test_converter
-    json_to_riv_converter
-    rive_runtime
-    nlohmann_json::nlohmann_json
-)
-
-# Simple demo executable
-add_executable(simple_demo
-    simple_demo.cpp
-)
-
-target_link_libraries(simple_demo
-    json_to_riv_converter
-)
-
-# Install targets
-install(TARGETS test_converter simple_demo
-    RUNTIME DESTINATION bin
-)
+# Install targets (commented - old converters archived)
+# install(TARGETS test_converter simple_demo
+#     RUNTIME DESTINATION bin
+# )
 
 install(FILES 
     bouncing_ball.json

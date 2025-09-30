@@ -1,0 +1,2084 @@
+{
+  "artboards": [
+    {
+      "animations": [
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "Timeline 1"
+        }
+      ],
+      "height": 1080.0,
+      "name": "In-game",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 460.0,
+            "y": 40.0
+          },
+          "typeKey": 92,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 2,
+          "parentId": 1,
+          "properties": {},
+          "typeKey": 95,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 3,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": -8.207267092075199e-05,
+            "y": -8.831990999169648e-05
+          },
+          "typeKey": 92,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 4,
+          "parentId": 3,
+          "properties": {},
+          "typeKey": 95,
+          "typeName": "Unknown"
+        },
+        {
+          "__unsupported__": true,
+          "localId": 5,
+          "parentId": 0,
+          "properties": {},
+          "typeKey": 420,
+          "typeName": "LayoutComponentStyle"
+        },
+        {
+          "localId": 6,
+          "parentId": 7,
+          "properties": {
+            "color": "#151B1C"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 7,
+          "parentId": 0,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [
+            {
+              "name": "Layer 1",
+              "states": [
+                {
+                  "animationId": 0,
+                  "name": "Timeline 1",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_1",
+                  "transitions": [],
+                  "typeKey": 64
+                },
+                {
+                  "name": "State_2",
+                  "transitions": [],
+                  "typeKey": 62
+                },
+                {
+                  "name": "State_3",
+                  "transitions": [
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 0,
+                      "typeKey": 65
+                    }
+                  ],
+                  "typeKey": 63
+                }
+              ],
+              "typeKey": 57
+            }
+          ],
+          "name": "State Machine 1",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "18": {
+          "count": 1,
+          "name": "SolidColor"
+        },
+        "20": {
+          "count": 1,
+          "name": "Fill"
+        },
+        "420": {
+          "count": 1,
+          "name": "LayoutComponentStyle"
+        },
+        "92": {
+          "count": 2,
+          "name": "Unknown"
+        },
+        "95": {
+          "count": 2,
+          "name": "Unknown"
+        }
+      },
+      "width": 1920.0
+    },
+    {
+      "animations": [
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "Timeline 1"
+        }
+      ],
+      "height": 1080.0,
+      "name": "Background",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 960.0,
+            "y": 540.0
+          },
+          "typeKey": 100,
+          "typeName": "Unknown"
+        },
+        {
+          "__unsupported__": true,
+          "localId": 2,
+          "parentId": 0,
+          "properties": {},
+          "typeKey": 420,
+          "typeName": "LayoutComponentStyle"
+        },
+        {
+          "localId": 3,
+          "parentId": 4,
+          "properties": {
+            "color": "#313131"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 4,
+          "parentId": 0,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [
+            {
+              "name": "Layer 1",
+              "states": [
+                {
+                  "name": "State_0",
+                  "transitions": [],
+                  "typeKey": 64
+                },
+                {
+                  "name": "State_1",
+                  "transitions": [
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 3,
+                      "typeKey": 65
+                    }
+                  ],
+                  "typeKey": 63
+                },
+                {
+                  "name": "State_2",
+                  "transitions": [],
+                  "typeKey": 62
+                },
+                {
+                  "animationId": 0,
+                  "name": "Timeline 1",
+                  "transitions": [],
+                  "typeKey": 61
+                }
+              ],
+              "typeKey": 57
+            }
+          ],
+          "name": "State Machine 2",
+          "typeKey": 53
+        },
+        {
+          "inputs": [],
+          "layers": [
+            {
+              "name": "Layer 1",
+              "states": [
+                {
+                  "animationId": 0,
+                  "name": "Timeline 1",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_1",
+                  "transitions": [
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 0,
+                      "typeKey": 65
+                    }
+                  ],
+                  "typeKey": 63
+                },
+                {
+                  "name": "State_2",
+                  "transitions": [],
+                  "typeKey": 64
+                },
+                {
+                  "name": "State_3",
+                  "transitions": [],
+                  "typeKey": 62
+                }
+              ],
+              "typeKey": 57
+            }
+          ],
+          "name": "State Machine 1",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "100": {
+          "count": 1,
+          "name": "Unknown"
+        },
+        "18": {
+          "count": 1,
+          "name": "SolidColor"
+        },
+        "20": {
+          "count": 1,
+          "name": "Fill"
+        },
+        "420": {
+          "count": 1,
+          "name": "LayoutComponentStyle"
+        }
+      },
+      "width": 1920.0
+    },
+    {
+      "animations": [
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "SOMEONE'S BEEN HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "WATCHING HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "DEFEND HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "REGROUP HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "ATTACK HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "LOOTING THIS AREA"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "ENEMY HERE"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "AVOID THIS AREA"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 2,
+          "name": "Reticle"
+        },
+        {
+          "duration": 60,
+          "fps": 60,
+          "loop": 0,
+          "name": "Open"
+        }
+      ],
+      "height": 1000.0,
+      "name": "Ping Wheel",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 110.0
+          },
+          "typeKey": 2,
+          "typeName": "Node"
+        },
+        {
+          "__unsupported__": true,
+          "localId": 2,
+          "parentId": 0,
+          "properties": {},
+          "typeKey": 420,
+          "typeName": "LayoutComponentStyle"
+        },
+        {
+          "localId": 3,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 500.0
+          },
+          "typeKey": 2,
+          "typeName": "Node"
+        },
+        {
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "length": 41.4286003112793,
+            "opacity": 1.0,
+            "rotation": -1.5707963705062866,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 41,
+          "typeName": "RootBone"
+        },
+        {
+          "localId": 5,
+          "parentId": 4,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 1.5707963705062866,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": -2.185569428547751e-05,
+            "y": 8.661882930027787e-06
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 6,
+          "parentId": 5,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": -3.141592502593994,
+            "scaleX": 0.999999463558197,
+            "scaleY": 0.999999463558197,
+            "x": -0.00244140625,
+            "y": -0.00244140625
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 7,
+          "parentId": 6,
+          "properties": {},
+          "typeKey": 34,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 8,
+          "parentId": 6,
+          "properties": {
+            "inDistance": 22.417238235473633,
+            "inRotation": 0.0,
+            "outDistance": 22.417238235473633,
+            "outRotation": 3.1415927410125732,
+            "x": 0.0,
+            "y": 165.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 9,
+          "parentId": 6,
+          "properties": {},
+          "typeKey": 34,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 10,
+          "parentId": 101,
+          "properties": {
+            "color": "#FFFFFF"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 11,
+          "parentId": 4,
+          "properties": {},
+          "typeKey": 81,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 12,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": -107.5
+          },
+          "typeKey": 134,
+          "typeName": "Text"
+        },
+        {
+          "localId": 13,
+          "parentId": 12,
+          "properties": {},
+          "typeKey": 137,
+          "typeName": "TextStylePaint"
+        },
+        {
+          "localId": 14,
+          "parentId": 102,
+          "properties": {
+            "color": "#FFFFFF"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 15,
+          "parentId": 12,
+          "properties": {},
+          "typeKey": 135,
+          "typeName": "TextValueRun"
+        },
+        {
+          "localId": 16,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 17,
+          "parentId": 16,
+          "properties": {
+            "height": 358.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 358.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 18,
+          "parentId": 103,
+          "properties": {
+            "color": "#FC8220"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 19,
+          "parentId": 16,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 20,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 21,
+          "parentId": 20,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.39269909262657166,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 52,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 22,
+          "parentId": 104,
+          "properties": {},
+          "typeKey": 17,
+          "typeName": "RadialGradient"
+        },
+        {
+          "localId": 23,
+          "parentId": 22,
+          "properties": {
+            "color": "#FC8220",
+            "position": 1.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 24,
+          "parentId": 22,
+          "properties": {
+            "color": "#FC8220",
+            "position": 0.3499999940395355
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 25,
+          "parentId": 20,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 26,
+          "parentId": 20,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 27,
+          "parentId": 3,
+          "properties": {
+            "opacity": 0.699999988079071,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 28,
+          "parentId": 27,
+          "properties": {
+            "height": 376.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 376.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 29,
+          "parentId": 105,
+          "properties": {
+            "color": "#FC8220"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 30,
+          "parentId": 105,
+          "properties": {
+            "inner": false,
+            "offsetX": 0.0,
+            "offsetY": 0.0,
+            "strength": 33.0
+          },
+          "typeKey": 533,
+          "typeName": "Feather"
+        },
+        {
+          "localId": 31,
+          "parentId": 27,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 32,
+          "parentId": 27,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 33,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 34,
+          "parentId": 33,
+          "properties": {
+            "height": 355.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 355.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 35,
+          "parentId": 106,
+          "properties": {
+            "color": "#FC8220"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 36,
+          "parentId": 106,
+          "properties": {
+            "inner": false,
+            "offsetX": 0.0,
+            "offsetY": 0.0,
+            "strength": 150.0
+          },
+          "typeKey": 533,
+          "typeName": "Feather"
+        },
+        {
+          "localId": 37,
+          "parentId": 33,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 38,
+          "parentId": 33,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 39,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 40,
+          "parentId": 39,
+          "properties": {
+            "height": 350.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 350.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 41,
+          "parentId": 107,
+          "properties": {
+            "color": "#C0C0C0"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 42,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 2,
+          "typeName": "Node"
+        },
+        {
+          "localId": 43,
+          "parentId": 42,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 44,
+          "parentId": 43,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.004454851150512695
+          },
+          "typeKey": 52,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 45,
+          "parentId": 43,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 46,
+          "parentId": 108,
+          "properties": {
+            "color": "#747474"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 47,
+          "parentId": 42,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.739017984116799e-09,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 48,
+          "parentId": 47,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 49,
+          "parentId": 109,
+          "properties": {
+            "color": "#747474"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 50,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": -9.473120132094345e-16,
+            "scaleX": 0.9999999403953552,
+            "scaleY": 0.9999999403953552,
+            "x": 0.00018310546875,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 51,
+          "parentId": 50,
+          "properties": {
+            "height": 1500.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 1500.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 52,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": -5.684341886080802e-14,
+            "y": -7.739839134046633e-07
+          },
+          "typeKey": 2,
+          "typeName": "Node"
+        },
+        {
+          "localId": 53,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": -0.7853981852531433,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 54,
+          "parentId": 53,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 55,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": -1.5707963705062866,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 56,
+          "parentId": 55,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 57,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": -2.356194496154785,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 58,
+          "parentId": 57,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 59,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415927410125732,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 60,
+          "parentId": 59,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 61,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 2.356194496154785,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 62,
+          "parentId": 61,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 63,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 1.5707963705062866,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 64,
+          "parentId": 63,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 65,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.7853981852531433,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 66,
+          "parentId": 65,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 67,
+          "parentId": 52,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.739017984116799e-09,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 68,
+          "parentId": 67,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 3.1415913105010986,
+            "scaleX": 0.9999988675117493,
+            "scaleY": 0.9999988675117493,
+            "x": -0.0029739588499069214,
+            "y": -0.003541908459737897
+          },
+          "typeKey": 8,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 69,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 0.9999999403953552,
+            "scaleY": 0.9999999403953552,
+            "x": 3.0517578125e-05,
+            "y": 0.00439453125
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 70,
+          "parentId": 69,
+          "properties": {
+            "isClosed": true,
+            "opacity": 1.0,
+            "pathFlags": 2,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 71,
+          "parentId": 70,
+          "properties": {
+            "inDistance": 96.64983367919922,
+            "inRotation": 0.0,
+            "outDistance": 96.64983367919922,
+            "outRotation": 3.1415927410125732,
+            "x": 0.0,
+            "y": -175.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 72,
+          "parentId": 70,
+          "properties": {
+            "inDistance": 96.64983367919922,
+            "inRotation": -1.5707963705062866,
+            "outDistance": 96.64983367919922,
+            "outRotation": 1.5707963705062866,
+            "x": -175.0,
+            "y": 0.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 73,
+          "parentId": 70,
+          "properties": {
+            "inDistance": 96.64983367919922,
+            "inRotation": 3.1415927410125732,
+            "outDistance": 96.64983367919922,
+            "outRotation": 0.0,
+            "x": 0.0,
+            "y": 175.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 74,
+          "parentId": 70,
+          "properties": {
+            "inDistance": 96.64983367919922,
+            "inRotation": 1.5707963705062866,
+            "outDistance": 96.64983367919922,
+            "outRotation": -1.5707963705062866,
+            "x": 175.0,
+            "y": 0.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 75,
+          "parentId": 69,
+          "properties": {
+            "height": 1000.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 1000.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "localId": 76,
+          "parentId": 3,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 77,
+          "parentId": 76,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.39269909262657166,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 52,
+          "typeName": "Unknown"
+        },
+        {
+          "localId": 78,
+          "parentId": 110,
+          "properties": {},
+          "typeKey": 17,
+          "typeName": "RadialGradient"
+        },
+        {
+          "localId": 79,
+          "parentId": 78,
+          "properties": {
+            "color": "#C0C0C0",
+            "position": 1.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 80,
+          "parentId": 78,
+          "properties": {
+            "color": "#C0C0C0",
+            "position": 0.3499999940395355
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 81,
+          "parentId": 76,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 82,
+          "parentId": 3,
+          "properties": {
+            "opacity": 0.800000011920929,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 83,
+          "parentId": 82,
+          "properties": {
+            "height": 345.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 345.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 84,
+          "parentId": 111,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 85,
+          "parentId": 112,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 86,
+          "parentId": 3,
+          "properties": {
+            "opacity": 0.6499999761581421,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 3.0517578125e-05
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 87,
+          "parentId": 86,
+          "properties": {
+            "height": 661.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 661.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 88,
+          "parentId": 113,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 89,
+          "parentId": 113,
+          "properties": {
+            "inner": false,
+            "offsetX": 0.0,
+            "offsetY": 0.0,
+            "strength": 170.0
+          },
+          "typeKey": 533,
+          "typeName": "Feather"
+        },
+        {
+          "localId": 90,
+          "parentId": 86,
+          "properties": {},
+          "typeKey": 42,
+          "typeName": "Bone"
+        },
+        {
+          "localId": 91,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 500.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 92,
+          "parentId": 91,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 93,
+          "parentId": 92,
+          "properties": {
+            "radius": 0.0,
+            "x": -2.7418136596679688e-06,
+            "y": -4.649162292480469e-06
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 94,
+          "parentId": 92,
+          "properties": {
+            "radius": 0.0,
+            "x": -2.7418136596679688e-06,
+            "y": -152.0883331298828
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 95,
+          "parentId": 114,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 96,
+          "parentId": 115,
+          "properties": {
+            "color": "#9E9E9E"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 97,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.7853981852531433,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 500.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 98,
+          "parentId": 97,
+          "properties": {
+            "height": 8.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 8.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "localId": 99,
+          "parentId": 116,
+          "properties": {
+            "color": "#9E9E9E"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 100,
+          "parentId": 117,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 101,
+          "parentId": 5,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 6.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 102,
+          "parentId": 13,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 103,
+          "parentId": 16,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 10.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 104,
+          "parentId": 20,
+          "properties": {
+            "cap": 1,
+            "join": 1,
+            "thickness": 2.5
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 105,
+          "parentId": 27,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 106,
+          "parentId": 33,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 107,
+          "parentId": 39,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 2.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 108,
+          "parentId": 43,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 109,
+          "parentId": 47,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 110,
+          "parentId": 76,
+          "properties": {
+            "cap": 1,
+            "join": 1,
+            "thickness": 2.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 111,
+          "parentId": 82,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 2.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 112,
+          "parentId": 82,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 113,
+          "parentId": 86,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 114,
+          "parentId": 91,
+          "properties": {
+            "cap": 0,
+            "join": 1,
+            "thickness": 5.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 115,
+          "parentId": 91,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 3.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 116,
+          "parentId": 97,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 117,
+          "parentId": 97,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 1.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "properties": {
+            "x1": 0.41999998688697815,
+            "x2": 0.5799999833106995,
+            "y1": 0.0,
+            "y2": 1.0
+          },
+          "typeKey": 28,
+          "typeName": "CubicEaseInterpolator"
+        },
+        {
+          "properties": {},
+          "typeKey": 174,
+          "typeName": "Unknown"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [
+            {
+              "name": "Reticle",
+              "states": [
+                {
+                  "animationId": 8,
+                  "name": "Reticle",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_1",
+                  "transitions": [],
+                  "typeKey": 62
+                },
+                {
+                  "animationId": 9,
+                  "name": "Open",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_3",
+                  "transitions": [
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 0,
+                      "typeKey": 65
+                    }
+                  ],
+                  "typeKey": 63
+                },
+                {
+                  "name": "State_4",
+                  "transitions": [],
+                  "typeKey": 64
+                }
+              ],
+              "typeKey": 57
+            },
+            {
+              "name": "Layer 2",
+              "states": [
+                {
+                  "name": "State_0",
+                  "transitions": [
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 6,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 10,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 9,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 7,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 5,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 2,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 1,
+                      "typeKey": 65
+                    },
+                    {
+                      "duration": 0,
+                      "flags": 0,
+                      "stateToId": 3,
+                      "typeKey": 65
+                    }
+                  ],
+                  "typeKey": 62
+                },
+                {
+                  "animationId": 1,
+                  "name": "WATCHING HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "animationId": 2,
+                  "name": "DEFEND HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "animationId": 0,
+                  "name": "SOMEONE'S BEEN HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_4",
+                  "transitions": [],
+                  "typeKey": 64
+                },
+                {
+                  "animationId": 3,
+                  "name": "REGROUP HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "animationId": 7,
+                  "name": "AVOID THIS AREA",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "animationId": 4,
+                  "name": "ATTACK HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "name": "State_8",
+                  "transitions": [],
+                  "typeKey": 63
+                },
+                {
+                  "animationId": 5,
+                  "name": "LOOTING THIS AREA",
+                  "transitions": [],
+                  "typeKey": 61
+                },
+                {
+                  "animationId": 6,
+                  "name": "ENEMY HERE",
+                  "transitions": [],
+                  "typeKey": 61
+                }
+              ],
+              "typeKey": 57
+            }
+          ],
+          "name": "State Machine 1",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "134": {
+          "count": 1,
+          "name": "Text"
+        },
+        "135": {
+          "count": 1,
+          "name": "TextValueRun"
+        },
+        "137": {
+          "count": 1,
+          "name": "TextStylePaint"
+        },
+        "16": {
+          "count": 3,
+          "name": "PointsPath"
+        },
+        "17": {
+          "count": 2,
+          "name": "RadialGradient"
+        },
+        "174": {
+          "count": 1,
+          "name": "Unknown"
+        },
+        "18": {
+          "count": 15,
+          "name": "SolidColor"
+        },
+        "19": {
+          "count": 4,
+          "name": "GradientStop"
+        },
+        "2": {
+          "count": 4,
+          "name": "Node"
+        },
+        "20": {
+          "count": 8,
+          "name": "Fill"
+        },
+        "24": {
+          "count": 9,
+          "name": "Stroke"
+        },
+        "28": {
+          "count": 1,
+          "name": "CubicEaseInterpolator"
+        },
+        "3": {
+          "count": 23,
+          "name": "Shape"
+        },
+        "34": {
+          "count": 2,
+          "name": "Unknown"
+        },
+        "4": {
+          "count": 7,
+          "name": "Ellipse"
+        },
+        "41": {
+          "count": 1,
+          "name": "RootBone"
+        },
+        "42": {
+          "count": 10,
+          "name": "Bone"
+        },
+        "420": {
+          "count": 1,
+          "name": "LayoutComponentStyle"
+        },
+        "5": {
+          "count": 2,
+          "name": "StraightVertex"
+        },
+        "52": {
+          "count": 3,
+          "name": "Unknown"
+        },
+        "533": {
+          "count": 3,
+          "name": "Feather"
+        },
+        "6": {
+          "count": 5,
+          "name": "CubicDetachedVertex"
+        },
+        "7": {
+          "count": 2,
+          "name": "Rectangle"
+        },
+        "8": {
+          "count": 9,
+          "name": "Unknown"
+        },
+        "81": {
+          "count": 1,
+          "name": "Unknown"
+        }
+      },
+      "width": 1000.0
+    }
+  ],
+  "totalArtboards": 3
+}

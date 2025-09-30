@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 #include "rive/file.hpp"
+#include "rive/animation/state_machine_layer.hpp"
+#include "rive/animation/layer_state.hpp"
 #include "utils/no_op_factory.hpp"
 
 int main(int argc, char* argv[])
@@ -39,6 +41,42 @@ int main(int argc, char* argv[])
     {
         std::cout << "SUCCESS: File imported successfully!" << std::endl;
         std::cout << "Artboard count: " << file->artboardCount() << std::endl;
+        
+        // List all artboards with their state machines
+        for (size_t i = 0; i < file->artboardCount(); ++i)
+        {
+            auto* ab = file->artboard(i);
+            if (ab)
+            {
+                std::cout << "\n=== Artboard #" << i << ": '" << ab->name() << "' ===" << std::endl;
+                std::cout << "  Size: " << ab->width() << "x" << ab->height() << std::endl;
+                std::cout << "  Objects: " << ab->objects().size() << std::endl;
+                std::cout << "  State Machines: " << ab->stateMachineCount() << std::endl;
+                
+                // Show state machines for this artboard
+                for (size_t smIdx = 0; smIdx < ab->stateMachineCount(); ++smIdx)
+                {
+                    auto* sm = ab->stateMachine(smIdx);
+                    if (sm)
+                    {
+                        std::cout << "    SM #" << smIdx << ": '" << sm->name() << "'" << std::endl;
+                        std::cout << "      Inputs: " << sm->inputCount() << std::endl;
+                        std::cout << "      Layers: " << sm->layerCount() << std::endl;
+                        
+                        for (size_t layerIdx = 0; layerIdx < sm->layerCount(); ++layerIdx)
+                        {
+                            auto* layer = sm->layer(layerIdx);
+                            if (layer)
+                            {
+                                std::cout << "        Layer #" << layerIdx << ": '" << layer->name() 
+                                          << "' (" << layer->stateCount() << " states)" << std::endl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         if (file->artboard())
         {
             std::cout << "Artboard name: " << file->artboard()->name() << std::endl;
@@ -68,6 +106,35 @@ int main(int argc, char* argv[])
                     std::cout << "  StateMachine #" << i << ": name='" << sm->name() << "'" << std::endl;
                     std::cout << "    Inputs: " << sm->inputCount() << std::endl;
                     std::cout << "    Layers: " << sm->layerCount() << std::endl;
+                    
+                    // Show layer details
+                    for (size_t layerIdx = 0; layerIdx < sm->layerCount(); ++layerIdx)
+                    {
+                        auto* layer = sm->layer(layerIdx);
+                        if (layer)
+                        {
+                            std::cout << "      Layer #" << layerIdx << ": name='" << layer->name() << "'" << std::endl;
+                            std::cout << "        States: " << layer->stateCount() << std::endl;
+                            
+                            // Show state details
+                            for (size_t stateIdx = 0; stateIdx < layer->stateCount(); ++stateIdx)
+                            {
+                                auto* state = layer->state(stateIdx);
+                                if (state)
+                                {
+                                    std::string stateType = "Unknown";
+                                    uint16_t typeKey = state->coreType();
+                                    if (typeKey == 63) stateType = "EntryState";
+                                    else if (typeKey == 64) stateType = "ExitState";
+                                    else if (typeKey == 62) stateType = "AnyState";
+                                    else if (typeKey == 61) stateType = "AnimationState";
+                                    
+                                    std::cout << "          State #" << stateIdx << ": " << stateType 
+                                              << " (typeKey=" << typeKey << ")" << std::endl;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             

@@ -4,6 +4,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include "rive/core.hpp"
+#include "hierarchical_schema.hpp"
 
 namespace rive_converter
 {
@@ -16,7 +17,14 @@ enum class ShapeType
     star,
     image,
     clipping,
-    path
+    path,
+    pointsPath  // Custom path with vertices
+};
+
+enum class VertexType
+{
+    straight,  // Line segment with optional corner radius
+    cubic      // Bezier curve with control points
 };
 
 struct GradientStop
@@ -30,6 +38,34 @@ struct GradientData
     std::string type = "radial"; // "radial" or "linear"
     std::vector<GradientStop> stops;
 };
+
+struct PathVertexData
+{
+    VertexType type = VertexType::straight;
+    float x = 0.0f;
+    float y = 0.0f;
+    float radius = 0.0f;  // For StraightVertex
+    // For CubicDetachedVertex
+    float inRotation = 0.0f;
+    float inDistance = 0.0f;
+    float outRotation = 0.0f;
+    float outDistance = 0.0f;
+};
+
+struct CustomPathData
+{
+    bool isClosed = true;
+    std::vector<PathVertexData> vertices;
+    // Paint data for paths (WITH GRADIENT SUPPORT!)
+    bool fillEnabled = false;
+    bool hasGradient = false;
+    GradientData gradient;  // For gradients
+    uint32_t fillColor = 0xFFFFFFFF;  // For solid colors
+    bool strokeEnabled = false;
+    uint32_t strokeColor = 0xFF000000;
+    float strokeThickness = 1.0f;
+};
+
 
 struct DashData
 {
@@ -97,13 +133,6 @@ struct ShapeData
     bool clipVisible = true;
     ShapePaint fill;
     ShapeStroke stroke;
-};
-
-struct ArtboardData
-{
-    std::string name = "Artboard";
-    float width = 400.0f;
-    float height = 300.0f;
 };
 
 struct KeyFrameData
@@ -205,14 +234,69 @@ struct ConstraintData
     float strength = 1.0f;
 };
 
-struct Document
+struct EventData
 {
-    ArtboardData artboard;
+    std::string name = "Event";
+    std::string type = "general"; // "general" or "audio"
+    uint32_t assetId = 0; // For audio events
+};
+
+struct BoneData
+{
+    std::string name = "Bone";
+    std::string type = "bone"; // "bone", "root"
+    float x = 0.0f;
+    float y = 0.0f;
+    float length = 100.0f;
+};
+
+struct SkinData
+{
+    float xx = 1.0f;
+    float yx = 0.0f;
+    float xy = 0.0f;
+    float yy = 1.0f;
+    float tx = 0.0f;
+    float ty = 0.0f;
+};
+
+// ArtboardData must come after all the types it references
+struct ArtboardData
+{
+    std::string name = "Artboard";
+    float width = 400.0f;
+    float height = 300.0f;
+    // Each artboard has its own content
     std::vector<ShapeData> shapes;
+    std::vector<CustomPathData> customPaths;  // Custom vector paths
     std::vector<TextData> texts;
     std::vector<AnimationData> animations;
     std::vector<StateMachineData> stateMachines;
     std::vector<ConstraintData> constraints;
+    std::vector<EventData> events;  // NEW: Events and audio
+    std::vector<BoneData> bones;    // NEW: Skeletal rigging
+    std::vector<SkinData> skins;    // NEW: Mesh deformation
+    
+    // NEW: Hierarchical shapes (for exact copy)
+    std::vector<rive_hierarchical::HierarchicalShapeData> hierarchicalShapes;
+    bool useHierarchical = false; // Flag to use hierarchical builder
+};
+
+struct Document
+{
+    std::vector<ArtboardData> artboards; // Support multiple artboards
+    
+    // Legacy fields (DEPRECATED - kept for backwards compatibility)
+    // These are moved to artboards[0] after parsing
+    std::vector<ShapeData> shapes;
+    std::vector<CustomPathData> customPaths;
+    std::vector<TextData> texts;
+    std::vector<AnimationData> animations;
+    std::vector<StateMachineData> stateMachines;
+    std::vector<ConstraintData> constraints;
+    std::vector<EventData> events;
+    std::vector<BoneData> bones;
+    std::vector<SkinData> skins;
 };
 
 Document parse_json(const std::string& json_content);

@@ -829,10 +829,14 @@ converter/CMakeFiles/import_test.dir/import_test.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/advancing_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/animation.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_interpolator.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/layer_state.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/linear_animation.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/loop.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine_input_instance.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine_layer.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/state_machine_layer_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/artboard.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/audio/audio_engine.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/audio/audio_format.hpp
@@ -875,8 +879,12 @@ converter/CMakeFiles/import_test.dir/import_test.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/file_asset_loader.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/animation_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_interpolator_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/layer_state_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/linear_animation_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_component_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_layer_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_layer_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/artboard_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/backboard_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/bones/weight_base.hpp

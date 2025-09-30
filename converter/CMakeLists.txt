@@ -15,6 +15,8 @@ FetchContent_MakeAvailable(json)
 add_library(rive_convert
     src/json_loader.cpp
     src/core_builder.cpp
+    src/hierarchical_parser.cpp
+    src/universal_builder.cpp
     src/serializer.cpp
 )
 
@@ -42,6 +44,86 @@ add_executable(import_test import_test.cpp)
 target_link_libraries(import_test
     PRIVATE
         rive_runtime
+)
+
+# RIV Extractor - Extract complete object tree to JSON
+add_executable(riv_extractor
+    riv_extractor.cpp
+    ../utils/no_op_factory.cpp
+)
+target_link_libraries(riv_extractor
+    PRIVATE
+        rive_runtime
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(riv_extractor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+)
+
+# Full Extractor - Better vertex grouping
+add_executable(full_extractor
+    full_extractor.cpp
+    ../utils/no_op_factory.cpp
+)
+target_link_libraries(full_extractor
+    PRIVATE
+        rive_runtime
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(full_extractor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+)
+
+# Complete Hierarchy Extractor - TRUE exact copy with component tracking
+add_executable(complete_extractor
+    complete_hierarchy_extractor.cpp
+    ../utils/no_op_factory.cpp
+)
+target_link_libraries(complete_extractor
+    PRIVATE
+        rive_runtime
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(complete_extractor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+)
+
+# Hierarchical Extractor - TRUE Shape grouping
+add_executable(hierarchical_extractor
+    hierarchical_extractor.cpp
+    ../utils/no_op_factory.cpp
+)
+target_link_libraries(hierarchical_extractor
+    PRIVATE
+        rive_runtime
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(hierarchical_extractor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+)
+
+# Universal Extractor - Extract EVERYTHING (all types, all properties)
+add_executable(universal_extractor
+    universal_extractor.cpp
+    ../utils/no_op_factory.cpp
+)
+target_link_libraries(universal_extractor
+    PRIVATE
+        rive_runtime
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(universal_extractor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
 )
 
 # Helper importer that exercises the freshly built converter/runtime

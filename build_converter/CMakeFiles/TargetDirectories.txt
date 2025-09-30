@@ -1,7 +1,4 @@
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/rive_runtime.dir
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/json_to_riv_converter.dir
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/test_converter.dir
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/simple_demo.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/edit_cache.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/rebuild_cache.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/CMakeFiles/list_install_components.dir
@@ -17,6 +14,11 @@
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rive_convert.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rive_convert_cli.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/import_test.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/riv_extractor.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/full_extractor.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/complete_extractor.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/hierarchical_extractor.dir
+/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/universal_extractor.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/import_check.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/edit_cache.dir
 /Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/CMakeFiles/rebuild_cache.dir

@@ -887,8 +887,11 @@ converter/CMakeFiles/rive_convert_cli.dir/src/main.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/build_converter/_deps/json-src/include/nlohmann/ordered_map.hpp
  /Users/adilyoltay/Desktop/rive-runtime/build_converter/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp
  /Users/adilyoltay/Desktop/rive-runtime/build_converter/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/converter/include/core_builder.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/converter/include/hierarchical_schema.hpp
  /Users/adilyoltay/Desktop/rive-runtime/converter/include/json_loader.hpp
  /Users/adilyoltay/Desktop/rive-runtime/converter/include/serializer.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/converter/include/universal_builder.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/core.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/core/binary_reader.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/core/type_conversions.hpp

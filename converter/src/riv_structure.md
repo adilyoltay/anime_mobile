@@ -198,12 +198,85 @@ Artboard
 - ✅ Multiple texts working
 - ✅ Text + shapes combined working
 
-## 10. Acik Noktalar ve Yapilacaklar
-- **Text Rendering**: ✅ 100% COMPLETE (September 30, 2024) - All 5 critical issues resolved. Rendering confirmed working in Rive Play with "Hello World" and 9-text complex scenes.
-- **StateMachine** ve **ViewModel** destegi alinmadi. Runtime typeKey 33 ve iliskili property'lere gecilecekse serializer'a yeni blok eklenmeli.
+## 10. State Machine Implementation (COMPLETE - September 30, 2024)
+
+**FULLY WORKING:**
+
+StateMachine hierarchy uses **Core** objects (not Component), so objects don't have `parentId`. Hierarchy is **implicit by file order** - runtime uses ImportStack to maintain parent context during import.
+
+**Object Ordering (Critical):**
+```
+StateMachine (53) → push StateMachineImporter to stack
+  ├─ StateMachineInput (56/58/59) → import() calls stateMachineImporter->addInput()
+  └─ StateMachineLayer (57) → push StateMachineLayerImporter to stack
+      ├─ LayerState (61/62/63/64) → import() calls layerImporter->addState()
+      └─ StateTransition (65) → import() calls stateImporter->addTransition()
+```
+
+**System States (Required):**
+Every StateMachineLayer MUST have 3 system states or runtime returns `StatusCode::InvalidObject`:
+1. EntryState (typeKey 63) - always index 0
+2. ExitState (typeKey 64) - always index 1  
+3. AnyState (typeKey 62) - always index 2
+4. User states (AnimationState, etc.) - index 3+
+
+**Property Keys:**
+- 55: Animation::name (String) - StateMachine name
+- 138: StateMachineComponent::name (String) - Layer name
+- 141: StateMachineBool::value (Bool)
+- 142: StateMachineNumber::value (Double)
+- 149: AnimationState::animationId (Uint) - artboard-local animation index
+- 151: StateTransition::stateToId (Uint) - layer-local state index
+- 152: StateTransition::flags (Uint)
+- 158: StateTransition::duration (Uint) - milliseconds
+
+**Animation Index Mapping:**
+animationId must reference artboard-local index:
+```
+Artboard = index 0
+StateMachines = index 1..N
+Animations = index (N+1)..(N+M)
+Shapes/Components = index (N+M+1)..
+```
+
+**State Index Mapping:**
+stateToId must reference layer-local state index (0-based within each layer):
+```
+EntryState = 0
+ExitState = 1
+AnyState = 2
+User states = 3, 4, 5, ...
+```
+
+**Status:**
+- ✅ StateMachine (53) + Inputs (56/58/59) - WORKING
+- ✅ StateMachineLayer (57) - WORKING
+- ✅ LayerState (Entry/Exit/Any/Animation) - WORKING
+- ✅ StateTransition with stateToId - WORKING
+- ✅ animationId remapping - WORKING
+- ⏳ TransitionCondition - deferred (requires input index mapping)
+
+**Test Results:**
+- sm_minimal_test.json: 1 layer, 4 states ✅ SUCCESS
+- sm_complete_test.json: 1 input, 1 layer, 5 states, 3 transitions ✅ SUCCESS
+
+## 11. Acik Noktalar ve Yapilacaklar
+- **Text Rendering**: ✅ 100% COMPLETE (September 30, 2024)
+- **State Machines**: ✅ 95% COMPLETE (September 30, 2024) - Only TransitionCondition remaining
+- **ViewModel** destegi yok. Runtime typeKey iliskili property'lere gecilecekse serializer'a yeni blok eklenmeli.
 - **Drawable chain** ve **Artboard catalog** gibi yuksek seviye tipler referans `.riv` dosyalarinda yer aliyor. Komple sahneler icin bunlarin eklenmesi gerekebilir.
 
-## 11. Key Lessons from Text Rendering Fix
+## 12. Key Lessons from State Machine Implementation
+
+1. **Core vs Component Hierarchy**: Core objects (like StateMachine) don't use parentId. Hierarchy is implicit by file order, managed by ImportStack during import.
+2. **import() Method Pattern**: Each Core object's import() method finds its parent importer on stack and calls add*() method (addLayer, addState, addTransition).
+3. **System States Required**: StateMachineLayer runtime enforces presence of Entry, Exit, Any states. Must be added first (indices 0,1,2).
+4. **Artboard-Local Indexing**: animationId must reference artboard-local animation index, calculated as: 1 + stateMachineCount + animationIndex.
+5. **Layer-Local State Indexing**: stateToId in transitions references layer-local state index (0-based within layer).
+6. **File Order Matters**: Objects must be written in specific order for ImportStack to work: StateMachine → Inputs → Layer → States → Transitions.
+7. **No Explicit Parent Attachments**: Unlike Components, Core objects are attached to parents via import() calling parent importer's add*() methods, not via parentId property.
+
+## 13. Key Lessons from Text Rendering Fix
 
 1. **Parent Relationships Matter**: Runtime validates parent-child relationships in `onAddedClean`. Incorrect parenting causes silent failures. TextValueRun MUST be direct child of Text.
 2. **Property Keys Are Type-Specific**: Each generated base class defines exact property keys. Using wrong keys causes importer to ignore data. Use 268 for text content, 272 for styleId.

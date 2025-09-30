@@ -1,4 +1,5 @@
 #include "core_builder.hpp"
+#include "hierarchical_schema.hpp"
 #include "font_utils.hpp"
 #include <iostream>
 #include "rive/artboard.hpp"
@@ -26,6 +27,8 @@
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
 #include "rive/animation/keyframe_double.hpp"
+#include "rive/animation/keyframe_color.hpp"
+#include "rive/animation/keyframe_id.hpp"
 // Text support (full)
 #include "rive/text/text.hpp"
 #include "rive/text/text_style.hpp"
@@ -48,11 +51,39 @@
 #include "rive/animation/exit_state.hpp"
 #include "rive/animation/any_state.hpp"
 #include "rive/animation/animation_state.hpp"
+#include "rive/animation/state_transition.hpp"
+// Path vertices support
+#include "rive/shapes/points_path.hpp"
+#include "rive/shapes/straight_vertex.hpp"
+#include "rive/shapes/cubic_detached_vertex.hpp"
+#include "rive/shapes/cubic_mirrored_vertex.hpp"
+// Event support
+#include "rive/event.hpp"
+#include "rive/audio_event.hpp"
+// Bones and skinning support
+#include "rive/bones/bone.hpp"
+#include "rive/bones/root_bone.hpp"
+#include "rive/bones/tendon.hpp"
+#include "rive/bones/weight.hpp"
+#include "rive/bones/skin.hpp"
+#include "rive/generated/shapes/points_path_base.hpp"
+#include "rive/generated/shapes/vertex_base.hpp"
+#include "rive/generated/shapes/straight_vertex_base.hpp"
+#include "rive/generated/shapes/cubic_detached_vertex_base.hpp"
+#include "rive/generated/event_base.hpp"
+#include "rive/generated/audio_event_base.hpp"
+#include "rive/generated/bones/bone_base.hpp"
+#include "rive/generated/bones/root_bone_base.hpp"
+#include "rive/generated/bones/tendon_base.hpp"
+#include "rive/generated/bones/weight_base.hpp"
+#include "rive/generated/bones/skin_base.hpp"
 #include "rive/generated/animation/animation_base.hpp"
 #include "rive/generated/animation/linear_animation_base.hpp"
 #include "rive/generated/animation/keyed_object_base.hpp"
 #include "rive/generated/animation/keyed_property_base.hpp"
 #include "rive/generated/animation/keyframe_double_base.hpp"
+#include "rive/generated/animation/keyframe_color_base.hpp"
+#include "rive/generated/animation/keyframe_id_base.hpp"
 #include "rive/generated/component_base.hpp"
 #include "rive/generated/layout_component_base.hpp"
 #include "rive/generated/node_base.hpp"
@@ -78,6 +109,219 @@
 
 namespace rive_converter
 {
+
+// Helper to parse color strings (for hierarchical format)
+static uint32_t parse_color_string(const std::string& color_string, uint32_t fallback = 0xFFFFFFFF)
+{
+    if (color_string.empty())
+    {
+        return fallback;
+    }
+
+    std::string normalized = color_string;
+    if (normalized[0] == '#')
+    {
+        normalized = normalized.substr(1);
+    }
+    else if (normalized.rfind("0x", 0) == 0 || normalized.rfind("0X", 0) == 0)
+    {
+        normalized = normalized.substr(2);
+    }
+
+    try
+    {
+        uint32_t value = std::stoul(normalized, nullptr, 16);
+        if (normalized.length() <= 6)
+        {
+            value |= 0xFF000000u;
+        }
+        return value;
+    }
+    catch (const std::exception&)
+    {
+        return fallback;
+    }
+}
+
+// Build hierarchical shapes (TRUE %100 exact copy!)
+static void build_hierarchical_shapes(CoreBuilder& builder,
+                                      const std::vector<rive_hierarchical::HierarchicalShapeData>& shapes,
+                                      uint32_t artboardId)
+{
+    std::cout << "Building " << shapes.size() << " hierarchical shapes..." << std::endl;
+    
+    for (const auto& shapeData : shapes)
+    {
+        // CRITICAL: For parametric shapes (rectangle/ellipse), we need TWO objects:
+        // 1. Shape (ShapePaintContainer) - parent for fills/strokes
+        // 2. Parametric path (Rectangle/Ellipse) - child of Shape
+        
+        CoreObject* shapeContainer = nullptr;
+        
+        if (shapeData.type == "node") {
+            // Node is NOT a shape - just create Node directly
+            auto& node = builder.addCore(new rive::Node());
+            builder.setParent(node, artboardId);
+            
+            if (shapeData.x != 0.0f) {
+                builder.set(node, rive::NodeBase::xPropertyKey, shapeData.x);
+            }
+            if (shapeData.y != 0.0f) {
+                builder.set(node, rive::NodeBase::yPropertyKey, shapeData.y);
+            }
+            
+            // Node doesn't have paints, skip paint section
+            continue;
+        }
+        else if (shapeData.type == "ellipse" || shapeData.type == "rectangle") {
+            // Create Shape wrapper first (for paint container)
+            auto& shape = builder.addCore(new rive::Shape());
+            builder.setParent(shape, artboardId);
+            
+            if (shapeData.x != 0.0f) {
+                builder.set(shape, rive::NodeBase::xPropertyKey, shapeData.x);
+            }
+            if (shapeData.y != 0.0f) {
+                builder.set(shape, rive::NodeBase::yPropertyKey, shapeData.y);
+            }
+            
+            shapeContainer = &shape;
+            
+            // Create parametric path as CHILD of Shape
+            rive::Core* parametricPath = (shapeData.type == "ellipse")
+                ? static_cast<rive::Core*>(new rive::Ellipse())
+                : static_cast<rive::Core*>(new rive::Rectangle());
+            
+            auto& path = builder.addCore(parametricPath);
+            builder.setParent(path, shape.id); // Parent to Shape!
+            
+            builder.set(path, rive::ParametricPathBase::widthPropertyKey, shapeData.width);
+            builder.set(path, rive::ParametricPathBase::heightPropertyKey, shapeData.height);
+            
+            if (shapeData.type == "rectangle") {
+                builder.set(path, rive::RectangleBase::linkCornerRadiusPropertyKey, false);
+            }
+        }
+        else {
+            // Custom shape with paths/vertices
+            auto& shape = builder.addCore(new rive::Shape());
+            builder.setParent(shape, artboardId);
+            
+            if (shapeData.x != 0.0f) {
+                builder.set(shape, rive::NodeBase::xPropertyKey, shapeData.x);
+            }
+            if (shapeData.y != 0.0f) {
+                builder.set(shape, rive::NodeBase::yPropertyKey, shapeData.y);
+            }
+            
+            shapeContainer = &shape;
+            // Create ALL paths for custom shapes (CRITICAL!)
+            for (const auto& pathData : shapeData.paths)
+        {
+            auto& pointsPath = builder.addCore(new rive::PointsPath());
+            builder.setParent(pointsPath, shape.id);
+            builder.set(pointsPath, static_cast<uint16_t>(120), pathData.isClosed);
+            // Skip pathFlags=0 and isHole=false (defaults)
+            
+            // Add vertices
+            for (const auto& vertexData : pathData.vertices)
+            {
+                if (vertexData.type == "straight")
+                {
+                    auto& v = builder.addCore(new rive::StraightVertex());
+                    builder.setParent(v, pointsPath.id);
+                    builder.set(v, static_cast<uint16_t>(24), vertexData.x);
+                    builder.set(v, static_cast<uint16_t>(25), vertexData.y);
+                    builder.set(v, static_cast<uint16_t>(26), vertexData.radius);
+                }
+                else if (vertexData.type == "cubic")
+                {
+                    auto& v = builder.addCore(new rive::CubicDetachedVertex());
+                    builder.setParent(v, pointsPath.id);
+                    builder.set(v, static_cast<uint16_t>(24), vertexData.x);
+                    builder.set(v, static_cast<uint16_t>(25), vertexData.y);
+                    builder.set(v, static_cast<uint16_t>(84), vertexData.inRotation);
+                    builder.set(v, static_cast<uint16_t>(85), vertexData.inDistance);
+                    builder.set(v, static_cast<uint16_t>(86), vertexData.outRotation);
+                    builder.set(v, static_cast<uint16_t>(87), vertexData.outDistance);
+                }
+                else if (vertexData.type == "cubicMirrored")
+                {
+                    auto& v = builder.addCore(new rive::CubicMirroredVertex());
+                    builder.setParent(v, pointsPath.id);
+                    builder.set(v, static_cast<uint16_t>(24), vertexData.x);
+                    builder.set(v, static_cast<uint16_t>(25), vertexData.y);
+                    builder.set(v, static_cast<uint16_t>(79), vertexData.rotation);
+                    builder.set(v, static_cast<uint16_t>(80), vertexData.distance);
+                }
+            }
+        }
+        } // End of else block (custom paths)
+        
+        // Add Fill (if present) - parent to shapeContainer
+        if (shapeData.hasFill && shapeContainer)
+        {
+            auto& fill = builder.addCore(new rive::Fill());
+            builder.setParent(fill, shapeContainer->id);
+            builder.set(fill, rive::ShapePaintBase::isVisiblePropertyKey, true);
+            
+            if (shapeData.fill.hasGradient)
+            {
+                // Create gradient
+                rive::Core* gradCore = (shapeData.fill.gradient.type == "radial")
+                    ? static_cast<rive::Core*>(new rive::RadialGradient())
+                    : static_cast<rive::Core*>(new rive::LinearGradient());
+                
+                auto& gradient = builder.addCore(gradCore);
+                builder.setParent(gradient, fill.id);
+                
+                // Add GradientStops
+                for (const auto& stopData : shapeData.fill.gradient.stops)
+                {
+                    auto& stop = builder.addCore(new rive::GradientStop());
+                    builder.setParent(stop, gradient.id);
+                    builder.set(stop, static_cast<uint16_t>(38), parse_color_string(stopData.color));
+                    builder.set(stop, static_cast<uint16_t>(39), stopData.position);
+                }
+            }
+            else
+            {
+                // Solid color
+                auto& solid = builder.addCore(new rive::SolidColor());
+                builder.setParent(solid, fill.id);
+                builder.set(solid, rive::SolidColorBase::colorValuePropertyKey, 
+                           parse_color_string(shapeData.fill.solidColor));
+            }
+            
+            // Add Feather if enabled
+            if (shapeData.fill.hasFeather)
+            {
+                auto& feather = builder.addCore(new rive::Feather());
+                builder.setParent(feather, fill.id);
+                builder.set(feather, static_cast<uint16_t>(749), shapeData.fill.feather.strength);
+                builder.set(feather, static_cast<uint16_t>(750), shapeData.fill.feather.offsetX);
+                builder.set(feather, static_cast<uint16_t>(751), shapeData.fill.feather.offsetY);
+                builder.set(feather, static_cast<uint16_t>(752), shapeData.fill.feather.inner);
+            }
+        }
+        
+        // Add Stroke (if present) - parent to shapeContainer
+        if (shapeData.hasStroke && shapeContainer)
+        {
+            auto& stroke = builder.addCore(new rive::Stroke());
+            builder.setParent(stroke, shapeContainer->id);
+            builder.set(stroke, rive::StrokeBase::thicknessPropertyKey, shapeData.stroke.thickness);
+            
+            auto& solid = builder.addCore(new rive::SolidColor());
+            builder.setParent(solid, stroke.id);
+            builder.set(solid, rive::SolidColorBase::colorValuePropertyKey,
+                       parse_color_string(shapeData.stroke.color));
+        }
+    }
+    
+    std::cout << "Built " << shapes.size() << " shapes successfully!" << std::endl;
+}
+
 CoreBuilder::CoreBuilder() = default;
 
 CoreObject& CoreBuilder::addCore(rive::Core* core)
@@ -151,10 +395,10 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                     break;
                 case rive::SolidColorBase::colorValuePropertyKey:
                 case 38: // GradientStop::colorValue
+                case 88: // KeyFrameColor::value
                     type = rive::CoreColorType::id;
                     break;
                 case rive::ComponentBase::namePropertyKey:
-                case 271: // TextValueRun::text
                 case 203: // Asset::name
                     type = rive::CoreStringType::id;
                     break;
@@ -186,6 +430,10 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 272: // TextValueRun::styleId
                 case 289: // TextStyleAxis::tag (font variation tag)
                 case 149: // AnimationState::animationId
+                case 151: // StateTransition::stateToId
+                case 152: // StateTransition::flags
+                case 158: // StateTransition::duration
+                case 120: // PointsCommonPath::isClosed
                 case rive::StrokeBase::capPropertyKey: // 48
                 case rive::StrokeBase::joinPropertyKey: // 49
                 case rive::DrawableBase::blendModeValuePropertyKey: // 23
@@ -214,6 +462,26 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case rive::StarBase::innerRadiusPropertyKey:
                 case 39: // GradientStop::position
                 case 70: // KeyFrameDouble::value
+                case 24: // Vertex::x
+                case 25: // Vertex::y
+                case 26: // StraightVertex::radius
+                case 79: // CubicMirroredVertex::rotation
+                case 80: // CubicMirroredVertex::distance
+                case 84: // CubicDetachedVertex::inRotation
+                case 85: // CubicDetachedVertex::inDistance
+                case 86: // CubicDetachedVertex::outRotation
+                case 87: // CubicDetachedVertex::outDistance
+                case 89: // Bone::length
+                case 90: // RootBone::x
+                case 91: // RootBone::y
+                case 104: // Skin::xx (matrix components)
+                case 105: // Skin::yx
+                case 106: // Skin::xy
+                case 107: // Skin::yy
+                case 108: // Skin::tx
+                case 109: // Skin::ty
+                case 122: // KeyFrameId::value
+                case 408: // AudioEvent::assetId
                 case 380: // Image::originX
                 case 381: // Image::originY
                 case 114: // TrimPath::start
@@ -270,9 +538,24 @@ CoreDocument build_core_document(const Document& document,
     auto& backboard = builder.addCore(new rive::Backboard());
     builder.set(backboard, static_cast<uint16_t>(44u), static_cast<uint32_t>(0));
 
-    // Load and embed font if there are text objects
+    if (document.artboards.empty())
+    {
+        return builder.build(typeMap); // No artboards, return empty
+    }
+    
+    // Load and embed font if ANY artboard has text objects
     std::vector<uint8_t> fontBinary;
-    if (!document.texts.empty())
+    bool hasAnyText = false;
+    for (const auto& artboardData : document.artboards)
+    {
+        if (!artboardData.texts.empty())
+        {
+            hasAnyText = true;
+            break;
+        }
+    }
+    
+    if (hasAnyText)
     {
         // Load system font (Arial.ttf ~755KB)
         std::string fontPath = get_system_font_path("Arial");
@@ -284,20 +567,23 @@ CoreDocument build_core_document(const Document& document,
         builder.set(fontAsset, static_cast<uint16_t>(204), static_cast<uint32_t>(0)); // FileAsset::assetId
     }
 
-    auto& artboard = builder.addCore(new rive::Artboard());
+    // Loop through all artboards
+    for (const auto& artboardData : document.artboards)
+    {
+        auto& artboard = builder.addCore(new rive::Artboard());
     builder.set(artboard, rive::ComponentBase::namePropertyKey,
-                document.artboard.name);
+                artboardData.name);
     builder.set(artboard, rive::LayoutComponentBase::widthPropertyKey,
-                document.artboard.width);
+                artboardData.width);
     builder.set(artboard, rive::LayoutComponentBase::heightPropertyKey,
-                document.artboard.height);
+                artboardData.height);
     builder.set(artboard, rive::LayoutComponentBase::clipPropertyKey, true);
 
     // Store shape IDs for animation keyframe references
     std::vector<uint32_t> shapeIds;
 
     // Shapes disabled for Artboard-only variant
-    for (const auto& shapeData : document.shapes)
+    for (const auto& shapeData : artboardData.shapes)
     {
         auto& shape = builder.addCore(new rive::Shape());
         shapeIds.push_back(shape.id);
@@ -416,6 +702,12 @@ CoreDocument build_core_document(const Document& document,
                 // This is a skeleton for basic path support
                 break;
             }
+            case ShapeType::pointsPath:
+            {
+                // PointsPath is handled in customPaths section below
+                // This case is here to avoid switch warning
+                break;
+            }
         }
 
         if (shapeData.fill.enabled)
@@ -512,8 +804,163 @@ CoreDocument build_core_document(const Document& document,
         }
     }
 
-    // Build texts - FULL IMPLEMENTATION with all properties
-    for (const auto& textData : document.texts)
+    // Build hierarchical shapes (EXACT COPY MODE!)
+    if (artboardData.useHierarchical && !artboardData.hierarchicalShapes.empty())
+    {
+        std::cout << "Using HIERARCHICAL builder for exact copy!" << std::endl;
+        build_hierarchical_shapes(builder, artboardData.hierarchicalShapes, artboard.id);
+    }
+    // Build custom paths with vertices (LEGACY MODE)
+    else if (!artboardData.customPaths.empty())
+    {
+        for (const auto& pathData : artboardData.customPaths)
+    {
+        // Create parent Shape for the path
+        auto& shape = builder.addCore(new rive::Shape());
+        builder.setParent(shape, artboard.id);
+        builder.set(shape, rive::NodeBase::xPropertyKey, 0.0f);
+        builder.set(shape, rive::NodeBase::yPropertyKey, 0.0f);
+        builder.set(shape, rive::TransformComponentBase::rotationPropertyKey, 0.0f);
+        builder.set(shape, rive::TransformComponentBase::scaleXPropertyKey, 1.0f);
+        builder.set(shape, rive::TransformComponentBase::scaleYPropertyKey, 1.0f);
+        builder.set(shape, rive::WorldTransformComponentBase::opacityPropertyKey, 1.0f);
+        
+        // Create PointsPath (container for vertices)
+        auto& pointsPath = builder.addCore(new rive::PointsPath());
+        builder.setParent(pointsPath, shape.id);
+        builder.set(pointsPath, static_cast<uint16_t>(120), pathData.isClosed); // isClosed
+        builder.set(pointsPath, static_cast<uint16_t>(128), static_cast<uint32_t>(0)); // pathFlags
+        builder.set(pointsPath, static_cast<uint16_t>(770), false); // isHole
+        
+        // Add vertices to the path
+        for (const auto& vertexData : pathData.vertices)
+        {
+            if (vertexData.type == VertexType::straight)
+            {
+                auto& vertex = builder.addCore(new rive::StraightVertex());
+                builder.setParent(vertex, pointsPath.id);
+                builder.set(vertex, static_cast<uint16_t>(24), vertexData.x); // x
+                builder.set(vertex, static_cast<uint16_t>(25), vertexData.y); // y
+                builder.set(vertex, static_cast<uint16_t>(26), vertexData.radius); // radius
+            }
+            else if (vertexData.type == VertexType::cubic)
+            {
+                auto& vertex = builder.addCore(new rive::CubicDetachedVertex());
+                builder.setParent(vertex, pointsPath.id);
+                builder.set(vertex, static_cast<uint16_t>(24), vertexData.x); // x
+                builder.set(vertex, static_cast<uint16_t>(25), vertexData.y); // y
+                builder.set(vertex, static_cast<uint16_t>(84), vertexData.inRotation); // inRotation
+                builder.set(vertex, static_cast<uint16_t>(85), vertexData.inDistance); // inDistance
+                builder.set(vertex, static_cast<uint16_t>(86), vertexData.outRotation); // outRotation
+                builder.set(vertex, static_cast<uint16_t>(87), vertexData.outDistance); // outDistance
+            }
+        }
+        
+        // Add fill if enabled (WITH GRADIENT SUPPORT!)
+        if (pathData.fillEnabled)
+        {
+            auto& fill = builder.addCore(new rive::Fill());
+            builder.setParent(fill, shape.id);
+            builder.set(fill, rive::ShapePaintBase::isVisiblePropertyKey, true);
+
+            if (pathData.hasGradient)
+            {
+                // Create gradient (linear or radial) with stops!
+                rive::Core* gradientCore = nullptr;
+                if (pathData.gradient.type == "radial") {
+                    gradientCore = new rive::RadialGradient();
+                } else {
+                    gradientCore = new rive::LinearGradient();
+                }
+                
+                auto& gradient = builder.addCore(gradientCore);
+                builder.setParent(gradient, fill.id);
+                
+                // Add ALL gradient stops
+                for (const auto& stopData : pathData.gradient.stops) {
+                    auto& stop = builder.addCore(new rive::GradientStop());
+                    builder.setParent(stop, gradient.id);
+                    builder.set(stop, static_cast<uint16_t>(38), stopData.color); // colorValue
+                    builder.set(stop, static_cast<uint16_t>(39), stopData.position); // position
+                }
+            }
+            else
+            {
+                // Solid color
+                auto& solid = builder.addCore(new rive::SolidColor());
+                builder.setParent(solid, fill.id);
+                builder.set(solid, rive::SolidColorBase::colorValuePropertyKey, pathData.fillColor);
+            }
+        }
+        
+        // Add stroke if enabled
+        if (pathData.strokeEnabled)
+        {
+            auto& stroke = builder.addCore(new rive::Stroke());
+            builder.setParent(stroke, shape.id);
+            builder.set(stroke, rive::StrokeBase::thicknessPropertyKey, pathData.strokeThickness);
+
+            auto& solid = builder.addCore(new rive::SolidColor());
+            builder.setParent(solid, stroke.id);
+            builder.set(solid, rive::SolidColorBase::colorValuePropertyKey, pathData.strokeColor);
+        }
+    }
+    } // End of else if customPaths
+
+    // Build events (NEW - Casino Slots support)
+    for (const auto& eventData : artboardData.events)
+    {
+        if (eventData.type == "audio")
+        {
+            auto& audioEvent = builder.addCore(new rive::AudioEvent());
+            builder.setParent(audioEvent, artboard.id);
+            builder.set(audioEvent, static_cast<uint16_t>(4), eventData.name); // Component::name
+            builder.set(audioEvent, static_cast<uint16_t>(408), eventData.assetId); // AudioEvent::assetId
+        }
+        else
+        {
+            auto& event = builder.addCore(new rive::Event());
+            builder.setParent(event, artboard.id);
+            builder.set(event, static_cast<uint16_t>(4), eventData.name); // Component::name
+        }
+    }
+    
+    // Build bones (NEW - Casino Slots support)
+    for (const auto& boneData : artboardData.bones)
+    {
+        if (boneData.type == "root")
+        {
+            auto& rootBone = builder.addCore(new rive::RootBone());
+            builder.setParent(rootBone, artboard.id);
+            builder.set(rootBone, static_cast<uint16_t>(4), boneData.name); // Component::name
+            builder.set(rootBone, static_cast<uint16_t>(90), boneData.x); // RootBone::x
+            builder.set(rootBone, static_cast<uint16_t>(91), boneData.y); // RootBone::y
+            builder.set(rootBone, static_cast<uint16_t>(89), boneData.length); // Bone::length
+        }
+        else
+        {
+            auto& bone = builder.addCore(new rive::Bone());
+            builder.setParent(bone, artboard.id);
+            builder.set(bone, static_cast<uint16_t>(4), boneData.name);
+            builder.set(bone, static_cast<uint16_t>(89), boneData.length);
+        }
+    }
+    
+    // Build skins (NEW - Casino Slots support)
+    for (const auto& skinData : artboardData.skins)
+    {
+        auto& skin = builder.addCore(new rive::Skin());
+        builder.setParent(skin, artboard.id);
+        builder.set(skin, static_cast<uint16_t>(104), skinData.xx); // Skin::xx
+        builder.set(skin, static_cast<uint16_t>(105), skinData.yx); // Skin::yx
+        builder.set(skin, static_cast<uint16_t>(106), skinData.xy); // Skin::xy
+        builder.set(skin, static_cast<uint16_t>(107), skinData.yy); // Skin::yy
+        builder.set(skin, static_cast<uint16_t>(108), skinData.tx); // Skin::tx
+        builder.set(skin, static_cast<uint16_t>(109), skinData.ty); // Skin::ty
+    }
+
+    // Build texts - FULL IMPLEMENTATION with all properties    
+    for (const auto& textData : artboardData.texts)
     {
         auto& text = builder.addCore(new rive::Text());
         builder.setParent(text, artboard.id);
@@ -613,7 +1060,7 @@ CoreDocument build_core_document(const Document& document,
     }
     
     // Build state machines - StateMachine is Core (not Component), no parentId
-    for (const auto& smData : document.stateMachines)
+    for (const auto& smData : artboardData.stateMachines)
     {
         auto& stateMachine = builder.addCore(new rive::StateMachine());
         // NOTE: StateMachine extends Animation extends Core (NOT Component)
@@ -645,18 +1092,102 @@ CoreDocument build_core_document(const Document& document,
             }
         }
         
-        // DEFERRED: Layers, States, Transitions require complex import pattern
-        // For now, StateMachine with inputs works for basic interactivity
-        // TODO: Full implementation requires understanding Core vs Component hierarchy better
+        // Build animation name → 0-based index map
+        // AnimationState::animationId expects direct 0-based index into artboard's animation list
+        // State machines are stored separately and must NOT be counted
+        std::map<std::string, uint32_t> animationIndexMap;
+        for (size_t i = 0; i < artboardData.animations.size(); ++i)
+        {
+            animationIndexMap[artboardData.animations[i].name] = static_cast<uint32_t>(i);
+        }
+        
+        // Add layers
+        for (const auto& layerData : smData.layers)
+        {
+            auto& layer = builder.addCore(new rive::StateMachineLayer());
+            // NO setParent() - Core object, implicit hierarchy by file order
+            builder.set(layer, static_cast<uint16_t>(138), layerData.name); // StateMachineComponent::name
+            
+            // Map state names to layer-local indices for transitions
+            std::map<std::string, uint32_t> stateIndexMap;
+            uint32_t stateIndex = 0;
+            
+            // CRITICAL: Every layer MUST have Entry, Exit, Any states (runtime requirement)
+            // Add system states first (order matters for indexing)
+            
+            // 1. EntryState (typeKey 63)
+            auto& entryState = builder.addCore(new rive::EntryState());
+            // NO setParent() - Core object
+            stateIndexMap["Entry"] = stateIndex++;
+            
+            // 2. ExitState (typeKey 64)
+            auto& exitState = builder.addCore(new rive::ExitState());
+            // NO setParent() - Core object
+            stateIndexMap["Exit"] = stateIndex++;
+            
+            // 3. AnyState (typeKey 62)
+            auto& anyState = builder.addCore(new rive::AnyState());
+            // NO setParent() - Core object
+            stateIndexMap["Any"] = stateIndex++;
+            
+            // 4. Add user-defined states from JSON
+            for (const auto& stateData : layerData.states)
+            {
+                // Skip system states if user explicitly listed them in JSON
+                if (stateData.type == "entry" || stateData.type == "exit" || stateData.type == "any")
+                {
+                    // Already added above, just record the name mapping
+                    if (stateData.type == "entry") stateIndexMap[stateData.name] = 0;
+                    else if (stateData.type == "exit") stateIndexMap[stateData.name] = 1;
+                    else if (stateData.type == "any") stateIndexMap[stateData.name] = 2;
+                    continue;
+                }
+                
+                if (stateData.type == "animation")
+                {
+                    auto& animState = builder.addCore(new rive::AnimationState());
+                    // NO setParent() - Core object
+                    
+                    // Find animation artboard-local index
+                    auto it = animationIndexMap.find(stateData.animationName);
+                    if (it != animationIndexMap.end())
+                    {
+                        builder.set(animState, static_cast<uint16_t>(149), it->second); // animationId
+                    }
+                    
+                    stateIndexMap[stateData.name] = stateIndex++;
+                }
+            }
+            
+            // Add transitions (written after all states in the layer)
+            for (const auto& transData : layerData.transitions)
+            {
+                auto& transition = builder.addCore(new rive::StateTransition());
+                // NO setParent() - Core object
+                
+                // Find target state layer-local index
+                auto toIt = stateIndexMap.find(transData.to);
+                if (toIt != stateIndexMap.end())
+                {
+                    builder.set(transition, static_cast<uint16_t>(151), toIt->second); // stateToId
+                }
+                
+                builder.set(transition, static_cast<uint16_t>(158), transData.duration); // duration (ms)
+                builder.set(transition, static_cast<uint16_t>(152), static_cast<uint32_t>(0)); // flags
+                
+                // TODO: Add transition conditions (TransitionCondition objects)
+                // Deferred for now - requires input index mapping
+            }
+        }
     }
     
     // Constraints are typically added to specific bones/objects
     // Skeleton implementation deferred - requires bone system first
 
     // Build animations from JSON
-    for (size_t animIdx = 0; animIdx < document.animations.size(); ++animIdx)
+    for (size_t animIdx = 0; animIdx < artboardData.animations.size(); ++animIdx)
     {
-        const auto& animData = document.animations[animIdx];
+        const auto& animData = artboardData.animations[animIdx];
         auto& anim = builder.addCore(new rive::LinearAnimation());
         builder.set(anim, rive::AnimationBase::namePropertyKey, animData.name);
         builder.set(anim, rive::LinearAnimationBase::fpsPropertyKey, animData.fps);
@@ -667,7 +1198,7 @@ CoreDocument build_core_document(const Document& document,
         {
             // Calculate artboard-local index for the first shape
             // Artboard = 0, animations come next, then shapes
-            uint32_t shapeLocalIndex = 1 + static_cast<uint32_t>(document.animations.size());
+            uint32_t shapeLocalIndex = 1 + static_cast<uint32_t>(artboardData.animations.size());
             
             // Y-position animation
             if (!animData.yKeyframes.empty())
@@ -740,9 +1271,11 @@ CoreDocument build_core_document(const Document& document,
             }
         }
     }
+    
+    } // End of artboard loop
 
-    // Provide default animation if none specified
-    if (document.animations.empty())
+    // Provide default animation if none specified (legacy - check first artboard)
+    if (!document.artboards.empty() && document.artboards[0].animations.empty())
     {
         auto& animation = builder.addCore(new rive::LinearAnimation());
         builder.set(animation, rive::AnimationBase::namePropertyKey,

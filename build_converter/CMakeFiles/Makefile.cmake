@@ -79,11 +79,13 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/rive_runtime.dir/DependInfo.cmake"
-  "CMakeFiles/json_to_riv_converter.dir/DependInfo.cmake"
-  "CMakeFiles/test_converter.dir/DependInfo.cmake"
-  "CMakeFiles/simple_demo.dir/DependInfo.cmake"
   "converter/CMakeFiles/rive_convert.dir/DependInfo.cmake"
   "converter/CMakeFiles/rive_convert_cli.dir/DependInfo.cmake"
   "converter/CMakeFiles/import_test.dir/DependInfo.cmake"
+  "converter/CMakeFiles/riv_extractor.dir/DependInfo.cmake"
+  "converter/CMakeFiles/full_extractor.dir/DependInfo.cmake"
+  "converter/CMakeFiles/complete_extractor.dir/DependInfo.cmake"
+  "converter/CMakeFiles/hierarchical_extractor.dir/DependInfo.cmake"
+  "converter/CMakeFiles/universal_extractor.dir/DependInfo.cmake"
   "converter/CMakeFiles/import_check.dir/DependInfo.cmake"
   )

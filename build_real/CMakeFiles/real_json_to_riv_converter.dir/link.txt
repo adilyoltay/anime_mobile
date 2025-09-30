@@ -1,2 +1,0 @@
-/Applications/xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libreal_json_to_riv_converter.a CMakeFiles/real_json_to_riv_converter.dir/real_json_to_riv_converter.cpp.o
-/Applications/xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libreal_json_to_riv_converter.a
