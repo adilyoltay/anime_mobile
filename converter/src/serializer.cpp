@@ -195,10 +195,12 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
     
-    // PR1 Extended: Add bytes key (212) for asset placeholder/font
-    // Since we write FileAssetContents in serializer (not builder), must add to header manually
+    // PR1 Extended: Add bytes key (212) and assetId key (204) for asset placeholder/font
+    // Since we write these in the serializer (not builder), must add to header manually
     headerSet.insert(kFileAssetBytesKey); // 212
     typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes type (same as string)
+    headerSet.insert(kFileAssetIdKey);   // 204
+    typeMap[kFileAssetIdKey] = rive::CoreUintType::id;
 
     std::vector<uint16_t> headerKeys(headerSet.begin(), headerSet.end());
     std::sort(headerKeys.begin(), headerKeys.end());
@@ -374,12 +376,17 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         if (objIndex == 0 && !fontBytesEmitted && !placeholderEmitted && document.fontData.empty())
         {
             placeholderEmitted = true;
-            
+            // Write ImageAsset (105) placeholder object
+            writer.writeVarUint(static_cast<uint32_t>(rive::ImageAssetBase::typeKey)); // 105
+            writer.writeVarUint(static_cast<uint32_t>(kFileAssetIdKey)); // 204
+            writer.writeVarUint(static_cast<uint32_t>(0));   // assetId = 0
+            writer.writeVarUint(static_cast<uint32_t>(0));   // property terminator
+
             // Write FileAssetContents (106) with empty bytes (212) as independent object
-            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
-            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+            writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey)); // 106
+            writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey)); // 212
             writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty)
-            writer.writeVarUint(static_cast<uint32_t>(0));   // Property terminator
+            writer.writeVarUint(static_cast<uint32_t>(0));   // property terminator
             
             std::cout << "  ℹ️  Asset placeholder after Backboard (no font embedded)" << std::endl;
         }
@@ -427,12 +434,12 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
 
-    // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
-    // This must come AFTER all objects are written, as a separate chunk
-    std::cout << "\n  ℹ️  Writing Artboard Catalog chunk (minimal serializer)..." << std::endl;
-    
-    // End object stream with sentinel
+    // End object stream with terminator
     writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
+    
+    // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
+    // This must come AFTER object stream terminator, as a separate chunk
+    std::cout << "\n  ℹ️  Writing Artboard Catalog chunk (minimal serializer)..." << std::endl;
     
     // Collect artboard IDs from document
     // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
@@ -457,9 +464,6 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
             writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
         }
     }
-    
-    // Final chunk terminator
-    writer.writeVarUint(static_cast<uint32_t>(0));
     
     std::cout << "  ✅ Artboard Catalog written (" << artboardIds.size() << " artboards)" << std::endl;
     
@@ -502,13 +506,11 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
 
-    // Ensure bytes key (212) is declared if we may emit FileAssetContents
+    // Ensure bytes (212) and assetId (204) keys declared for serializer-emitted chunks
     headerSet.insert(kFileAssetBytesKey);
-    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes share id with string
-    
-    // PR-RivePlay-Fix: Add asset bytes key for empty placeholder
-    headerSet.insert(kFileAssetBytesKey); // 212
-    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes type (same as string)
+    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes/share id with string
+    headerSet.insert(kFileAssetIdKey);
+    typeMap[kFileAssetIdKey] = rive::CoreUintType::id;
 
     std::vector<uint16_t> headerKeys(headerSet.begin(), headerSet.end());
     std::sort(headerKeys.begin(), headerKeys.end());
@@ -662,10 +664,15 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         if (objIndex == 0 && !fontBytesEmitted && !placeholderEmitted && document.fontData.empty())
         {
             placeholderEmitted = true;
-            
+            // Write ImageAsset (105) placeholder
+            writer.writeVarUint(static_cast<uint32_t>(rive::ImageAssetBase::typeKey)); // 105
+            writer.writeVarUint(static_cast<uint32_t>(kFileAssetIdKey)); // 204
+            writer.writeVarUint(static_cast<uint32_t>(0));   // assetId = 0
+            writer.writeVarUint(static_cast<uint32_t>(0));   // property terminator
+
             // Write FileAssetContents (106) with empty bytes (212) as independent object
-            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
-            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+            writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey)); // 106
+            writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey)); // 212
             writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty)
             writer.writeVarUint(static_cast<uint32_t>(0));   // Property terminator
             
@@ -690,13 +697,13 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
             }
         }
     }
+    
+    // End object stream with terminator
+    writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
 
     // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
-    // This must come AFTER all objects are written, as a separate chunk
+    // This must come AFTER object stream terminator, as a separate chunk
     std::cout << "\n  ℹ️  Writing Artboard Catalog chunk..." << std::endl;
-    
-    // End object stream with sentinel
-    writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
     
     // Collect artboard IDs from document
     // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
