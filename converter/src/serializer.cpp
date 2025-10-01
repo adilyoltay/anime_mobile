@@ -325,8 +325,9 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
 
-    // NOTE: NO end-of-stream marker! Runtime expects next chunk immediately.
-    // Writing a 0 here causes "Malformed file" error (invalid type key).
+    // NOTE: Do NOT write end-of-stream sentinel here!
+    // Writing a single 0 causes runtime to treat it as object typeKey,
+    // then read next property which triggers EOF → malformed
     
     return buffer;
 }
@@ -490,8 +491,9 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         }
     }
 
-    // NOTE: NO end-of-stream marker! Runtime expects next chunk immediately.
-    // Writing a 0 here causes "Malformed file" error (invalid type key).
+    // NOTE: Do NOT write end-of-stream sentinel here!
+    // Writing a single 0 causes runtime to treat it as object typeKey,
+    // then read next property which triggers EOF → malformed
     
     return buffer;
 }

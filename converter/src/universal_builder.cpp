@@ -176,13 +176,17 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     // Animation keyframe properties
     else if (key == "objectId") {
         // Remap localId to builderId for KeyedObject
+        // DO NOT FALLBACK - dangling references cause importer hang!
         uint32_t localId = value.get<uint32_t>();
         auto it = idMapping.find(localId);
         if (it != idMapping.end()) {
             builder.set(obj, 51, it->second); // Use remapped builderId
         } else {
-            std::cerr << "⚠️  WARNING: objectId localId=" << localId << " not found in mapping, using raw value" << std::endl;
-            builder.set(obj, 51, localId); // Fallback
+            // Target object was skipped/missing - DO NOT write this property
+            // KeyedObject without objectId is invalid; should be cascade-skipped
+            std::cerr << "⚠️  ERROR: KeyedObject.objectId localId=" << localId 
+                      << " not found - object should have been skipped!" << std::endl;
+            // Don't set property 51 - let this KeyedObject be invalid (will be caught in validation)
         }
     }
     else if (key == "propertyKey") builder.set(obj, 53, value.get<uint32_t>()); // KeyedProperty (not an ID)
@@ -444,7 +448,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     return false;
             }
         };
-
+        
         // Map from JSON localId to builder object id
         std::map<uint32_t, uint32_t> localIdToBuilderObjectId;
         std::unordered_map<uint32_t, uint16_t> localIdToType; // Track type per localId
@@ -496,7 +500,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::cout << "  PASS 1: Creating objects with synthetic Shape injection (when needed)..." << std::endl;
         for (const auto& objJson : abJson["objects"]) {
             uint16_t typeKey = objJson["typeKey"];
-
+            
             // Skip unsupported stub objects and their dependent children
             if (objJson.contains("__unsupported__") && objJson["__unsupported__"].get<bool>()) {
                 std::cerr << "Skipping unsupported stub: typeKey=" << typeKey << std::endl;
@@ -505,7 +509,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
                 continue;
             }
-
+            
             // CASCADE SKIP: If parent is skipped, skip this child too
             if (objJson.contains("parentId")) {
                 uint32_t candidateParent = objJson["parentId"];
@@ -618,9 +622,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     parentRemap[pathLocalId] = shapeLocalId;
                 }
             }
-
+            
             auto& obj = builder.addCore(coreObj);
-
+            
             // Set Artboard name and size from artboard-level JSON
             if (typeKey == 1 && abJson.contains("name")) { // Artboard
                 builder.set(obj, 4, abJson["name"].get<std::string>()); // name
@@ -655,21 +659,21 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         builder.set(obj, 14, value.get<float>());
                     }
                 }
-                else if (key == "width") {
+                    else if (key == "width") {
                     if (typeKey == 1) {
-                        builder.set(obj, 7, value.get<float>());
+                            builder.set(obj, 7, value.get<float>());
                     } else {
-                        builder.set(obj, 20, value.get<float>());
+                            builder.set(obj, 20, value.get<float>());
+                        }
                     }
-                }
-                else if (key == "height") {
+                    else if (key == "height") {
                     if (typeKey == 1) {
-                        builder.set(obj, 8, value.get<float>());
+                            builder.set(obj, 8, value.get<float>());
                     } else {
-                        builder.set(obj, 21, value.get<float>());
+                            builder.set(obj, 21, value.get<float>());
+                        }
                     }
-                }
-                else {
+                    else {
                     setProperty(builder, obj, key, value, localIdToBuilderObjectId);
                 }
             }
