@@ -403,7 +403,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
 
-    // PR-RivePlay-Catalog: Write Artboard Catalog chunk (8776) for proper artboard selection
+    // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
     // This must come AFTER all objects are written, as a separate chunk
     std::cout << "\n  ℹ️  Writing Artboard Catalog chunk (minimal serializer)..." << std::endl;
     
@@ -411,6 +411,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
     
     // Collect artboard IDs from document
+    // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
     std::vector<uint32_t> artboardIds;
     for (const auto& object : document.objects) {
         if (object.core->is<rive::Artboard>()) {
@@ -419,12 +420,18 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
     
-    // Write ArtboardListItem (8776) for each artboard
-    for (uint32_t artboardId : artboardIds) {
-        writer.writeVarUint(static_cast<uint32_t>(8776)); // ArtboardListItem typeKey
-        writer.writeVarUint(static_cast<uint32_t>(3));    // id property key
-        writer.writeVarUint(artboardId);                   // artboard's runtime ID
-        writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
+    if (!artboardIds.empty()) {
+        // Write ArtboardList (8726) wrapper
+        writer.writeVarUint(static_cast<uint32_t>(8726)); // ArtboardList typeKey
+        writer.writeVarUint(static_cast<uint32_t>(0));    // No properties, terminate immediately
+        
+        // Write ArtboardListItem (8776) for each non-empty artboard
+        for (uint32_t artboardId : artboardIds) {
+            writer.writeVarUint(static_cast<uint32_t>(8776)); // ArtboardListItem typeKey
+            writer.writeVarUint(static_cast<uint32_t>(3));    // id property key (component id)
+            writer.writeVarUint(artboardId);                   // artboard's ID
+            writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
+        }
     }
     
     // Final chunk terminator
@@ -651,7 +658,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         }
     }
 
-    // PR-RivePlay-Catalog: Write Artboard Catalog chunk (8776) for proper artboard selection
+    // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
     // This must come AFTER all objects are written, as a separate chunk
     std::cout << "\n  ℹ️  Writing Artboard Catalog chunk..." << std::endl;
     
@@ -659,6 +666,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
     
     // Collect artboard IDs from document
+    // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
     std::vector<uint32_t> artboardIds;
     for (const auto& object : document.objects) {
         if (object.core->is<rive::Artboard>()) {
@@ -667,12 +675,18 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         }
     }
     
-    // Write ArtboardListItem (8776) for each artboard
-    for (uint32_t artboardId : artboardIds) {
-        writer.writeVarUint(static_cast<uint32_t>(8776)); // ArtboardListItem typeKey
-        writer.writeVarUint(static_cast<uint32_t>(3));    // id property key
-        writer.writeVarUint(artboardId);                   // artboard's builder ID
-        writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
+    if (!artboardIds.empty()) {
+        // Write ArtboardList (8726) wrapper
+        writer.writeVarUint(static_cast<uint32_t>(8726)); // ArtboardList typeKey
+        writer.writeVarUint(static_cast<uint32_t>(0));    // No properties, terminate immediately
+        
+        // Write ArtboardListItem (8776) for each non-empty artboard
+        for (uint32_t artboardId : artboardIds) {
+            writer.writeVarUint(static_cast<uint32_t>(8776)); // ArtboardListItem typeKey
+            writer.writeVarUint(static_cast<uint32_t>(3));    // id property key (component id)
+            writer.writeVarUint(artboardId);                   // artboard's builder ID
+            writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
+        }
     }
     
     // Final chunk terminator

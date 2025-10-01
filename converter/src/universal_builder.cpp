@@ -464,6 +464,14 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
     for (size_t abIdx = 0; abIdx < data["artboards"].size(); ++abIdx) {
         const auto& abJson = data["artboards"][abIdx];
         
+        // Guard against zero-sized or empty artboards that cause grey screens.
+        float abWidth = abJson.value("width", 0.0f);
+        float abHeight = abJson.value("height", 0.0f);
+        if ((abWidth == 0.0f && abHeight == 0.0f) || abJson["objects"].empty()) {
+            std::cout << "Skipping zero-sized/empty artboard " << abIdx << ": " << abJson["name"] << std::endl;
+            continue;
+        }
+
         std::cout << "Building artboard " << abIdx << ": " << abJson["name"] << std::endl;
         std::cout << "  Objects: " << abJson["objects"].size() << std::endl;
         
