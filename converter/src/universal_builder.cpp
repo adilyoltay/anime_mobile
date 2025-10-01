@@ -522,6 +522,22 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
 
+            // PRE-CHECK: If this is a KeyedObject, verify its objectId target exists
+            // Otherwise skip it to avoid creating invalid KeyedObject with id=0
+            if (typeKey == 25) { // KeyedObject
+                if (objJson.contains("properties") && objJson["properties"].contains("objectId")) {
+                    uint32_t targetLocalId = objJson["properties"]["objectId"].get<uint32_t>();
+                    auto it = localIdToBuilderObjectId.find(targetLocalId);
+                    if (it == localIdToBuilderObjectId.end()) {
+                        std::cerr << "Cascade skip: KeyedObject targets missing localId=" << targetLocalId << std::endl;
+                        if (objJson.contains("localId")) {
+                            skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
+                        }
+                        continue; // Skip this KeyedObject and its children
+                    }
+                }
+            }
+            
             rive::Core* coreObj = createObjectByTypeKey(typeKey);
             if (!coreObj) {
                 std::cerr << "Skipping unknown type: " << typeKey << std::endl;
