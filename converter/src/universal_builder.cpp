@@ -498,9 +498,28 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
         // PASS 1: Create objects with accurate parent type info
         std::cout << "  PASS 1: Creating objects with synthetic Shape injection (when needed)..." << std::endl;
+        
+        bool skipKeyframeData = false; // Flag to cascade-skip KeyedProperty/KeyFrame after invalid KeyedObject
+        
         for (const auto& objJson : abJson["objects"]) {
             uint16_t typeKey = objJson["typeKey"];
             
+            // Reset flag when we see a new animation/state machine (new context)
+            if (typeKey == 31 || typeKey == 53) { // LinearAnimation or StateMachine
+                skipKeyframeData = false;
+            }
+            
+            // Cascade-skip orphaned keyframe data (KeyedProperty, KeyFrame, Interpolators)
+            if (skipKeyframeData) {
+                if (typeKey == 26 || typeKey == 28 || typeKey == 30 || 
+                    typeKey == 37 || typeKey == 50 || typeKey == 138) {
+                    std::cerr << "Cascade skip: Orphaned keyframe data typeKey=" << typeKey << std::endl;
+                    continue;
+                }
+                // Non-keyframe type → reset flag
+                skipKeyframeData = false;
+            }
+
             // Skip unsupported stub objects and their dependent children
             if (objJson.contains("__unsupported__") && objJson["__unsupported__"].get<bool>()) {
                 std::cerr << "Skipping unsupported stub: typeKey=" << typeKey << std::endl;
@@ -523,17 +542,18 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
 
             // PRE-CHECK: If this is a KeyedObject, verify its objectId target exists
-            // Otherwise skip it to avoid creating invalid KeyedObject with id=0
+            // Otherwise skip it AND set flag to cascade-skip its children (KeyedProperty/KeyFrame)
             if (typeKey == 25) { // KeyedObject
                 if (objJson.contains("properties") && objJson["properties"].contains("objectId")) {
                     uint32_t targetLocalId = objJson["properties"]["objectId"].get<uint32_t>();
                     auto it = localIdToBuilderObjectId.find(targetLocalId);
                     if (it == localIdToBuilderObjectId.end()) {
                         std::cerr << "Cascade skip: KeyedObject targets missing localId=" << targetLocalId << std::endl;
+                        skipKeyframeData = true; // Flag to skip following KeyedProperty/KeyFrame children
                         if (objJson.contains("localId")) {
                             skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
                         }
-                        continue; // Skip this KeyedObject and its children
+                        continue; // Skip this KeyedObject
                     }
                 }
             }
