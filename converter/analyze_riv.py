@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Utility to inspect .riv binaries: prints property keys per object type using
+PR4: Robust .riv analyzer with catalog support and graceful EOF handling.
+Inspects .riv binaries: prints property keys per object type using
 Rive runtime metadata (generated headers).
 """
 from __future__ import annotations
@@ -9,10 +10,11 @@ import argparse
 import json
 import re
 import struct
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple, Any, DefaultDict
+from typing import Dict, Iterable, List, Tuple, Any, DefaultDict, Optional
 
 RIVE_ROOT = Path(__file__).resolve().parents[1]
 GENERATED_DIR = RIVE_ROOT / "include" / "rive" / "generated"
@@ -129,51 +131,104 @@ class ObjectEntry:
 
 # -- Parser ------------------------------------------------------------------
 
-def parse_objects(data: bytes, pos: int, header_keys: List[int]) -> Tuple[int, List[ObjectEntry]]:
+def parse_objects(data: bytes, pos: int, header_keys: List[int], strict: bool = False) -> Tuple[int, List[ObjectEntry], List[int]]:
+    """PR4: Enhanced parser with catalog support and robust EOF handling."""
     bitmap_count = (len(header_keys) + 3) // 4
     bitmap_bytes = data[pos - bitmap_count * 4 : pos]
     bitmaps = [struct.unpack_from("<I", bitmap_bytes, i * 4)[0] for i in range(bitmap_count)]
     key_index = {key: idx for idx, key in enumerate(header_keys)}
 
     objects: List[ObjectEntry] = []
+    artboard_ids: List[int] = []  # PR4: Track artboard IDs from catalog
+    obj_index = 0
+    
     while True:
-        type_key, pos = read_varuint(data, pos)
-        if type_key == 0:
-            # consume trailing property terminator if present
-            try:
-                _, pos = read_varuint(data, pos)
-            except EOFError:
-                pass
+        # PR4: Graceful EOF at object boundary
+        if pos >= len(data):
+            print(f"  [info] Clean EOF at object boundary (parsed {obj_index} objects)")
             break
-        props: List[PropertyEntry] = []
-        while True:
-            key, pos = read_varuint(data, pos)
-            if key == 0:
+            
+        try:
+            type_key, pos = read_varuint(data, pos)
+        except (EOFError, struct.error) as e:
+            if pos >= len(data) - 8:  # Near end, likely clean termination
+                print(f"  [info] EOF near end of file (parsed {obj_index} objects)")
                 break
-            idx = key_index.get(key)
-            category = "unknown"
-            if idx is not None:
-                bucket = idx // 4
-                shift = (idx % 4) * 2
-                type_id = (bitmaps[bucket] >> shift) & 0x3
-                category = ["uint", "string", "double", "color"][type_id]
-            core = PROPERTY_CORE_TYPE.get(key)
-            if core:
-                category = CORE_TO_CATEGORY.get(core, category)
-
-            decoder = CATEGORY_DECODERS.get(category)
-            if decoder is None:
-                # Fallback to uint semantics when unknown
-                value, pos = read_varuint(data, pos)
             else:
-                value, pos = decoder(data, pos)
-            props.append(PropertyEntry(key, category, value))
+                msg = f"EOF while reading object #{obj_index} typeKey at pos {pos}"
+                if strict:
+                    raise ValueError(msg) from e
+                print(f"  [warning] {msg}")
+                break
+                
+        if type_key == 0:
+            # Object stream terminator
+            print(f"  [info] Object stream ended with 0 terminator (parsed {obj_index} objects)")
+            # PR4: May have catalog chunks after this
+            continue
+            
+        type_name = TYPE_KEY_NAME.get(type_key, f"Unknown({type_key})")
+        props: List[PropertyEntry] = []
+        prop_keys: List[int] = []
+        
+        try:
+            while True:
+                key, pos = read_varuint(data, pos)
+                if key == 0:
+                    break
+                prop_keys.append(key)
+                
+                idx = key_index.get(key)
+                category = "unknown"
+                if idx is not None:
+                    bucket = idx // 4
+                    shift = (idx % 4) * 2
+                    type_id = (bitmaps[bucket] >> shift) & 0x3
+                    category = ["uint", "string", "double", "color"][type_id]
+                    
+                core = PROPERTY_CORE_TYPE.get(key)
+                if core:
+                    category = CORE_TO_CATEGORY.get(core, category)
+                    
+                # PR4: Handle bytes property (212) - FileAssetContents
+                if key == 212:  # bytes property
+                    byte_len, pos = read_varuint(data, pos)
+                    if pos + byte_len > len(data):
+                        raise ValueError(f"bytes property length {byte_len} exceeds file size")
+                    value = f"<{byte_len} bytes>"
+                    pos += byte_len
+                    category = "bytes"
+                else:
+                    decoder = CATEGORY_DECODERS.get(category)
+                    if decoder is None:
+                        value, pos = read_varuint(data, pos)
+                    else:
+                        value, pos = decoder(data, pos)
+                        
+                props.append(PropertyEntry(key, category, value))
+                
+                # PR4: Track artboard IDs from ArtboardListItem (8776)
+                if type_key == 8776 and key == 3:  # ArtboardListItem.id
+                    artboard_ids.append(int(value))
+                    
+        except (EOFError, struct.error) as e:
+            msg = f"EOF in object #{obj_index} ({type_name}) after keys {prop_keys} at pos {pos}"
+            if strict:
+                raise ValueError(msg) from e
+            print(f"  [warning] {msg}")
+            if props:  # Save partial object if we got any properties
+                objects.append(ObjectEntry(type_key, props))
+            break
+            
         objects.append(ObjectEntry(type_key, props))
-    return pos, objects
+        obj_index += 1
+        
+    return pos, objects, artboard_ids
 
 # -- Main --------------------------------------------------------------------
 
-def analyze(path: Path, return_data: bool = False) -> Any:
+def analyze(path: Path, return_data: bool = False, strict: bool = False, dump_catalog: bool = False) -> Any:
+    """PR4: Enhanced analyzer with catalog support."""
     data = path.read_bytes()
     if data[:4] != b"RIVE":
         raise ValueError("Not a RIVE file")
@@ -191,7 +246,14 @@ def analyze(path: Path, return_data: bool = False) -> Any:
 
     bitmap_count = (len(header_keys) + 3) // 4
     pos_bitmap_end = pos + bitmap_count * 4
-    pos, objects = parse_objects(data, pos_bitmap_end, header_keys)
+    pos, objects, artboard_ids = parse_objects(data, pos_bitmap_end, header_keys, strict=strict)
+    
+    # PR4: Dump catalog if requested
+    if dump_catalog and artboard_ids:
+        print(f"\n=== PR4 Artboard Catalog ===")
+        print(f"Artboard IDs from ArtboardListItem (8776): {artboard_ids}")
+        print(f"Total artboards: {len(artboard_ids)}")
+        print(f"===========================")
 
     if return_data:
         header_named = [
@@ -254,16 +316,27 @@ def analyze(path: Path, return_data: bool = False) -> Any:
         print(f"\nRemaining {remaining} bytes after object stream (likely asset data).")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Inspect Rive .riv binary")
-    parser.add_argument("file", type=Path, help="Path to .riv file")
-    parser.add_argument("--json", action="store_true", help="Output JSON instead of text")
-    args = parser.parse_args()
-    if args.json:
-        info = analyze(args.file, return_data=True)
-        print(json.dumps(info, indent=2))
-    else:
-        analyze(args.file)
-
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="PR4: Robust .riv analyzer")
+    parser.add_argument("file", type=Path, help=".riv file to analyze")
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
+    parser.add_argument("--strict", action="store_true", help="PR4: Abort on any parse anomaly")
+    parser.add_argument("--dump-catalog", action="store_true", help="PR4: Show artboard catalog (8726/8776)")
+    args = parser.parse_args()
+
+    try:
+        summary = analyze(args.file, return_data=args.json, strict=args.strict, dump_catalog=args.dump_catalog)
+        if args.json:
+            print(json.dumps(summary, indent=2))
+        else:
+            for key, names in summary["header"].items():
+                print(f"{key}: {', '.join(names)}")
+            print()
+            for tk, props in summary["toc"].items():
+                print(f"{tk}: {', '.join(props)}")
+            print(f"\nStream properties:\n{json.dumps(summary['streamProps'], indent=2)}")
+            print(f"\nTotals: {summary['totals']}")
+        sys.exit(0)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1 if args.strict else 0)
