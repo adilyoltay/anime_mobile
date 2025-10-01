@@ -1,12 +1,14 @@
 // UNIVERSAL EXTRACTOR - Extract EVERYTHING from any RIV file
 // Generic approach: Export all objects with typeKey, properties, hierarchy
 // No type-specific code - truly universal!
+// PR-Extractor-Fix: Now with topological ordering, required defaults, and parent sanity checks
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <map>
 #include <nlohmann/json.hpp>
+#include "extractor_postprocess.hpp"
 #include "rive/file.hpp"
 #include "rive/artboard.hpp"
 #include "rive/component.hpp"
@@ -586,6 +588,11 @@ int main(int argc, char* argv[]) {
                 {"name", getTypeName(tk)}
             };
         }
+        
+        // PR-Extractor-Fix: Post-process artboard (topological sort + defaults + sanity checks)
+        extractor_postprocess::DiagnosticCounters diag;
+        artboardJson = extractor_postprocess::postProcessArtboard(artboardJson, diag);
+        extractor_postprocess::printDiagnostics(diag);
         
         output["artboards"].push_back(artboardJson);
     }

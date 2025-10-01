@@ -1,0 +1,29 @@
+{
+  "artboards": [
+    {
+      "name": "Test",
+      "width": 500.0,
+      "height": 500.0,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "properties": {
+            "name": "Artboard",
+            "width": 500.0,
+            "height": 500.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 1,
+          "parentId": 999,
+          "properties": {
+            "colorValue": "#FF0000"
+          }
+        }
+      ]
+    }
+  ],
+  "totalArtboards": 1
+}

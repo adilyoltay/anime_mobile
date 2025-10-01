@@ -39,7 +39,7 @@ Serializer su akisi yazar:
 4. Her **Shape** (`typeKey 3`)
    - `x (13)` ve `y (14)` JSON `shape.x`, `shape.y` degerleri.
 5. **Parametric Path**
-   - Rectangle (`typeKey 7`): `width (20)`, `height (21)`, `linkCornerRadius (382)=false`.
+   - Rectangle (`typeKey 7`): `width (20)`, `height (21)`, `linkCornerRadius (164)=false`.
    - Ellipse (`typeKey 4`): `width (20)`, `height (21)`.
 6. **Fill / Stroke** ve **SolidColor** boyalar
    - Fill (`typeKey 20`): `isVisible (41)`=true.
@@ -79,10 +79,14 @@ Her nesnenin property listesi `0` ile kapanir. Dosya sonunda ekstra 0 yazmiyoruz
 | 57  | `LinearAnimationBase::duration`
 | 59  | `LinearAnimationBase::loopValue`
 | 140 | `StrokeBase::thickness`
+| 114 | `TrimPath::start` (default: 0.0)
+| 115 | `TrimPath::end` (default: 0.0)
+| 116 | `TrimPath::offset` (default: 0.0)
+| 117 | `TrimPath::modeValue` (default: 0)
+| 164 | `RectangleBase::linkCornerRadius`
 | 196 | `LayoutComponentBase::clip`
 | 204 | `FileAssetBase::assetId`
 | 212 | `FileAssetContentsBase::bytes`
-| 382 | `RectangleBase::linkCornerRadius`
 
 Yeni property eklerken hem ToC'ye hem de bu tabloya not dusun.
 

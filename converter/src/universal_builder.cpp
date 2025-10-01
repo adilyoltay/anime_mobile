@@ -31,6 +31,10 @@
 #include "rive/animation/keyframe_double.hpp"
 #include "rive/animation/keyframe_color.hpp"
 #include "rive/animation/keyframe_id.hpp"
+#include "rive/animation/keyframe_bool.hpp"
+#include "rive/animation/keyframe_string.hpp"
+#include "rive/animation/keyframe_uint.hpp"
+#include "rive/animation/keyframe_callback.hpp"
 #include "rive/animation/state_machine.hpp"
 #include "rive/animation/state_machine_layer.hpp"
 #include "rive/animation/animation_state.hpp"
@@ -93,6 +97,11 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 35: return new rive::CubicMirroredVertex();
         case 37: return new rive::KeyFrameColor();
         case 50: return new rive::KeyFrameId();
+        case 84: return new rive::KeyFrameBool();
+        case 142: return new rive::KeyFrameString();
+        case 171: return new rive::KeyFrameCallback();
+        // case 175: KeyFrameInterpolator is abstract; do not instantiate directly
+        case 450: return new rive::KeyFrameUint();
         // State Machine types
         case 53: return new rive::StateMachine();
         case 56: return new rive::StateMachineNumber();
@@ -129,8 +138,18 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "scaleY") builder.set(obj, 17, value.get<float>());
     else if (key == "opacity") builder.set(obj, 18, value.get<float>());
     
-    // Name (Component)
-    else if (key == "name") builder.set(obj, 4, value.get<std::string>());
+    // Name (Component) - PR2: Use correct property key based on typeKey
+    else if (key == "name") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 31) { // LinearAnimation
+            builder.set(obj, 55, value.get<std::string>()); // AnimationBase::namePropertyKey = 55
+        } else if (typeKey == 53 || typeKey == 57 || typeKey == 61 || typeKey == 62 || 
+                   typeKey == 63 || typeKey == 64 || typeKey == 65) { // SM + Layer + States + Transition
+            builder.set(obj, 138, value.get<std::string>()); // StateMachineComponentBase::namePropertyKey = 138
+        } else { // Component (Artboard, Shape, etc.)
+            builder.set(obj, 4, value.get<std::string>()); // ComponentBase::namePropertyKey = 4
+        }
+    }
     
     // Parametric shapes (width/height handled in main loop for artboard vs shape distinction)
     else if (key == "linkCornerRadius") builder.set(obj, rive::RectangleBase::linkCornerRadiusPropertyKey, value.get<bool>());
@@ -181,12 +200,6 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         auto it = idMapping.find(localId);
         if (it != idMapping.end()) {
             builder.set(obj, 51, it->second); // Use remapped builderId
-        } else {
-            // Target object was skipped/missing - DO NOT write this property
-            // KeyedObject without objectId is invalid; should be cascade-skipped
-            std::cerr << "⚠️  ERROR: KeyedObject.objectId localId=" << localId 
-                      << " not found - object should have been skipped!" << std::endl;
-            // Don't set property 51 - let this KeyedObject be invalid (will be caught in validation)
         }
     }
     else if (key == "propertyKey") builder.set(obj, 53, value.get<uint32_t>()); // KeyedProperty (not an ID)
@@ -201,12 +214,22 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
             builder.set(obj, 88, value.get<uint32_t>());
         } else if (typeKey == 50) { // KeyFrameId
             builder.set(obj, 122, value.get<uint32_t>());
+        } else if (typeKey == 84) { // KeyFrameBool
+            builder.set(obj, 181, value.get<bool>());
+        } else if (typeKey == 142) { // KeyFrameString
+            builder.set(obj, 280, value.get<std::string>());
+        } else if (typeKey == 450) { // KeyFrameUint
+            builder.set(obj, 631, value.get<uint32_t>());
         } else {
             // Fallback: try to infer from value type
             if (value.is_number_float()) {
                 builder.set(obj, 70, value.get<float>());
+            } else if (value.is_boolean()) {
+                builder.set(obj, 181, value.get<bool>());
+            } else if (value.is_string()) {
+                builder.set(obj, 280, value.get<std::string>());
             } else {
-                builder.set(obj, 88, value.get<uint32_t>());
+                builder.set(obj, 631, value.get<uint32_t>());
             }
         }
     }
@@ -250,7 +273,13 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     // Parametric
     typeMap[20] = rive::CoreDoubleType::id; // width
     typeMap[21] = rive::CoreDoubleType::id; // height
-    typeMap[382] = rive::CoreBoolType::id; // linkCornerRadius
+    typeMap[164] = rive::CoreBoolType::id; // RectangleBase::linkCornerRadius (correct key)
+    
+    // TrimPath (PR2d: defaults for empty properties)
+    typeMap[114] = rive::CoreDoubleType::id; // TrimPath::start
+    typeMap[115] = rive::CoreDoubleType::id; // TrimPath::end
+    typeMap[116] = rive::CoreDoubleType::id; // TrimPath::offset
+    typeMap[117] = rive::CoreUintType::id;   // TrimPath::modeValue
     
     // Path
     typeMap[120] = rive::CoreBoolType::id; // isClosed
@@ -303,6 +332,10 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[70] = rive::CoreDoubleType::id; // KeyFrameDouble.value
     typeMap[88] = rive::CoreColorType::id; // KeyFrameColor.value (MUST be Color, not Uint!)
     typeMap[122] = rive::CoreUintType::id; // KeyFrameId.value
+    typeMap[181] = rive::CoreBoolType::id;   // KeyFrameBool.value
+    typeMap[280] = rive::CoreStringType::id; // KeyFrameString.value
+    typeMap[631] = rive::CoreUintType::id;   // KeyFrameUint.value
+    typeMap[69]  = rive::CoreUintType::id;   // InterpolatingKeyFrame.interpolatorId
     
     // Backboard & Component
     // NOTE: Field 3 (Component ID) does NOT exist in Rive format! It's internal only.
@@ -392,12 +425,14 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[705] = rive::CoreUintType::id; // flexBasisUnitsValue
     
     // Animation properties
+    typeMap[55] = rive::CoreStringType::id; // AnimationBase name
     typeMap[56] = rive::CoreUintType::id; // LinearAnimation fps
     typeMap[57] = rive::CoreUintType::id; // LinearAnimation duration
     typeMap[58] = rive::CoreDoubleType::id; // LinearAnimation speed
     typeMap[59] = rive::CoreUintType::id; // LinearAnimation loopValue
     
     // State Machine properties
+    typeMap[138] = rive::CoreStringType::id; // StateMachineComponentBase name
     typeMap[140] = rive::CoreDoubleType::id; // StateMachineNumber value
     typeMap[141] = rive::CoreBoolType::id; // StateMachineBool value
     typeMap[149] = rive::CoreUintType::id; // AnimationState animationId
@@ -412,6 +447,10 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
 
 CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeMap& outTypeMap) {
     std::cout << "=== UNIVERSAL JSON TO RIV BUILDER ===" << std::endl;
+    
+    // PR3: Re-enable keyed data with safe emission (animation-block grouping)
+    constexpr bool OMIT_KEYED = false; // PR3: Keyed data re-enabled
+    constexpr bool OMIT_STATE_MACHINE = true; // Keep disabled for now (separate PR)
     
     CoreBuilder builder;
     PropertyTypeMap typeMap;
@@ -499,14 +538,72 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         // PASS 1: Create objects with accurate parent type info
         std::cout << "  PASS 1: Creating objects with synthetic Shape injection (when needed)..." << std::endl;
         
+        // PR2: Diagnostic counters for keyed data
+        std::map<uint16_t, int> keyedInJson;
+        std::map<uint16_t, int> keyedCreated;
+        int linearAnimCount = 0;
+        int stateMachineCount = 0;
+        
         bool skipKeyframeData = false; // Flag to cascade-skip KeyedProperty/KeyFrame after invalid KeyedObject
+        CoreObject* lastKeyframe = nullptr; // Track last created InterpolatingKeyFrame for interpolatorId wiring
         
         for (const auto& objJson : abJson["objects"]) {
             uint16_t typeKey = objJson["typeKey"];
             
+            // PR2: Count keyed types in JSON
+            if (typeKey == 25 || typeKey == 26 || typeKey == 28 || typeKey == 30 || typeKey == 37 || 
+                typeKey == 50 || typeKey == 84 || typeKey == 138 || typeKey == 139 || typeKey == 142 ||
+                typeKey == 171 || typeKey == 174 || typeKey == 175 || typeKey == 450) {
+                keyedInJson[typeKey]++;
+            }
+            if (typeKey == 31) linearAnimCount++;
+            if (typeKey == 53) stateMachineCount++;
+            
+            // PR2: Skip keyed set if OMIT_KEYED is enabled (A/B test for freeze isolation)
+            if (OMIT_KEYED) {
+                bool isKeyedType = typeKey == 25 ||  // KeyedObject
+                                  typeKey == 26 ||  // KeyedProperty
+                                  typeKey == 28 ||  // CubicEaseInterpolator
+                                  typeKey == 30 ||  // KeyFrameDouble
+                                  typeKey == 37 ||  // KeyFrameColor
+                                  typeKey == 50 ||  // KeyFrameId
+                                  typeKey == 84 ||  // KeyFrameBool
+                                  typeKey == 138 || // CubicValueInterpolator
+                                  typeKey == 139 || // CubicInterpolatorBase
+                                  typeKey == 142 || // KeyFrameString
+                                  typeKey == 171 || // KeyFrameCallback
+                                  typeKey == 174 || // ElasticInterpolatorBase
+                                  typeKey == 175 || // KeyFrameInterpolator (abstract)
+                                  typeKey == 450;   // KeyFrameUint
+                
+                if (isKeyedType) {
+                    // Count skipped keyed objects for diagnostic
+                    continue; // Skip keyed data entirely for A/B test
+                }
+            }
+            
+            // PR2.3: Skip StateMachine objects if OMIT_STATE_MACHINE is enabled
+            if (OMIT_STATE_MACHINE) {
+                bool isSMType = typeKey == 53 ||  // StateMachine
+                               typeKey == 56 ||  // StateMachineNumber
+                               typeKey == 57 ||  // StateMachineLayer
+                               typeKey == 58 ||  // StateMachineTrigger
+                               typeKey == 59 ||  // StateMachineBool
+                               typeKey == 61 ||  // AnimationState
+                               typeKey == 62 ||  // AnyState
+                               typeKey == 63 ||  // EntryState
+                               typeKey == 64 ||  // ExitState
+                               typeKey == 65;    // StateTransition
+                
+                if (isSMType) {
+                    continue; // Skip SM data for PR2.3 test
+                }
+            }
+            
             // Reset flag when we see a new animation/state machine (new context)
             if (typeKey == 31 || typeKey == 53) { // LinearAnimation or StateMachine
                 skipKeyframeData = false;
+                lastKeyframe = nullptr;
             }
             
             // Cascade-skip orphaned keyframe data (KeyedProperty, ALL KeyFrame types, ALL Interpolators)
@@ -531,6 +628,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
                 // Non-keyframe type → reset flag
                 skipKeyframeData = false;
+                lastKeyframe = nullptr;
             }
 
             // Skip unsupported stub objects and their dependent children
@@ -684,9 +782,84 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
             pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});
 
+            // If we just created a keyframe, remember it for interpolatorId wiring
+            if (typeKey == 30 || // KeyFrameDouble
+                typeKey == 37 || // KeyFrameColor
+                typeKey == 50 || // KeyFrameId
+                typeKey == 84 || // KeyFrameBool
+                typeKey == 142 || // KeyFrameString
+                typeKey == 450)   // KeyFrameUint
+            {
+                lastKeyframe = &obj;
+            }
+            // If we just created an interpolator and have a pending keyframe, wire it
+            if ((typeKey == 28 || typeKey == 138 || typeKey == 139 || typeKey == 174) && lastKeyframe != nullptr && !skipKeyframeData)
+            {
+                builder.set(*lastKeyframe, 69, obj.id); // InterpolatingKeyFrame.interpolatorId
+                lastKeyframe = nullptr;
+            }
+
             if (localId) {
                 localIdToBuilderObjectId[*localId] = obj.id;
                 localIdToType[*localId] = typeKey;
+            }
+            
+            // PR2d: Forward reference guard - skip objects with missing parents
+            // This prevents MALFORMED errors from forward references in truncated JSON
+            if (parentLocalId != invalidParent && 
+                localIdToBuilderObjectId.find(parentLocalId) == localIdToBuilderObjectId.end()) {
+                // Parent doesn't exist yet - this is a forward reference
+                std::cerr << "  ⚠️  Skipping object typeKey=" << typeKey 
+                          << " localId=" << (localId.has_value() ? *localId : 0)
+                          << ", forward reference to missing parent=" << parentLocalId << std::endl;
+                if (localId) {
+                    skippedLocalIds.insert(*localId);
+                }
+                continue; // Skip creating this object entirely
+            }
+            
+            // PR2d: TrimPath sanitization - check parent type and inject defaults
+            if (typeKey == 47) { // TrimPath
+                // Validate parent type (must be Fill or Stroke)
+                if (parentLocalId != invalidParent) {
+                    uint16_t parentType = localIdToType[parentLocalId];
+                    if (parentType != 20 && parentType != 24) { // Not Fill or Stroke
+                        std::cerr << "  ⚠️  Skipping TrimPath localId=" << (localId.has_value() ? *localId : 0)
+                                  << ", invalid parent type=" << parentType << " (expected Fill(20) or Stroke(24))" << std::endl;
+                        if (localId) {
+                            skippedLocalIds.insert(*localId);
+                        }
+                        continue; // Skip creating this object entirely
+                    }
+                }
+                
+                // Parent is valid - inject defaults if properties empty
+                bool hasStart = false, hasEnd = false, hasOffset = false, hasModeValue = false;
+                for (const auto& [key, value] : properties) {
+                    if (key == "start") hasStart = true;
+                    else if (key == "end") hasEnd = true;
+                    else if (key == "offset") hasOffset = true;
+                    else if (key == "modeValue") hasModeValue = true;
+                }
+                
+                if (!hasStart || !hasEnd || !hasOffset || !hasModeValue) {
+                    if (!hasStart) builder.set(obj, 114, 0.0f);  // start
+                    if (!hasEnd) builder.set(obj, 115, 0.0f);    // end
+                    if (!hasOffset) builder.set(obj, 116, 0.0f); // offset
+                    if (!hasModeValue) builder.set(obj, 117, static_cast<uint32_t>(0)); // modeValue
+                    
+                    std::cout << "  ℹ️  TrimPath localId=" << (localId.has_value() ? *localId : 0)
+                              << " → defaults injected (114,115,116,117)" << std::endl;
+                }
+            }
+            
+            // PR2: Count created keyed objects (when not omitted)
+            if (!OMIT_KEYED) {
+                if (typeKey == 25 || typeKey == 26 || typeKey == 28 || typeKey == 30 || typeKey == 37 || 
+                    typeKey == 50 || typeKey == 84 || typeKey == 138 || typeKey == 139 || typeKey == 142 ||
+                    typeKey == 171 || typeKey == 174 || typeKey == 175 || typeKey == 450) {
+                    keyedCreated[typeKey]++;
+                }
             }
 
             for (const auto& [key, value] : properties) {
@@ -728,10 +901,49 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
 
+        // PR2: Print diagnostic summary for keyed data
+        std::cout << "\n  === PR2 KEYED DATA DIAGNOSTICS ===" << std::endl;
+        std::cout << "  OMIT_KEYED flag: " << (OMIT_KEYED ? "ENABLED (keyed data skipped)" : "DISABLED (keyed data included)") << std::endl;
+        std::cout << "  LinearAnimation count: " << linearAnimCount << std::endl;
+        std::cout << "  StateMachine count: " << stateMachineCount << std::endl;
+        
+        if (!keyedInJson.empty()) {
+            std::cout << "\n  Keyed types in JSON:" << std::endl;
+            int totalKeyedInJson = 0;
+            for (const auto& [tk, count] : keyedInJson) {
+                std::cout << "    typeKey " << tk << ": " << count << std::endl;
+                totalKeyedInJson += count;
+            }
+            std::cout << "  Total keyed in JSON: " << totalKeyedInJson << std::endl;
+        }
+        
+        if (!keyedCreated.empty()) {
+            std::cout << "\n  Keyed types created:" << std::endl;
+            int totalKeyedCreated = 0;
+            for (const auto& [tk, count] : keyedCreated) {
+                std::cout << "    typeKey " << tk << ": " << count << std::endl;
+                totalKeyedCreated += count;
+            }
+            std::cout << "  Total keyed created: " << totalKeyedCreated << std::endl;
+        } else if (OMIT_KEYED && !keyedInJson.empty()) {
+            std::cout << "  Keyed types created: 0 (all skipped by OMIT_KEYED)" << std::endl;
+        }
+        
+        if (linearAnimCount > 0 && !keyedInJson.empty()) {
+            int totalKeyed = 0;
+            for (const auto& [tk, count] : keyedInJson) {
+                totalKeyed += count;
+            }
+            double avgPerAnim = static_cast<double>(totalKeyed) / linearAnimCount;
+            std::cout << "  Avg keyed objects per animation: " << avgPerAnim << std::endl;
+        }
+        std::cout << "  =================================\n" << std::endl;
+        
         // PASS 2: Set all parent relationships (now with complete type mapping and synthetic shapes)
         std::cout << "  PASS 2: Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
         int successCount = 0;
         int missingParentCount = 0;
+        
         for (const auto& pending : pendingObjects)
         {
             if (pending.parentLocalId == invalidParent)
@@ -755,6 +967,56 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::cout << "  ✅ Set " << successCount << " parent relationships" << std::endl;
         if (missingParentCount > 0) {
             std::cerr << "  ⚠️  " << missingParentCount << " objects have missing parents (check cascade skip logic)" << std::endl;
+        }
+        
+        // PR2c: Cycle detection on component parent graph
+        // Build graph: node -> parent
+        std::unordered_map<uint32_t, uint32_t> childToParent;
+        for (const auto& pending : pendingObjects)
+        {
+            if (pending.parentLocalId != invalidParent && pending.localId.has_value())
+            {
+                childToParent[*pending.localId] = pending.parentLocalId;
+            }
+        }
+        
+        auto detectCycleFrom = [&](uint32_t start) {
+            std::unordered_set<uint32_t> visiting;
+            std::unordered_set<uint32_t> visited;
+            uint32_t cur = start;
+            std::vector<uint32_t> stack;
+            while (true)
+            {
+                if (visiting.count(cur))
+                {
+                    // Cycle found, print stack
+                    std::cerr << "  ❌ CYCLE detected: ";
+                    bool printing = false;
+                    for (auto id : stack)
+                    {
+                        if (id == cur) printing = true;
+                        if (printing) std::cerr << id << " -> ";
+                    }
+                    std::cerr << cur << std::endl;
+                    return true;
+                }
+                if (visited.count(cur)) return false;
+                visiting.insert(cur);
+                stack.push_back(cur);
+                auto itp = childToParent.find(cur);
+                if (itp == childToParent.end()) return false;
+                cur = itp->second;
+            }
+        };
+        
+        bool anyCycle = false;
+        for (const auto& kv : childToParent)
+        {
+            if (detectCycleFrom(kv.first)) { anyCycle = true; break; }
+        }
+        if (!anyCycle)
+        {
+            std::cout << "  🧭 No cycles detected in component graph" << std::endl;
         }
         
         // Animation and StateMachine building moved inline after Artboard creation (see above)

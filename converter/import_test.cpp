@@ -88,11 +88,18 @@ int main(int argc, char* argv[])
             std::cout << "Artboard child count: " << artboard->objects().size() << std::endl;
             
             int textCount = 0, textStyleCount = 0, textRunCount = 0;
+            size_t objIdx = 0;
             for (auto* obj : artboard->objects()) {
-                std::cout << "  Object typeKey=" << obj->coreType() << std::endl;
+                if (obj == nullptr) {
+                    std::cout << "  Object[" << objIdx << "]: NULL!" << std::endl;
+                    objIdx++;
+                    continue;
+                }
+                std::cout << "  Object[" << objIdx << "] typeKey=" << obj->coreType() << std::endl;
                 if (obj->coreType() == 134) textCount++;
                 if (obj->coreType() == 137) textStyleCount++;
                 if (obj->coreType() == 135) textRunCount++;
+                objIdx++;
             }
             std::cout << "Total: " << textCount << " Text, " << textStyleCount << " TextStylePaint, " << textRunCount << " TextValueRun" << std::endl;
             

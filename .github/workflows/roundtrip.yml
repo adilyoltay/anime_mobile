@@ -1,0 +1,135 @@
+name: Rive Converter Round-trip Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'converter/**'
+      - 'src/**'
+      - 'include/**'
+      - 'scripts/round_trip_ci.sh'
+      - '.github/workflows/roundtrip.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'converter/**'
+      - 'src/**'
+      - 'include/**'
+      - 'scripts/round_trip_ci.sh'
+      - '.github/workflows/roundtrip.yml'
+
+jobs:
+  test-converter:
+    name: Converter Round-trip Tests
+    runs-on: macos-latest  # macOS for Metal/CoreGraphics support
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        brew install cmake ninja
+    
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build_converter \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build Converter Tools
+      run: |
+        cmake --build build_converter --target json_validator
+        cmake --build build_converter --target rive_convert_cli
+        cmake --build build_converter --target import_test
+        cmake --build build_converter --target universal_extractor
+    
+    - name: Prepare Test Files
+      run: |
+        # Ensure output directory exists
+        mkdir -p output
+        
+        # Generate test subsets if bee_baby exists
+        if [ -f "converter/exampleriv/bee_baby.riv" ]; then
+          # Extract full file
+          ./build_converter/converter/universal_extractor \
+            converter/exampleriv/bee_baby.riv \
+            output/bee_baby_NO_TRIMPATH.json
+          
+          # Create subsets (189/190/273)
+          python3 scripts/generate_test_subsets.py output/bee_baby_NO_TRIMPATH.json
+        fi
+    
+    - name: Run Round-trip Tests
+      run: |
+        ./scripts/round_trip_ci.sh
+    
+    - name: Upload Test Artifacts
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-outputs
+        path: |
+          output/*.riv
+          output/*.json
+        retention-days: 7
+    
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ $? -eq 0 ]; then
+          echo "✅ All round-trip tests passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Some round-trip tests failed" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  test-validator-standalone:
+    name: JSON Validator Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build
+    
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build_converter \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build Validator
+      run: |
+        cmake --build build_converter --target json_validator
+    
+    - name: Test Validator with Test Cases
+      run: |
+        echo "Testing with empty properties (should fail)..."
+        if ./build_converter/converter/json_validator converter/tests/trimpath_empty.json; then
+          echo "❌ FAILED: Should have detected empty TrimPath properties"
+          exit 1
+        else
+          echo "✅ PASSED: Correctly detected empty properties"
+        fi
+        
+        echo ""
+        echo "Testing with forward reference (should fail)..."
+        if ./build_converter/converter/json_validator converter/tests/forward_ref.json; then
+          echo "❌ FAILED: Should have detected forward reference"
+          exit 1
+        else
+          echo "✅ PASSED: Correctly detected forward reference"
+        fi
+        
+        echo ""
+        echo "✅ All validator unit tests passed"

@@ -235,6 +235,8 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     bool assetPreludeWritten = false; // Will be set to true after FontAsset
     std::unordered_map<uint32_t, uint32_t> localComponentIndex;
     uint32_t nextLocalIndex = 0;
+    // PR2c: track all property keys written to the stream
+    std::unordered_set<uint16_t> streamPropKeys;
 
     for (const auto& object : document.objects)
     {
@@ -284,8 +286,21 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
                       return a.key < b.key;
                   });
 
+        // PR2b: Track remap misses for diagnostic
+        static std::map<uint16_t, int> remapMissCount;
+        static bool firstRun = true;
+        
         for (const auto& property : properties)
         {
+            // PR2c: HEADER_MISS check
+            if (headerSet.find(property.key) == headerSet.end())
+            {
+                std::cerr << "HEADER_MISS key=" << property.key
+                          << " typeKey=" << object.core->coreType() << std::endl;
+                // Skip writing this property in debug diagnostics
+                continue;
+            }
+
             // Special handling for component reference properties - remap to artboard-local indices
             if (property.key == 51 ||   // KeyedObject::objectId (animation references)
                 property.key == 92 ||   // ClippingShape::sourceId (clipping references)
@@ -301,11 +316,52 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
                         writer.writeVarUint(localIt->second); // artboard-local index
                         continue; // Skip normal writeProperty
                     }
+                    else
+                    {
+                        // PR2b: Mapping not found - SKIP this property entirely (don't write raw ID)
+                        // This prevents out-of-range index errors in importer
+                        remapMissCount[property.key]++;
+                        if (remapMissCount[property.key] <= 10)
+                        {
+                            std::cerr << "⚠️  PR2b remap-miss: key=" << property.key 
+                                      << " globalId=" << globalId << " — skipping property" << std::endl;
+                        }
+                        continue; // CRITICAL: Skip writing this property
+                    }
                 }
             }
             
             int fieldId = fieldIdForKey(property.key, typeMap);
+
+            // PR2c: TYPE_MISMATCH check
+            uint8_t headerCode = static_cast<uint8_t>(headerTypeCodeFor(fieldId) & 0x3);
+            // Note: Color/Bytes handled via fieldId mapping; we only sanity check primitive mismatches
+            // Log if primitive mismatch (approximate)
+            if ((headerCode == 0 && (std::holds_alternative<float>(property.value) || std::holds_alternative<std::string>(property.value))) ||
+                (headerCode == 1 && !std::holds_alternative<float>(property.value)) ||
+                (headerCode == 2 && !std::holds_alternative<std::string>(property.value)))
+            {
+                std::cerr << "TYPE_MISMATCH key=" << property.key
+                          << " code=" << int(headerCode)
+                          << " actual=" << (std::holds_alternative<float>(property.value) ? "Double" : std::holds_alternative<std::string>(property.value) ? "String" : "Uint/Bool")
+                          << " typeKey=" << object.core->coreType() << std::endl;
+                // Continue to write to keep behavior but log
+            }
+
             writeProperty(writer, property.key, property, fieldId);
+            streamPropKeys.insert(property.key);
+        }
+        
+        // PR2b: Print summary at end of first artboard
+        if (firstRun && !remapMissCount.empty())
+        {
+            std::cerr << "\n=== PR2b REMAP MISS SUMMARY ===" << std::endl;
+            for (const auto& [key, count] : remapMissCount)
+            {
+                std::cerr << "  key " << key << ": " << count << " misses" << std::endl;
+            }
+            std::cerr << "================================\n" << std::endl;
+            firstRun = false;
         }
 
         writer.writeVarUint(uint32_t{0});
@@ -322,6 +378,28 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
                 writer.writeVarUint(uint32_t{0}); // property terminator
                 assetPreludeWritten = true;
             }
+        }
+    }
+
+    // PR2c: Print header/stream diff
+    if (true) {
+        std::unordered_set<uint16_t> missingInHeader;
+        for (auto k : streamPropKeys) if (headerSet.find(k) == headerSet.end()) missingInHeader.insert(k);
+        std::unordered_set<uint16_t> extraInHeader;
+        for (auto k : headerSet) if (streamPropKeys.find(k) == streamPropKeys.end()) extraInHeader.insert(k);
+        if (!missingInHeader.empty() || !extraInHeader.empty()) {
+            std::cerr << "\n=== PR2c HEADER/STREAM DIFF (minimal) ===" << std::endl;
+            if (!missingInHeader.empty()) {
+                std::cerr << "MissingInHeader:";
+                for (auto k : missingInHeader) std::cerr << " " << k;
+                std::cerr << std::endl;
+            }
+            if (!extraInHeader.empty()) {
+                std::cerr << "ExtraInHeader:";
+                for (auto k : extraInHeader) std::cerr << " " << k;
+                std::cerr << std::endl;
+            }
+            std::cerr << "=======================================\n" << std::endl;
         }
     }
 
@@ -406,6 +484,9 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     std::unordered_map<uint32_t, uint32_t> localComponentIndex;
     uint32_t nextLocalIndex = 0;
 
+    // PR2c: Collect stream property keys and enable diagnostics
+    std::unordered_set<uint16_t> streamPropKeys;
+
     for (const auto& object : document.objects)
     {
         writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
@@ -454,8 +535,19 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
                       return a.key < b.key;
                   });
 
+        // PR2b: Track remap misses for diagnostic (core_document path)
+        static std::map<uint16_t, int> remapMissCountCore;
+        static bool firstRunCore = true;
+        
         for (const auto& property : properties)
         {
+            // PR2c: HEADER_MISS check
+            if (headerSet.find(property.key) == headerSet.end())
+            {
+                std::cerr << "HEADER_MISS key=" << property.key
+                          << " typeKey=" << object.core->coreType() << std::endl;
+                continue;
+            }
             if (property.key == 51 || property.key == 92 || property.key == 272)
             {
                 if (auto p = std::get_if<uint32_t>(&property.value))
@@ -468,11 +560,34 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
                         writer.writeVarUint(localIt->second);
                         continue;
                     }
+                    else
+                    {
+                        // PR2b: Mapping not found - SKIP this property entirely
+                        remapMissCountCore[property.key]++;
+                        if (remapMissCountCore[property.key] <= 10)
+                        {
+                            std::cerr << "⚠️  PR2b remap-miss (core): key=" << property.key 
+                                      << " globalId=" << globalId << " — skipping property" << std::endl;
+                        }
+                        continue; // CRITICAL: Skip writing this property
+                    }
                 }
             }
             
             int fieldId = fieldIdForKey(property.key, typeMap);
             writeProperty(writer, property.key, property, fieldId);
+        }
+        
+        // PR2b: Print summary at end
+        if (firstRunCore && !remapMissCountCore.empty())
+        {
+            std::cerr << "\n=== PR2b REMAP MISS SUMMARY (CORE) ===" << std::endl;
+            for (const auto& [key, count] : remapMissCountCore)
+            {
+                std::cerr << "  key " << key << ": " << count << " misses" << std::endl;
+            }
+            std::cerr << "=======================================\n" << std::endl;
+            firstRunCore = false;
         }
 
         writer.writeVarUint(uint32_t{0});

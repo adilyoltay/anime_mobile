@@ -1,0 +1,44 @@
+{
+  "artboards": [
+    {
+      "name": "Test",
+      "width": 500.0,
+      "height": 500.0,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "properties": {
+            "name": "Artboard",
+            "width": 500.0,
+            "height": 500.0
+          }
+        },
+        {
+          "typeKey": 3,
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "x": 250.0,
+            "y": 250.0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 47,
+          "localId": 3,
+          "parentId": 2,
+          "properties": {}
+        }
+      ]
+    }
+  ],
+  "totalArtboards": 1
+}

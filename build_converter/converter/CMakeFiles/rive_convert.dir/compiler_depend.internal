@@ -4879,10 +4879,14 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyed_object.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyed_property.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_bool.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_callback.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_color.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_double.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_id.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_interpolator.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_string.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/keyframe_uint.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/layer_state.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/linear_animation.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/animation/loop.hpp
@@ -4957,10 +4961,14 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyed_object_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyed_property_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_bool_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_callback_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_color_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_double_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_id_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_interpolator_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_string_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/keyframe_uint_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/layer_state_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/linear_animation_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/animation/state_machine_base.hpp

@@ -140,3 +140,17 @@ target_include_directories(import_check
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../utils)
 
+# JSON Validator - Validate JSON input before conversion
+add_executable(json_validator
+    json_validator_main.cpp
+    src/json_validator.cpp
+)
+target_link_libraries(json_validator
+    PRIVATE
+        nlohmann_json::nlohmann_json
+)
+target_include_directories(json_validator
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
