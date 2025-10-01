@@ -491,30 +491,31 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     // PR2c: Collect stream property keys and enable diagnostics
     std::unordered_set<uint16_t> streamPropKeys;
 
-    for (const auto& object : document.objects)
+    for (size_t objIndex = 0; objIndex < document.objects.size(); ++objIndex)
     {
+        const auto& object = document.objects[objIndex];
         writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
+        
+        // PR-RivePlay-Fix: Write single empty asset placeholder after Backboard (first object)
+        // This satisfies Rive Play's asset chunk expectation for the entire file
+        if (objIndex == 0 && !assetPreludeWritten)
+        {
+            assetPreludeWritten = true;
+            
+            // Write FileAssetContents (106) with empty bytes (212) - once for entire file
+            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
+            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+            writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty asset)
+            writer.writeVarUint(static_cast<uint32_t>(0));   // End of properties
+            
+            std::cout << "  ℹ️  Asset placeholder written after Backboard (single, file-wide)" << std::endl;
+        }
 
         if (object.core->is<rive::Artboard>())
         {
             localComponentIndex.clear();
             localComponentIndex.emplace(object.id, 0);
             nextLocalIndex = 1;
-            
-            // PR-RivePlay-Fix: Write empty asset placeholder after first Artboard
-            // This prevents grey screen in Rive Play by satisfying asset chunk expectation
-            if (!assetPreludeWritten)
-            {
-                assetPreludeWritten = true;
-                
-                // Write FileAssetContents (106) with empty bytes (212)
-                writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
-                writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
-                writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty asset)
-                writer.writeVarUint(static_cast<uint32_t>(0));   // End of properties
-                
-                std::cout << "  ℹ️  Asset placeholder written (FileAssetContents empty)" << std::endl;
-            }
         }
 
         if (object.core->is<rive::Component>())

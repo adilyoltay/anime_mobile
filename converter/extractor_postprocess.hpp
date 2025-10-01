@@ -221,6 +221,19 @@ inline json postProcessArtboard(const json& artboardJson, DiagnosticCounters& di
         return processed;
     }
     
+    // PR-RivePlay-Fix: Filter out 0x0 artboards (causes grey screen in Play)
+    if (processed.contains("width") && processed.contains("height")) {
+        double width = processed.value("width", 0.0);
+        double height = processed.value("height", 0.0);
+        
+        if (width == 0.0 && height == 0.0) {
+            std::cerr << "⚠️  Filtering 0x0 artboard '" << processed.value("name", "unnamed") 
+                      << "' (causes selection issues in Rive Play)" << std::endl;
+            processed["objects"] = json::array(); // Empty - will be filtered by caller
+            return processed;
+        }
+    }
+    
     // Convert objects array to vector for processing
     std::vector<json> objects;
     for (const auto& obj : processed["objects"]) {
