@@ -108,6 +108,8 @@ FileAssetContents(106)
 ```
 `parentId` degerleri bu tabloya gore set edilir. Rive Play ve resmi importer artboard-local indexleme beklediginden bu siralama kritik.
 
+> **Universal JSON notu:** Parametrik path objeleri (Rectangle/Ellipse/PointsPath) hiyerarside Shape sarmali olmadan gelirse builder artik sentetik bir `Shape (typeKey 3)` olusturuyor. Transform/name property'leri bu Shape'e tasiniyor, path yalnizca geometrisini koruyor. Boylece Fill/Stroke → Gradient zinciri daima bir `ShapePaintContainer` altinda kalip runtime assertion'larini (LinearGradient::buildDependencies) tetiklemiyor.
+
 ## 7. Asset Prelude Hakkinda
 - Placeholder blok, reel asset veri gerektirmeyen senaryolarda bile Play tarafinda bos asset listesi gorunmesini saglar.
 - Gercek dosya gommek istenirse `FileAssetContents::bytes` alanina `CoreBytesType` ile elde edilen veri yazilmalidir. Header ToC'de `212` kodunun olmasi zorunludur.

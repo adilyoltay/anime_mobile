@@ -4995,6 +4995,7 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/event_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/layout_component_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/node_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/clipping_shape_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_detached_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_mirrored_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_vertex_base.hpp
@@ -5046,6 +5047,7 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/renderer.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/resetting_component.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/rive_types.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/clipping_shape.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/cubic_detached_vertex.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/cubic_mirrored_vertex.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/cubic_vertex.hpp

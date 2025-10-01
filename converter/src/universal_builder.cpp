@@ -1,8 +1,12 @@
 #include "core_builder.hpp"
 #include <nlohmann/json.hpp>
+#include <algorithm>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include "rive/artboard.hpp"
 #include "rive/backboard.hpp"
 #include "rive/node.hpp"
@@ -20,6 +24,7 @@
 #include "rive/shapes/paint/radial_gradient.hpp"
 #include "rive/shapes/paint/gradient_stop.hpp"
 #include "rive/shapes/paint/feather.hpp"
+#include "rive/shapes/clipping_shape.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
 #include "rive/animation/keyed_property.hpp"
@@ -101,7 +106,7 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 65: return new rive::StateTransition();
         case 40: return new rive::Bone();
         case 41: return new rive::RootBone();
-        case 42: return new rive::Bone();
+        case 42: return new rive::ClippingShape(); // NOT Bone!
         case 47: return new rive::TrimPath();
         case 87: return new rive::TranslationConstraint();
         case 138: return new rive::CubicValueInterpolator(); // Bezier interpolator
@@ -292,7 +297,7 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[59] = rive::CoreUintType::id; // LinearAnimation.loop
     typeMap[67] = rive::CoreUintType::id; // KeyFrame.frame
     typeMap[70] = rive::CoreDoubleType::id; // KeyFrameDouble.value
-    typeMap[88] = rive::CoreUintType::id; // KeyFrameColor.value
+    typeMap[88] = rive::CoreColorType::id; // KeyFrameColor.value (MUST be Color, not Uint!)
     typeMap[122] = rive::CoreUintType::id; // KeyFrameId.value
     
     // Backboard & Component
@@ -419,18 +424,58 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::cout << "Building artboard " << abIdx << ": " << abJson["name"] << std::endl;
         std::cout << "  Objects: " << abJson["objects"].size() << std::endl;
         
+        struct PendingObject
+        {
+            CoreObject* core = nullptr;
+            uint16_t typeKey = 0;
+            std::optional<uint32_t> localId;
+            uint32_t parentLocalId = 0xFFFFFFFFu;
+        };
+
+        const uint32_t invalidParent = 0xFFFFFFFFu;
+        auto isParametricPathType = [](uint16_t key) {
+            switch (key)
+            {
+                case 4:  // Ellipse
+                case 7:  // Rectangle
+                case 16: // PointsPath
+                    return true;
+                default:
+                    return false;
+            }
+        };
+
         // Map from JSON localId to builder object id
         std::map<uint32_t, uint32_t> localIdToBuilderObjectId;
-        std::vector<CoreObject*> createdObjects; // Track objects for PASS 2
-        std::vector<uint32_t> parentLocalIds; // Corresponding parent IDs
+        std::unordered_map<uint32_t, uint16_t> localIdToType; // Track type per localId
+        std::vector<PendingObject> pendingObjects; // Stored in creation order
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
-        
-        // TWO-PASS approach to handle forward references:
-        // PASS 1: Create all objects and build localId mapping (NO parent setting)
-        // Also track skipped objects to cascade-skip their children
+        std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
+
+        uint32_t maxLocalId = 0;
+        for (const auto& objJson : abJson["objects"]) {
+            if (objJson.contains("localId")) {
+                maxLocalId = std::max(maxLocalId, objJson["localId"].get<uint32_t>());
+            }
+        }
+        uint32_t nextSyntheticLocalId = maxLocalId + 1;
+
+        auto parentTypeFor = [&](uint32_t parentLocalId) -> uint16_t {
+            if (parentLocalId == invalidParent)
+            {
+                return 0;
+            }
+            if (parentLocalId == 0)
+            {
+                return 1; // Artboard
+            }
+            auto it = localIdToType.find(parentLocalId);
+            return it != localIdToType.end() ? it->second : 0;
+        };
+
         for (const auto& objJson : abJson["objects"]) {
             uint16_t typeKey = objJson["typeKey"];
-            
+
             // Skip unsupported stub objects and their dependent children
             if (objJson.contains("__unsupported__") && objJson["__unsupported__"].get<bool>()) {
                 std::cerr << "Skipping unsupported stub: typeKey=" << typeKey << std::endl;
@@ -439,107 +484,178 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
                 continue;
             }
-            
+
             // CASCADE SKIP: If parent is skipped, skip this child too
             if (objJson.contains("parentId")) {
-                uint32_t parentLocalId = objJson["parentId"];
-                if (skippedLocalIds.count(parentLocalId) > 0) {
-                    std::cerr << "Cascade skip: typeKey=" << typeKey << " (parent " << parentLocalId << " was skipped)" << std::endl;
+                uint32_t candidateParent = objJson["parentId"];
+                if (skippedLocalIds.count(candidateParent) > 0) {
+                    std::cerr << "Cascade skip: typeKey=" << typeKey << " (parent " << candidateParent << " was skipped)" << std::endl;
                     if (objJson.contains("localId")) {
                         skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
                     }
                     continue;
                 }
             }
-            
-            // Create object
+
             rive::Core* coreObj = createObjectByTypeKey(typeKey);
             if (!coreObj) {
                 std::cerr << "Skipping unknown type: " << typeKey << std::endl;
                 continue;
             }
-            
+
+            // Snapshot properties so we can route them between synthetic shape and original object
+            std::vector<std::pair<std::string, nlohmann::json>> properties;
+            if (objJson.contains("properties")) {
+                for (const auto& [key, value] : objJson["properties"].items()) {
+                    properties.emplace_back(key, value);
+                }
+            }
+
+            uint32_t parentLocalId = objJson.contains("parentId")
+                                         ? objJson["parentId"].get<uint32_t>()
+                                         : invalidParent;
+            if (parentLocalId != invalidParent) {
+                auto remap = parentRemap.find(parentLocalId);
+                if (remap != parentRemap.end()) {
+                    parentLocalId = remap->second;
+                }
+            }
+
+            std::optional<uint32_t> localId;
+            if (objJson.contains("localId")) {
+                localId = objJson["localId"].get<uint32_t>();
+            }
+
+            bool needsShapeContainer =
+                isParametricPathType(typeKey) && parentTypeFor(parentLocalId) != 3;
+
+            std::unordered_set<std::string> consumedKeys;
+            if (needsShapeContainer) {
+                uint32_t shapeLocalId = nextSyntheticLocalId++;
+                auto& shapeObj = builder.addCore(new rive::Shape());
+                pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
+                localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                localIdToType[shapeLocalId] = 3;
+
+                for (const auto& [key, value] : properties) {
+                    if (key == "x") {
+                        builder.set(shapeObj, 13, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "y") {
+                        builder.set(shapeObj, 14, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "rotation") {
+                        builder.set(shapeObj, 15, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "scaleX") {
+                        builder.set(shapeObj, 16, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "scaleY") {
+                        builder.set(shapeObj, 17, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "opacity") {
+                        builder.set(shapeObj, 18, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "name") {
+                        builder.set(shapeObj, 4, value.get<std::string>());
+                        consumedKeys.insert(key);
+                    }
+                }
+
+                std::cout << "  [auto] Inserted Shape container (localId " << shapeLocalId
+                          << ") for parametric path localId "
+                          << (localId.has_value() ? *localId : 0u) << std::endl;
+
+                parentLocalId = shapeLocalId;
+
+                if (localId.has_value()) {
+                    parentRemap[*localId] = shapeLocalId;
+                }
+            }
+
             auto& obj = builder.addCore(coreObj);
-            
+
             // Set Artboard name and size from artboard-level JSON
             if (typeKey == 1 && abJson.contains("name")) { // Artboard
                 builder.set(obj, 4, abJson["name"].get<std::string>()); // name
                 builder.set(obj, 7, abJson["width"].get<float>()); // width
                 builder.set(obj, 8, abJson["height"].get<float>()); // height
                 builder.set(obj, 196, true); // clip
-                
-                // NOTE: Extractor now puts animations/stateMachines in objects[] array,
-                // so objects[] loop will handle them. Separate fields kept for backward compat only.
             }
-            
-            // Record localId mapping
-            if (objJson.contains("localId")) {
-                uint32_t localId = objJson["localId"];
-                localIdToBuilderObjectId[localId] = obj.id;
+
+            pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});
+
+            if (localId) {
+                localIdToBuilderObjectId[*localId] = obj.id;
+                localIdToType[*localId] = typeKey;
             }
-            
-            // Track object and its parent for PASS 2
-            createdObjects.push_back(&obj);
-            parentLocalIds.push_back(objJson.contains("parentId") ? objJson["parentId"].get<uint32_t>() : 0xFFFFFFFF);
-            
-            // Set all properties
-            if (objJson.contains("properties")) {
-                for (const auto& [key, value] : objJson["properties"].items()) {
-                    // Special handling for x/y (different keys for Node vs Vertex)
-                    if (key == "x") {
-                        if (typeKey == 5 || typeKey == 6 || typeKey == 35) { // Vertices
-                            builder.set(obj, 24, value.get<float>()); // Vertex::x
-                        } else { // Node, Transform
-                            builder.set(obj, 13, value.get<float>()); // Node::x
-                        }
+
+            for (const auto& [key, value] : properties) {
+                if (consumedKeys.count(key) != 0) {
+                    continue; // Already applied to synthetic Shape container
+                }
+
+                if (key == "x") {
+                    if (typeKey == 5 || typeKey == 6 || typeKey == 35) {
+                        builder.set(obj, 24, value.get<float>());
+                    } else {
+                        builder.set(obj, 13, value.get<float>());
                     }
-                    else if (key == "y") {
-                        if (typeKey == 5 || typeKey == 6 || typeKey == 35) { // Vertices
-                            builder.set(obj, 25, value.get<float>()); // Vertex::y
-                        } else { // Node, Transform
-                            builder.set(obj, 14, value.get<float>()); // Node::y
-                        }
+                }
+                else if (key == "y") {
+                    if (typeKey == 5 || typeKey == 6 || typeKey == 35) {
+                        builder.set(obj, 25, value.get<float>());
+                    } else {
+                        builder.set(obj, 14, value.get<float>());
                     }
-                    // Special handling for width/height (different keys for Artboard vs Shape)
-                    else if (key == "width") {
-                        if (typeKey == 1) { // Artboard
-                            builder.set(obj, 7, value.get<float>());
-                        } else { // Parametric shape
-                            builder.set(obj, 20, value.get<float>());
-                        }
+                }
+                else if (key == "width") {
+                    if (typeKey == 1) {
+                        builder.set(obj, 7, value.get<float>());
+                    } else {
+                        builder.set(obj, 20, value.get<float>());
                     }
-                    else if (key == "height") {
-                        if (typeKey == 1) { // Artboard
-                            builder.set(obj, 8, value.get<float>());
-                        } else { // Parametric shape
-                            builder.set(obj, 21, value.get<float>());
-                        }
+                }
+                else if (key == "height") {
+                    if (typeKey == 1) {
+                        builder.set(obj, 8, value.get<float>());
+                    } else {
+                        builder.set(obj, 21, value.get<float>());
                     }
-                    else {
-                        setProperty(builder, obj, key, value, localIdToBuilderObjectId);
-                    }
+                }
+                else {
+                    setProperty(builder, obj, key, value, localIdToBuilderObjectId);
                 }
             }
         }
-        
-        // PASS 2: Set all parent relationships (now that mapping is complete)
-        std::cout << "  Setting parent relationships for " << createdObjects.size() << " objects..." << std::endl;
+
+        std::cout << "  Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
         int successCount = 0;
         int missingParentCount = 0;
-        for (size_t i = 0; i < createdObjects.size(); ++i) {
-            uint32_t parentLocalId = parentLocalIds[i];
-            if (parentLocalId != 0xFFFFFFFF) { // Has parent
-                auto it = localIdToBuilderObjectId.find(parentLocalId);
-                if (it != localIdToBuilderObjectId.end()) {
-                    builder.setParent(*createdObjects[i], it->second);
-                    successCount++;
-                } else {
-                    // Parent not found - DO NOT reparent to artboard (invalid scene graph)
-                    // This should not happen if cascade skip is working correctly
-                    std::cerr << "  ⚠️  WARNING: Object has missing parent localId=" << parentLocalId 
-                              << " (should have been cascade-skipped)" << std::endl;
-                    missingParentCount++;
-                }
+        for (const auto& pending : pendingObjects)
+        {
+            if (pending.parentLocalId == invalidParent)
+            {
+                continue;
+            }
+
+            auto it = localIdToBuilderObjectId.find(pending.parentLocalId);
+            if (it != localIdToBuilderObjectId.end())
+            {
+                builder.setParent(*pending.core, it->second);
+                successCount++;
+            }
+            else
+            {
+                std::cerr << "  ⚠️  WARNING: Object has missing parent localId="
+                          << pending.parentLocalId << std::endl;
+                missingParentCount++;
             }
         }
         std::cout << "  ✅ Set " << successCount << " parent relationships" << std::endl;
