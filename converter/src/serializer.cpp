@@ -194,9 +194,11 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         headerSet.insert(kParentIdKey);
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
-
-    // Key 212 (bytes) already in typeMap from core_builder if we have font data
-    // No need to manually add to headerSet anymore
+    
+    // PR1 Extended: Add bytes key (212) for asset placeholder/font
+    // Since we write FileAssetContents in serializer (not builder), must add to header manually
+    headerSet.insert(kFileAssetBytesKey); // 212
+    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes type (same as string)
 
     std::vector<uint16_t> headerKeys(headerSet.begin(), headerSet.end());
     std::sort(headerKeys.begin(), headerKeys.end());
