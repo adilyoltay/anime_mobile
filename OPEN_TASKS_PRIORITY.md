@@ -162,7 +162,23 @@ High Priority Missing:
 
 ---
 
-### 8. **Documentation Consolidation**
+### 8. **Animation Data Repacker** (Advanced)
+**Süre:** 8-12 saat  
+**Önemi:** File size optimization  
+
+**Current:** Hierarchical animation → 2x file size  
+**Goal:** Repack to blob format → match original size
+
+**Options:**
+- **Option A:** Packer step (bucket keyframes/interpolators → types 8064/7776)
+- **Option B:** Preserve packed payloads in extractor
+
+**Benefit:** Identical object counts, smaller files  
+**Trade-off:** Complex implementation, mirrors official serializer
+
+**Note:** Current behavior is **expected and lossless**. Runtime re-packs on load.
+
+### 9. **Documentation Consolidation**
 **Süre:** 1-2 saat  
 **Önemi:** Clarity  
 

@@ -174,6 +174,38 @@ Round-Trip: 1135 objects (hierarchical format)
 - Interpolators: 0 → 312
 - Core geometry growth: 1.2x (normal)
 
+### Why Counts Differ (Technical Detail)
+
+**Original RIV (from Rive):**
+- Uses runtime's **packed animation blobs** (types 8064, 7776, 64)
+- Each blob stores entire keyframe/interpolator arrays in one object
+- Optimized binary format for runtime efficiency
+
+**Extractor Behavior:**
+- **Inflates** packed blobs → hierarchical JSON
+- Every keyframe becomes individual object (30/37/50/84/142/450)
+- Every interpolator materialized (28/138/139/174/175)
+- Editor-friendly format for inspection/editing
+
+**Round-Trip Converter:**
+- Writes individual records back (hierarchical → RIV)
+- Object count: 540 → 1,135 (expected expansion)
+- **Runtime re-packs on load** (lossless!)
+
+**To Keep Counts Identical (Future Work):**
+1. **Option A - Packer Implementation:**
+   - Add repacking step after core document build
+   - Bucket compatible keyframes/interpolators
+   - Emit packed structures (types 8064/7776)
+   - Mirror official serializer logic
+   
+2. **Option B - Preserve Packed Payloads:**
+   - Extractor keeps original packed data
+   - Conversion rewrites original buffers
+   - Less flexible for editing
+
+**Current Status:** Growth is **expected and harmless**. Runtime ends up with identical in-memory objects.
+
 ---
 
 ## ✅ Summary
