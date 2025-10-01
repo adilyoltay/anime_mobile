@@ -32,9 +32,9 @@ inline void injectRequiredDefaults(json& objJson, DiagnosticCounters& diag)
     bool injected = false;
     
     switch (typeKey) {
-        case 47: // TrimPath
+        case 47: // TrimPath (PR-TrimPath-Compat: normalized range 0-1)
             if (!props.contains("start")) { props["start"] = 0.0; injected = true; }
-            if (!props.contains("end")) { props["end"] = 0.0; injected = true; }
+            if (!props.contains("end")) { props["end"] = 1.0; injected = true; } // Was 0.0, now 1.0 (normalized)
             if (!props.contains("offset")) { props["offset"] = 0.0; injected = true; }
             if (!props.contains("modeValue")) { props["modeValue"] = 0; injected = true; }
             break;
@@ -182,12 +182,12 @@ inline void checkParentSanity(std::vector<json>& objects, DiagnosticCounters& di
         uint16_t typeKey = obj["typeKey"];
         bool shouldDrop = false;
         
-        // PR-Extractor-SkipTrimPath: Drop all TrimPath objects
-        // Reason: Runtime compatibility issues - TrimPath with defaults still causes MALFORMED
-        if (typeKey == 47) {
+        // PR-TrimPath-Compat: Attempted end=1.0 but still MALFORMED
+        // Keeping TrimPath skip until deeper investigation
+        if (typeKey == 47) { // TrimPath
             diag.skippedTrimPath++;
             diag.droppedObjects++;
-            continue; // Skip this object entirely
+            continue; // Skip - needs deeper runtime investigation
         }
         
         // Check if parent exists (for ALL objects, not just TrimPath)
@@ -279,7 +279,7 @@ inline void printDiagnostics(const DiagnosticCounters& diag)
         }
         
         if (diag.skippedTrimPath > 0) {
-            std::cout << "  🚫 TrimPath skipped: " << diag.skippedTrimPath << " (runtime compatibility)" << std::endl;
+            std::cout << "  🚫 TrimPath skipped: " << diag.skippedTrimPath << " (runtime compatibility - needs investigation)" << std::endl;
         }
         
         if (diag.droppedObjects > diag.skippedTrimPath) {

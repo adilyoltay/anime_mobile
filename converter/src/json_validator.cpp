@@ -175,6 +175,38 @@ std::vector<std::string> JSONValidator::getRequiredProperties(uint16_t typeKey)
     }
 }
 
+// PR-TrimPath-Compat: Validate value ranges for TrimPath
+bool validateTrimPathRanges(const nlohmann::json& props, uint32_t localId)
+{
+    if (!props.contains("start") || !props.contains("end")) {
+        return true; // Missing properties caught by checkRequiredProperties
+    }
+    
+    double start = props.value("start", 0.0);
+    double end = props.value("end", 1.0);
+    
+    // Check normalized range: 0 <= start <= end <= 1
+    if (start < 0.0 || start > 1.0) {
+        std::cerr << "⚠️  TrimPath localId=" << localId 
+                  << " has invalid start=" << start << " (must be 0-1)" << std::endl;
+        return false;
+    }
+    
+    if (end < 0.0 || end > 1.0) {
+        std::cerr << "⚠️  TrimPath localId=" << localId 
+                  << " has invalid end=" << end << " (must be 0-1)" << std::endl;
+        return false;
+    }
+    
+    if (start > end) {
+        std::cerr << "⚠️  TrimPath localId=" << localId 
+                  << " has start=" << start << " > end=" << end << " (invalid range)" << std::endl;
+        return false;
+    }
+    
+    return true;
+}
+
 void JSONValidator::printResults(const ValidationResult& result, bool verbose)
 {
     std::cout << "\n=== JSON VALIDATION RESULTS ===" << std::endl;

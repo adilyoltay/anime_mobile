@@ -450,7 +450,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
     
     // PR3: Re-enable keyed data with safe emission (animation-block grouping)
     constexpr bool OMIT_KEYED = false; // PR3: Keyed data re-enabled
-    constexpr bool OMIT_STATE_MACHINE = true; // Keep disabled for now (separate PR)
+    constexpr bool OMIT_STATE_MACHINE = false; // PR-SM: StateMachine re-enabled
     
     CoreBuilder builder;
     PropertyTypeMap typeMap;
