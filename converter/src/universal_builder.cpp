@@ -509,10 +509,21 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 skipKeyframeData = false;
             }
             
-            // Cascade-skip orphaned keyframe data (KeyedProperty, KeyFrame, Interpolators)
+            // Cascade-skip orphaned keyframe data (KeyedProperty, ALL KeyFrame types, Interpolators)
             if (skipKeyframeData) {
-                if (typeKey == 26 || typeKey == 28 || typeKey == 30 || 
-                    typeKey == 37 || typeKey == 50 || typeKey == 138) {
+                bool isKeyframeType = typeKey == 26 ||  // KeyedProperty
+                                     typeKey == 28 ||  // CubicEaseInterpolator
+                                     typeKey == 30 ||  // KeyFrameDouble
+                                     typeKey == 37 ||  // KeyFrameColor
+                                     typeKey == 50 ||  // KeyFrameId
+                                     typeKey == 84 ||  // KeyFrameBool
+                                     typeKey == 138 || // CubicValueInterpolator
+                                     typeKey == 142 || // KeyFrameString
+                                     typeKey == 171 || // KeyFrameCallback
+                                     typeKey == 175 || // KeyFrameInterpolator (base)
+                                     typeKey == 450;   // KeyFrameUint
+                
+                if (isKeyframeType) {
                     std::cerr << "Cascade skip: Orphaned keyframe data typeKey=" << typeKey << std::endl;
                     continue;
                 }
