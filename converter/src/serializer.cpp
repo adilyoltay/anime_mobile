@@ -403,9 +403,34 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
 
-    // NOTE: Do NOT write end-of-stream sentinel here!
-    // Writing a single 0 causes runtime to treat it as object typeKey,
-    // then read next property which triggers EOF → malformed
+    // PR-RivePlay-Catalog: Write Artboard Catalog chunk (8776) for proper artboard selection
+    // This must come AFTER all objects are written, as a separate chunk
+    std::cout << "\n  ℹ️  Writing Artboard Catalog chunk (minimal serializer)..." << std::endl;
+    
+    // End object stream with sentinel
+    writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
+    
+    // Collect artboard IDs from document
+    std::vector<uint32_t> artboardIds;
+    for (const auto& object : document.objects) {
+        if (object.core->is<rive::Artboard>()) {
+            artboardIds.push_back(object.id);
+            std::cout << "    - Artboard id: " << object.id << std::endl;
+        }
+    }
+    
+    // Write ArtboardListItem (8776) for each artboard
+    for (uint32_t artboardId : artboardIds) {
+        writer.writeVarUint(static_cast<uint32_t>(8776)); // ArtboardListItem typeKey
+        writer.writeVarUint(static_cast<uint32_t>(3));    // id property key
+        writer.writeVarUint(artboardId);                   // artboard's runtime ID
+        writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
+    }
+    
+    // Final chunk terminator
+    writer.writeVarUint(static_cast<uint32_t>(0));
+    
+    std::cout << "  ✅ Artboard Catalog written (" << artboardIds.size() << " artboards)" << std::endl;
     
     return buffer;
 }
