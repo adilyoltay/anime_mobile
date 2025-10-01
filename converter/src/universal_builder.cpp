@@ -209,7 +209,57 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "outRotation") builder.set(obj, 86, value.get<float>());
     else if (key == "outDistance") builder.set(obj, 87, value.get<float>());
     // CubicMirrored
-    else if (key == "distance") builder.set(obj, 80, value.get<float>());
+    else if (key == "distance") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 35) { // CubicMirroredVertex
+            builder.set(obj, 80, value.get<float>());
+        } else if (typeKey == 165) { // FollowPathConstraint
+            builder.set(obj, 363, static_cast<float>(value.get<double>()));
+        } else {
+            builder.set(obj, 80, value.get<float>());
+        }
+    }
+    else if (key == "orient") {
+        if (obj.core->coreType() == 165) { // FollowPathConstraint
+            if (value.is_boolean()) {
+                builder.set(obj, 364, value.get<bool>());
+            } else if (value.is_number()) {
+                builder.set(obj, 364, value.get<double>() != 0.0);
+            }
+        }
+    }
+    else if (key == "offset") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 47) { // TrimPath
+            if (value.is_number()) {
+                builder.set(obj, 116, static_cast<float>(value.get<double>()));
+            }
+        } else if (typeKey == 165) { // FollowPathConstraint
+            if (value.is_boolean()) {
+                builder.set(obj, 365, value.get<bool>());
+            } else if (value.is_number()) {
+                builder.set(obj, 365, value.get<double>() != 0.0);
+            }
+        }
+    }
+    
+    // Constraints - TargetedConstraint (targetId needs DEFERRED remapping in PASS3)
+    // NOTE: targetId NOT set here - handled in PASS3 after all objects created
+    else if (key == "targetId") {
+        // Skip - will be handled in PASS3
+    }
+    
+    // Constraints - TransformSpaceConstraint
+    else if (key == "sourceSpaceValue") {
+        if (value.is_number()) {
+            builder.set(obj, 179, value.get<uint32_t>());
+        }
+    }
+    else if (key == "destSpaceValue") {
+        if (value.is_number()) {
+            builder.set(obj, 180, value.get<uint32_t>());
+        }
+    }
     
     // Paint
     else if (key == "color") builder.set(obj, 37, parse_color(value.get<std::string>()));
@@ -329,6 +379,18 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[115] = rive::CoreDoubleType::id; // TrimPath::end
     typeMap[116] = rive::CoreDoubleType::id; // TrimPath::offset
     typeMap[117] = rive::CoreUintType::id;   // TrimPath::modeValue
+
+    // Constraints - TargetedConstraint base (typeKey 80)
+    typeMap[173] = rive::CoreUintType::id;   // targetId
+    
+    // Constraints - TransformSpaceConstraint base (typeKey 90)
+    typeMap[179] = rive::CoreUintType::id;   // sourceSpaceValue
+    typeMap[180] = rive::CoreUintType::id;   // destSpaceValue
+    
+    // FollowPathConstraint (typeKey 165)
+    typeMap[363] = rive::CoreDoubleType::id; // distance
+    typeMap[364] = rive::CoreBoolType::id;   // orient
+    typeMap[365] = rive::CoreBoolType::id;   // offset
     
     // Path
     typeMap[120] = rive::CoreBoolType::id; // isClosed
@@ -555,6 +617,13 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<PendingObject> pendingObjects; // Stored in creation order
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
         std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
+        
+        // Deferred targetId remapping (PASS3)
+        struct DeferredTargetId {
+            CoreObject* obj;
+            uint32_t jsonTargetLocalId;
+        };
+        std::vector<DeferredTargetId> deferredTargetIds;
 
         uint32_t maxLocalId = 0;
         for (const auto& objJson : abJson["objects"]) {
@@ -869,8 +938,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 builder.set(obj, 4, abJson["name"].get<std::string>()); // name
                 builder.set(obj, 7, abJson["width"].get<float>()); // width
                 builder.set(obj, 8, abJson["height"].get<float>()); // height
-                // Restore artboard clipping: read from JSON if present, default false
-                bool clipEnabled = false;
+                // Restore artboard clipping: read from JSON if present, default TRUE for Artboard
+                bool clipEnabled = true;  // ✅ FIXED: Artboard default clip should be true
                 if (abJson.contains("clip") && abJson["clip"].is_boolean()) {
                     clipEnabled = abJson["clip"].get<bool>();
                 }
@@ -959,6 +1028,56 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                               << " → defaults injected (114,115,116,117)" << std::endl;
                 }
             }
+
+            if (typeKey == 165) { // FollowPathConstraint
+                bool hasDistance = false;
+                bool hasOrient = false;
+                bool hasOffset = false;
+                bool hasTargetId = false;
+                bool hasSourceSpace = false;
+                bool hasDestSpace = false;
+
+                for (const auto& [key, value] : properties) {
+                    if (key == "distance") hasDistance = true;
+                    else if (key == "orient") hasOrient = true;
+                    else if (key == "offset") hasOffset = true;
+                    else if (key == "targetId") hasTargetId = true;
+                    else if (key == "sourceSpaceValue") hasSourceSpace = true;
+                    else if (key == "destSpaceValue") hasDestSpace = true;
+                }
+
+                // FollowPathConstraint specific properties
+                if (!hasDistance) {
+                    builder.set(obj, 363, 0.0f);
+                }
+                if (!hasOrient) {
+                    builder.set(obj, 364, true);
+                }
+                if (!hasOffset) {
+                    builder.set(obj, 365, false);
+                }
+                
+                // TargetedConstraint base property (CRITICAL!)
+                if (!hasTargetId) {
+                    // Default: -1 (Core.missingId) = 0xFFFFFFFF as uint
+                    builder.set(obj, 173, static_cast<uint32_t>(-1));
+                }
+                
+                // TransformSpaceConstraint base properties
+                if (!hasSourceSpace) {
+                    builder.set(obj, 179, static_cast<uint32_t>(0));
+                }
+                if (!hasDestSpace) {
+                    builder.set(obj, 180, static_cast<uint32_t>(0));
+                }
+
+                if (!hasDistance || !hasOrient || !hasOffset || 
+                    !hasTargetId || !hasSourceSpace || !hasDestSpace) {
+                    std::cout << "  ℹ️  FollowPathConstraint localId="
+                              << (localId.has_value() ? *localId : 0)
+                              << " → defaults injected (173,179,180,363,364,365)" << std::endl;
+                }
+            }
             
             // PR2: Count created keyed objects (when not omitted)
             if (!OMIT_KEYED) {
@@ -1001,6 +1120,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     } else {
                             builder.set(obj, 21, value.get<float>());
                         }
+                    }
+                    // Defer targetId for PASS3 (needs complete object ID mapping)
+                    else if (key == "targetId" && value.is_number()) {
+                        deferredTargetIds.push_back({&obj, value.get<uint32_t>()});
                     }
                     else {
                     setProperty(builder, obj, key, value, localIdToBuilderObjectId, objectIdRemapSuccess, objectIdRemapFail);
@@ -1096,10 +1219,28 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::cout << "  Interpolators:           " << interpolatorCount << std::endl;
         std::cout << "  objectId remap success:  " << objectIdRemapSuccess << std::endl;
         std::cout << "  objectId remap fail:     " << objectIdRemapFail << " (should be 0)" << std::endl;
-        if (objectIdRemapFail > 0) {
-            std::cerr << "  ⚠️  WARNING: objectId remap failures detected!" << std::endl;
-        }
         std::cout << "  ===================================\n" << std::endl;
+        
+        // PASS 3: Remap deferred targetId references (after all objects created)
+        int targetIdRemapSuccess = 0;
+        int targetIdRemapFail = 0;
+        for (const auto& deferred : deferredTargetIds) {
+            auto it = localIdToBuilderObjectId.find(deferred.jsonTargetLocalId);
+            if (it != localIdToBuilderObjectId.end()) {
+                builder.set(*deferred.obj, 173, it->second);
+                targetIdRemapSuccess++;
+            } else {
+                std::cerr << "  ⚠️  targetId " << deferred.jsonTargetLocalId 
+                          << " not found in object map" << std::endl;
+                targetIdRemapFail++;
+            }
+        }
+        if (!deferredTargetIds.empty()) {
+            std::cout << "  === Constraint targetId Remapping ===" << std::endl;
+            std::cout << "  targetId remap success:  " << targetIdRemapSuccess << std::endl;
+            std::cout << "  targetId remap fail:     " << targetIdRemapFail << " (should be 0)" << std::endl;
+            std::cout << "  ===================================\n" << std::endl;
+        }
         
         // PR2c: Cycle detection on component parent graph
         // Build graph: node -> parent

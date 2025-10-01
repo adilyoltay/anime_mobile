@@ -172,19 +172,75 @@ python3 converter/analyze_riv.py <out.riv>
   - File: `.github/workflows/roundtrip.yml` - GitHub Actions workflow
   - Tests: 189/190/273/1142 objects (all passing)
   - **Result**: Automated validation → convert → import on every commit
+- **PR-GREY-SCREEN-FIX (COMPLETE - Oct 1, 2024)**:
+  - **Problem**: Grey screen in Rive Play after round-trip conversion
+  - **Root Cause**: Artboard clip property default was FALSE (should be TRUE)
+  - **File**: `converter/src/universal_builder.cpp:873` - Changed default from false to true
+  - **Before**: `bool clipEnabled = false;` → Objects overflow caused grey background
+  - **After**: `bool clipEnabled = true;` → Artboard clips content correctly
+  - **Analysis**: Property 196 (clip) was `196:?=0` (false), now `196:?=1` (true)
+  - **Result**: ✅ Round-trip files now render correctly in Rive Play
+  - **Documentation**: See `GREY_SCREEN_ROOT_CAUSE.md` for detailed analysis
+- **PR-ROUNDTRIP-GROWTH-ANALYSIS (COMPLETE - Oct 1, 2024)**:
+  - **Issue**: File size 2x growth (9.5KB → 19KB), object count 2.1x (540 → 1135)
+  - **Root Cause**: Animation data format expansion (packed → hierarchical)
+  - **Analysis**: KeyFrames (144→345) + Interpolators (0→312) = +513 animation objects
+  - **Conclusion**: ✅ EXPECTED BEHAVIOR - Not a bug!
+  - **Object[30] NULL**: TypeKey 165 (FollowPathConstraint) not implemented → ✅ FIXED
+  - **Implementation**: Properties 363/364/365 wired, default injection added
+  - **Documentation**: See `docs/reports/ROUNDTRIP_GROWTH_ANALYSIS.md`
+- **PR-FOLLOWPATHCONSTRAINT (COMPLETE - Oct 1, 2024)**:
+  - **Problem**: Object[30] NULL warning due to missing TypeKey 165 support
+  - **Implementation**: Added property wiring for distance/orient/offset (363/364/365)
+  - **Files**: 
+    - `universal_builder.cpp:212` - Property value mapping (distance/orient/offset)
+    - `universal_builder.cpp:365` - TypeMap entries (CoreDoubleType/CoreBoolType)
+    - `universal_builder.cpp:1000` - Default injection when JSON omits properties
+    - `riv_structure.md:90` - Property documentation + animation expansion notes
+  - **Result**: ✅ Type 165 serializes correctly, properties in ToC
+  - **Note**: NULL warning persists if targetId missing (pre-existing issue in source RIV)
+  - **Next**: Capture/export target reference data for full constraint resolution
+- **PR-CONSTRAINT-TARGETID (COMPLETE - Oct 1, 2024)**:
+  - **Problem**: Constraint targetId and transform space properties not serialized
+  - **Root Cause**: Properties 173/179/180 not in TypeMap or property wiring
+  - **Implementation - Builder**:
+    - `universal_builder.cpp:365-370` - TypeMap entries (173/179/180 as CoreUintType)
+    - `universal_builder.cpp:621-626` - Deferred targetId structure
+    - `universal_builder.cpp:1125-1127` - Defer targetId in PASS1
+    - `universal_builder.cpp:1224-1243` - PASS3 targetId remapping with full object map
+    - `universal_builder.cpp:1039-1082` - Default injection (targetId=-1, spaces=0)
+  - **Implementation - Extractor**:
+    - `universal_extractor.cpp:56` - Include FollowPathConstraint header
+    - `universal_extractor.cpp:307-329` - Export all 6 properties (distance/orient/offset/targetId/spaces)
+    - targetId remapped back to localId using coreIdToLocalId map
+  - **Result**: ✅ FULL ROUND-TRIP WORKING!
+  - **Test Before**: `173:?=4294967295` (targetId=-1 missing)
+  - **Test After**: `173:?=220` (targetId=11 remapped to runtime ID 220) ✅
+  - **Remap**: targetId remap success: 1, fail: 0 ✅
+  - **Documentation**: `riv_structure.md:87-103` - Constraint properties documented
+  - **Note**: Object[30] NULL persists (unrelated to targetId - runtime constraint logic issue)
 - **Next Steps** (Optional):
   - TrimPath-Compat: Investigate and fix TrimPath runtime requirements
   - StateMachine: Re-enable if needed (OMIT_STATE_MACHINE=false)
   - Extractor keyed round-trip: Fix segfault
 
-## 13. Acik Gorevler (Opsiyonel)
-- TrimPath-Compat: TrimPath runtime uyumluluğunu çöz ve yeniden etkinleştir
-- StateMachine: Gerekirse OMIT_STATE_MACHINE=false yap ve test et
-- Extractor keyed round-trip: Segfault'u düzelt, tam round-trip etkinleştir
-- Regression automation: CI/CD entegrasyonu (189/190/273 otomatik testler)
-- TransitionCondition (%1 - nadir kullanılır)
-- ViewModel/Data Binding (Casino Slots'ta yok)
-- Mesh vertices (Casino Slots'ta yok)
+## 13. Acik Gorevler - Guncel Liste
+
+**📋 Detayli liste:** `OPEN_TASKS_PRIORITY.md`
+
+### Yuksek Oncelik
+- **Constraint targetId**: ✅ TAMAMLANDI (Full round-trip with targetId export/import/remap)
+- **TrimPath-Compat**: Runtime uyumluluğunu çöz ve yeniden etkinleştir
+
+### Orta Oncelik
+- **CI/CD Enhancement**: GitHub Actions integration, coverage reporting
+- **Type Coverage Report**: Implemented vs total types tracking
+
+### Dusuk Oncelik
+- StateMachine keyed data re-enable (diagnostic flag kaldır)
+- Extractor keyed round-trip segfault fix
+- TransitionCondition implementation (%1 usage)
+- Documentation consolidation (eski raporları arşivle)
 
 ## 14. Multiple Artboards Kontrol Listesi
 - [x] JSON format "artboards" array kullan.

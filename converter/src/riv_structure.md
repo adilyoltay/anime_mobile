@@ -84,11 +84,28 @@ Her nesnenin property listesi `0` ile kapanir. Dosya sonunda ekstra 0 yazmiyoruz
 | 116 | `TrimPath::offset` (default: 0.0)
 | 117 | `TrimPath::modeValue` (default: 0)
 | 164 | `RectangleBase::linkCornerRadius`
+| 173 | `TargetedConstraintBase::targetId` (default: -1 = 0xFFFFFFFF, requires remapping)
+| 179 | `TransformSpaceConstraintBase::sourceSpaceValue` (default: 0)
+| 180 | `TransformSpaceConstraintBase::destSpaceValue` (default: 0)
 | 196 | `LayoutComponentBase::clip`
 | 204 | `FileAssetBase::assetId`
 | 212 | `FileAssetContentsBase::bytes`
+| 363 | `FollowPathConstraintBase::distance` (default: 0.0)
+| 364 | `FollowPathConstraintBase::orient` (default: true)
+| 365 | `FollowPathConstraintBase::offset` (default: false)
 
 Yeni property eklerken hem ToC'ye hem de bu tabloya not dusun.
+
+### Constraint Target References
+- **targetId (173)** references a TransformComponent by artboard-local component index
+- Value must be remapped from global JSON localId to runtime object ID (same as objectId remapping)
+- Default -1 (0xFFFFFFFF as uint) means missing/invalid target → constraint disabled but not NULL
+- Used by: FollowPathConstraint (165), IKConstraint (81), DistanceConstraint (82)
+
+### Animasyon Verisi Hakkinda
+- Extractor, packed animasyon bloklarini (type 8064/7776) hiyerarsik JSON'a acarken her KeyFrame ve Interpolator icin ayri nesne olusturur.
+- Round-trip sonrasinda obje sayisi ve dosya boyutu yaklasik 2× artar; bu beklenen bir durumdur.
+- Importer `.riv` dosyasini okurken animasyon verisini tekrar packed forma toplar, bu nedenle runtime performansinda kayip olmaz.
 
 ## 6. JSON -> RIV Ornek Haritasi
 `shapes_demo.json` girdisi icin olusan hiyerarsi (typeKey -> local id):

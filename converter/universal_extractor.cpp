@@ -53,6 +53,7 @@
 #include "rive/shapes/paint/feather.hpp"
 #include "rive/bones/bone.hpp"
 #include "rive/bones/root_bone.hpp"
+#include "rive/constraints/follow_path_constraint.hpp"
 #include "utils/no_op_factory.hpp"
 
 using json = nlohmann::json;
@@ -301,6 +302,30 @@ int main(int argc, char* argv[]) {
             if (auto* rootBone = dynamic_cast<RootBone*>(obj)) {
                 objJson["properties"]["x"] = rootBone->x();
                 objJson["properties"]["y"] = rootBone->y();
+            }
+            
+            // Constraints - FollowPathConstraint
+            if (auto* followPath = dynamic_cast<FollowPathConstraint*>(obj)) {
+                // FollowPathConstraint specific properties
+                objJson["properties"]["distance"] = followPath->distance();
+                objJson["properties"]["orient"] = followPath->orient();
+                objJson["properties"]["offset"] = followPath->offset();
+                
+                // TransformSpaceConstraint base properties
+                objJson["properties"]["sourceSpaceValue"] = followPath->sourceSpaceValue();
+                objJson["properties"]["destSpaceValue"] = followPath->destSpaceValue();
+                
+                // TargetedConstraint base property (CRITICAL!)
+                uint32_t runtimeTargetId = followPath->targetId();
+                // Remap runtime Core ID back to localId
+                auto it = coreIdToLocalId.find(runtimeTargetId);
+                if (it != coreIdToLocalId.end()) {
+                    objJson["properties"]["targetId"] = it->second;
+                } else if (runtimeTargetId != static_cast<uint32_t>(-1)) {
+                    // Only warn if not missingId (-1)
+                    std::cerr << "  ⚠️  FollowPathConstraint targetId " << runtimeTargetId 
+                              << " not found in localId map" << std::endl;
+                }
             }
             
             // Animation Interpolators (CubicEase, CubicValue both inherit from CubicInterpolator)
