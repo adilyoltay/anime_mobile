@@ -445,6 +445,10 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         headerSet.insert(kParentIdKey);
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
+    
+    // PR-RivePlay-Fix: Add asset bytes key for empty placeholder
+    headerSet.insert(kFileAssetBytesKey); // 212
+    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes type (same as string)
 
     std::vector<uint16_t> headerKeys(headerSet.begin(), headerSet.end());
     std::sort(headerKeys.begin(), headerKeys.end());
@@ -496,6 +500,21 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
             localComponentIndex.clear();
             localComponentIndex.emplace(object.id, 0);
             nextLocalIndex = 1;
+            
+            // PR-RivePlay-Fix: Write empty asset placeholder after first Artboard
+            // This prevents grey screen in Rive Play by satisfying asset chunk expectation
+            if (!assetPreludeWritten)
+            {
+                assetPreludeWritten = true;
+                
+                // Write FileAssetContents (106) with empty bytes (212)
+                writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
+                writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+                writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty asset)
+                writer.writeVarUint(static_cast<uint32_t>(0));   // End of properties
+                
+                std::cout << "  ℹ️  Asset placeholder written (FileAssetContents empty)" << std::endl;
+            }
         }
 
         if (object.core->is<rive::Component>())
