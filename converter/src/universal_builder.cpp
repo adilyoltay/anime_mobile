@@ -509,7 +509,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 skipKeyframeData = false;
             }
             
-            // Cascade-skip orphaned keyframe data (KeyedProperty, ALL KeyFrame types, Interpolators)
+            // Cascade-skip orphaned keyframe data (KeyedProperty, ALL KeyFrame types, ALL Interpolators)
             if (skipKeyframeData) {
                 bool isKeyframeType = typeKey == 26 ||  // KeyedProperty
                                      typeKey == 28 ||  // CubicEaseInterpolator
@@ -518,8 +518,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                                      typeKey == 50 ||  // KeyFrameId
                                      typeKey == 84 ||  // KeyFrameBool
                                      typeKey == 138 || // CubicValueInterpolator
+                                     typeKey == 139 || // CubicInterpolatorBase
                                      typeKey == 142 || // KeyFrameString
                                      typeKey == 171 || // KeyFrameCallback
+                                     typeKey == 174 || // ElasticInterpolatorBase
                                      typeKey == 175 || // KeyFrameInterpolator (base)
                                      typeKey == 450;   // KeyFrameUint
                 
