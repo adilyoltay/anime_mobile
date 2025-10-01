@@ -1126,16 +1126,16 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     }
                     // Defer targetId for PASS3 (needs complete object ID mapping)
                     else if (key == "targetId" && value.is_number()) {
-                        // Handle both signed and unsigned, -1 is common "missing" sentinel
-                        int32_t signedTargetId = value.get<int32_t>();
-                        if (signedTargetId == -1) {
+                        // Use int64_t to preserve full uint32_t range while detecting -1 sentinel
+                        int64_t targetIdWide = value.get<int64_t>();
+                        if (targetIdWide == -1) {
                             // Missing target sentinel - set default immediately
                             builder.set(obj, 173, static_cast<uint32_t>(-1));
-                        } else if (signedTargetId >= 0) {
-                            // Valid target - defer for remapping in PASS3
-                            deferredTargetIds.push_back({&obj, static_cast<uint32_t>(signedTargetId)});
+                        } else if (targetIdWide >= 0 && targetIdWide <= 0xFFFFFFFF) {
+                            // Valid target in uint32_t range - defer for remapping in PASS3
+                            deferredTargetIds.push_back({&obj, static_cast<uint32_t>(targetIdWide)});
                         }
-                        // Negative values other than -1 are invalid, skip silently
+                        // Out-of-range values are invalid, skip silently
                     }
                     else {
                     setProperty(builder, obj, key, value, localIdToBuilderObjectId, objectIdRemapSuccess, objectIdRemapFail);
