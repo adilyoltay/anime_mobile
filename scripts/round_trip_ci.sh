@@ -37,10 +37,10 @@ fi
 
 # Test files (pre-generated subsets)
 TESTS=(
-    "output/test_189_no_trim.json:189 objects"
-    "output/test_190_no_trim.json:190 objects (previous threshold)"
-    "output/test_273_no_trim.json:273 objects"
-    "output/bee_baby_NO_TRIMPATH.json:Full bee_baby (1142 objects)"
+    "output/tests/test_189_no_trim.json:189 objects"
+    "output/tests/test_190_no_trim.json:190 objects (previous threshold)"
+    "output/tests/test_273_no_trim.json:273 objects"
+    "output/tests/bee_baby_NO_TRIMPATH.json:Full bee_baby (1142 objects)"
 )
 
 PASSED=0

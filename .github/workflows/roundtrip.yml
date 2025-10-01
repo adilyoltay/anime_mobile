@@ -53,13 +53,15 @@ jobs:
         
         # Generate test subsets if bee_baby exists
         if [ -f "converter/exampleriv/bee_baby.riv" ]; then
+          mkdir -p output/tests
+          
           # Extract full file
           ./build_converter/converter/universal_extractor \
             converter/exampleriv/bee_baby.riv \
-            output/bee_baby_NO_TRIMPATH.json
+            output/tests/bee_baby_NO_TRIMPATH.json
           
           # Create subsets (189/190/273)
-          python3 scripts/generate_test_subsets.py output/bee_baby_NO_TRIMPATH.json
+          python3 scripts/generate_test_subsets.py output/tests/bee_baby_NO_TRIMPATH.json output/tests
         fi
     
     - name: Run Round-trip Tests

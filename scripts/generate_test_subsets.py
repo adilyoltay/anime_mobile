@@ -26,5 +26,6 @@ def generate_subsets(input_file, output_dir='output'):
         print(f'Created {output_file} ({count} objects)')
 
 if __name__ == '__main__':
-    input_file = sys.argv[1] if len(sys.argv) > 1 else 'output/bee_baby_NO_TRIMPATH.json'
-    generate_subsets(input_file)
+    input_file = sys.argv[1] if len(sys.argv) > 1 else 'output/tests/bee_baby_NO_TRIMPATH.json'
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else 'output/tests'
+    generate_subsets(input_file, output_dir)
