@@ -869,8 +869,12 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 builder.set(obj, 4, abJson["name"].get<std::string>()); // name
                 builder.set(obj, 7, abJson["width"].get<float>()); // width
                 builder.set(obj, 8, abJson["height"].get<float>()); // height
-                builder.set(obj, 196, false); // clip - PR-RivePlay-Debug: false to test grey screen
-                std::cout << "  [debug] Artboard clip=false (testing clipping as grey screen cause)" << std::endl;
+                // Restore artboard clipping: read from JSON if present, default true
+                bool clipEnabled = true;
+                if (abJson.contains("clip") && abJson["clip"].is_boolean()) {
+                    clipEnabled = abJson["clip"].get<bool>();
+                }
+                builder.set(obj, 196, clipEnabled);
             }
 
             pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});

@@ -190,13 +190,8 @@ inline void checkParentSanity(std::vector<json>& objects, DiagnosticCounters& di
             continue; // Skip - needs deeper runtime investigation
         }
         
-        // PR-RivePlay-Debug: Skip ClippingShape to test if clipping causes grey screen
-        if (typeKey == 42) { // ClippingShape
-            std::cerr << "⚠️  Skipping ClippingShape localId=" << obj.value("localId", 0u)
-                      << " (testing clipping as grey screen cause)" << std::endl;
-            diag.droppedObjects++;
-            continue;
-        }
+        // Ensure ClippingShape objects are preserved. Previous debug-only logic
+        // skipped typeKey 42 and caused malformed masking and grey screen.
         
         // Check if parent exists (for ALL objects, not just TrimPath)
         if (obj.contains("parentId")) {

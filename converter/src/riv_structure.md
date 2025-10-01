@@ -131,6 +131,20 @@ Hata durumunda tipik nedenler:
 - Parent indexleri karismis (artik artboard degistiginde `localComponentIndex` resetlenmediyse).
 - Asset placeholder'lari eksik (Play bos asset chunk bekliyor).
 
+## 10. Artboard Catalog (8726/8776)
+- Obje akisi bittikten sonra katalog, ayri bir chunk olarak yazilir.
+- Siralama:
+  1) `0` – Obje akisi terminatoru
+  2) `ArtboardList (typeKey 8726)` – property yoksa dogrudan `0` ile kapanir
+  3) Her artboard icin `ArtboardListItem (typeKey 8776)`
+     - `id (3)` – artboard’un component id degeri (artboard‑lokal degil, dosya icindeki builder id)
+     - Her item `0` ile kapanir
+  4) Son olarak bir `0` daha (katalog chunk bitisi)
+
+Notlar:
+- 0×0 (width==0 && height==0) artboard’lar katalogdan filtrelenmelidir; `Backboard::mainArtboardId (44)` gecerli (non‑empty) bir artboard’a isaret etmelidir.
+- Analyzer (PR4) 8726/8776 chunk’larini tanir ve `--dump-catalog` ile listeleyebilir.
+
 ## 9. Text Rendering (FIXED - December 2024)
 
 **CRITICAL FIXES APPLIED:**

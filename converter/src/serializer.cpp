@@ -501,6 +501,10 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         headerSet.insert(kParentIdKey);
         typeMap[kParentIdKey] = rive::CoreUintType::id;
     }
+
+    // Ensure bytes key (212) is declared if we may emit FileAssetContents
+    headerSet.insert(kFileAssetBytesKey);
+    typeMap[kFileAssetBytesKey] = rive::CoreStringType::id; // bytes share id with string
     
     // PR-RivePlay-Fix: Add asset bytes key for empty placeholder
     headerSet.insert(kFileAssetBytesKey); // 212
