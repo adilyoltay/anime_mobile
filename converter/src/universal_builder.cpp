@@ -1041,7 +1041,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     if (key == "distance") hasDistance = true;
                     else if (key == "orient") hasOrient = true;
                     else if (key == "offset") hasOffset = true;
-                    else if (key == "targetId") hasTargetId = true;
+                    else if (key == "targetId") {
+                        hasTargetId = true;
+                        // Note: targetId already set in PASS1 if -1, or deferred if valid
+                    }
                     else if (key == "sourceSpaceValue") hasSourceSpace = true;
                     else if (key == "destSpaceValue") hasDestSpace = true;
                 }
@@ -1123,7 +1126,16 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     }
                     // Defer targetId for PASS3 (needs complete object ID mapping)
                     else if (key == "targetId" && value.is_number()) {
-                        deferredTargetIds.push_back({&obj, value.get<uint32_t>()});
+                        // Handle both signed and unsigned, -1 is common "missing" sentinel
+                        int32_t signedTargetId = value.get<int32_t>();
+                        if (signedTargetId == -1) {
+                            // Missing target sentinel - set default immediately
+                            builder.set(obj, 173, static_cast<uint32_t>(-1));
+                        } else if (signedTargetId >= 0) {
+                            // Valid target - defer for remapping in PASS3
+                            deferredTargetIds.push_back({&obj, static_cast<uint32_t>(signedTargetId)});
+                        }
+                        // Negative values other than -1 are invalid, skip silently
                     }
                     else {
                     setProperty(builder, obj, key, value, localIdToBuilderObjectId, objectIdRemapSuccess, objectIdRemapFail);
