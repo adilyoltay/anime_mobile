@@ -1,0 +1,990 @@
+{
+  "artboards": [
+    {
+      "animations": [],
+      "height": 800.0,
+      "name": "Comprehensive Universal Test",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 50.0,
+            "y": 50.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "height": 80.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 100.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "color": "#FF5733"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 5,
+          "parentId": 1,
+          "properties": {
+            "cap": 0,
+            "join": 0,
+            "thickness": 1.0
+          },
+          "typeKey": 24,
+          "typeName": "Stroke"
+        },
+        {
+          "localId": 6,
+          "parentId": 5,
+          "properties": {
+            "color": "#000000"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 7,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 200.0,
+            "y": 50.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 8,
+          "parentId": 7,
+          "properties": {
+            "height": 100.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 100.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 9,
+          "parentId": 7,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 10,
+          "parentId": 9,
+          "properties": {
+            "color": "#3498DB"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 11,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 350.0,
+            "y": 50.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 12,
+          "parentId": 11,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 13,
+          "parentId": 12,
+          "properties": {
+            "radius": 0.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 14,
+          "parentId": 12,
+          "properties": {
+            "radius": 10.0,
+            "x": 80.0,
+            "y": 0.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 15,
+          "parentId": 12,
+          "properties": {
+            "radius": 10.0,
+            "x": 80.0,
+            "y": 80.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 16,
+          "parentId": 12,
+          "properties": {
+            "radius": 0.0,
+            "x": 0.0,
+            "y": 80.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 17,
+          "parentId": 11,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 18,
+          "parentId": 17,
+          "properties": {
+            "color": "#2ECC71"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 19,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 50.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 20,
+          "parentId": 19,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 21,
+          "parentId": 20,
+          "properties": {
+            "inDistance": 0.0,
+            "inRotation": 0.0,
+            "outDistance": 30.0,
+            "outRotation": 0.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 22,
+          "parentId": 20,
+          "properties": {
+            "inDistance": 30.0,
+            "inRotation": 3.141590118408203,
+            "outDistance": 30.0,
+            "outRotation": 1.5707999467849731,
+            "x": 80.0,
+            "y": 0.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 23,
+          "parentId": 20,
+          "properties": {
+            "inDistance": 30.0,
+            "inRotation": -1.5707999467849731,
+            "outDistance": 30.0,
+            "outRotation": 3.141590118408203,
+            "x": 80.0,
+            "y": 80.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 24,
+          "parentId": 20,
+          "properties": {
+            "inDistance": 30.0,
+            "inRotation": 0.0,
+            "outDistance": 30.0,
+            "outRotation": -1.5707999467849731,
+            "x": 0.0,
+            "y": 80.0
+          },
+          "typeKey": 6,
+          "typeName": "CubicDetachedVertex"
+        },
+        {
+          "localId": 25,
+          "parentId": 19,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 26,
+          "parentId": 25,
+          "properties": {
+            "color": "#9B59B6"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 27,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 50.0,
+            "y": 180.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 28,
+          "parentId": 27,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 29,
+          "parentId": 28,
+          "properties": {
+            "distance": 0.0,
+            "rotation": 0.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 35,
+          "typeName": "CubicMirroredVertex"
+        },
+        {
+          "localId": 30,
+          "parentId": 28,
+          "properties": {
+            "distance": 0.0,
+            "rotation": 0.0,
+            "x": 60.0,
+            "y": 40.0
+          },
+          "typeKey": 35,
+          "typeName": "CubicMirroredVertex"
+        },
+        {
+          "localId": 31,
+          "parentId": 28,
+          "properties": {
+            "distance": 0.0,
+            "rotation": 0.0,
+            "x": 0.0,
+            "y": 80.0
+          },
+          "typeKey": 35,
+          "typeName": "CubicMirroredVertex"
+        },
+        {
+          "localId": 32,
+          "parentId": 27,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 33,
+          "parentId": 32,
+          "properties": {
+            "color": "#E74C3C"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 34,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 200.0,
+            "y": 180.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 35,
+          "parentId": 34,
+          "properties": {
+            "height": 80.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 100.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "localId": 36,
+          "parentId": 34,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 37,
+          "parentId": 36,
+          "properties": {},
+          "typeKey": 22,
+          "typeName": "LinearGradient"
+        },
+        {
+          "localId": 38,
+          "parentId": 37,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 0.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 39,
+          "parentId": 37,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 0.5
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 40,
+          "parentId": 37,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 1.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 41,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 350.0,
+            "y": 180.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 42,
+          "parentId": 41,
+          "properties": {
+            "height": 100.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 100.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 43,
+          "parentId": 41,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 44,
+          "parentId": 43,
+          "properties": {},
+          "typeKey": 17,
+          "typeName": "RadialGradient"
+        },
+        {
+          "localId": 45,
+          "parentId": 44,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 0.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 46,
+          "parentId": 44,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 0.699999988079071
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 47,
+          "parentId": 44,
+          "properties": {
+            "color": "#FFFFFF",
+            "position": 1.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 48,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 500.0,
+            "y": 180.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 49,
+          "parentId": 48,
+          "properties": {
+            "height": 80.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 80.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "localId": 50,
+          "parentId": 48,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 51,
+          "parentId": 50,
+          "properties": {
+            "color": "#F39C12"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 52,
+          "parentId": 50,
+          "properties": {
+            "inner": false,
+            "offsetX": 5.0,
+            "offsetY": 5.0,
+            "strength": 10.0
+          },
+          "typeKey": 533,
+          "typeName": "Feather"
+        },
+        {
+          "localId": 53,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 650.0,
+            "y": 50.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 54,
+          "parentId": 53,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 55,
+          "parentId": 54,
+          "properties": {
+            "radius": 0.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 56,
+          "parentId": 54,
+          "properties": {
+            "radius": 0.0,
+            "x": 50.0,
+            "y": 0.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 57,
+          "parentId": 54,
+          "properties": {
+            "radius": 0.0,
+            "x": 50.0,
+            "y": 50.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 58,
+          "parentId": 54,
+          "properties": {
+            "radius": 0.0,
+            "x": 0.0,
+            "y": 50.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 59,
+          "parentId": 53,
+          "properties": {
+            "isClosed": false,
+            "opacity": 1.0,
+            "pathFlags": 0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 16,
+          "typeName": "PointsPath"
+        },
+        {
+          "localId": 60,
+          "parentId": 59,
+          "properties": {
+            "radius": 0.0,
+            "x": 10.0,
+            "y": 10.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 61,
+          "parentId": 59,
+          "properties": {
+            "radius": 0.0,
+            "x": 40.0,
+            "y": 10.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 62,
+          "parentId": 59,
+          "properties": {
+            "radius": 0.0,
+            "x": 40.0,
+            "y": 40.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 63,
+          "parentId": 59,
+          "properties": {
+            "radius": 0.0,
+            "x": 10.0,
+            "y": 40.0
+          },
+          "typeKey": 5,
+          "typeName": "StraightVertex"
+        },
+        {
+          "localId": 64,
+          "parentId": 53,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 65,
+          "parentId": 64,
+          "properties": {
+            "color": "#1ABC9C"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "localId": 66,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.30000001192092896,
+            "scaleX": 1.2000000476837158,
+            "scaleY": 1.2000000476837158,
+            "x": 750.0,
+            "y": 50.0
+          },
+          "typeKey": 2,
+          "typeName": "Node"
+        },
+        {
+          "properties": {
+            "name": "Auto Generated State Machine"
+          },
+          "typeKey": 53,
+          "typeName": "StateMachine"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [],
+          "name": "Auto Generated State Machine",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "16": {
+          "count": 5,
+          "name": "PointsPath"
+        },
+        "17": {
+          "count": 1,
+          "name": "RadialGradient"
+        },
+        "18": {
+          "count": 8,
+          "name": "SolidColor"
+        },
+        "19": {
+          "count": 6,
+          "name": "GradientStop"
+        },
+        "2": {
+          "count": 1,
+          "name": "Node"
+        },
+        "20": {
+          "count": 9,
+          "name": "Fill"
+        },
+        "22": {
+          "count": 1,
+          "name": "LinearGradient"
+        },
+        "24": {
+          "count": 1,
+          "name": "Stroke"
+        },
+        "3": {
+          "count": 9,
+          "name": "Shape"
+        },
+        "35": {
+          "count": 3,
+          "name": "CubicMirroredVertex"
+        },
+        "4": {
+          "count": 2,
+          "name": "Ellipse"
+        },
+        "5": {
+          "count": 12,
+          "name": "StraightVertex"
+        },
+        "533": {
+          "count": 1,
+          "name": "Feather"
+        },
+        "6": {
+          "count": 4,
+          "name": "CubicDetachedVertex"
+        },
+        "7": {
+          "count": 3,
+          "name": "Rectangle"
+        }
+      },
+      "width": 1000.0
+    },
+    {
+      "animations": [],
+      "height": 300.0,
+      "name": "Second Artboard",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 100.0,
+            "y": 100.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "height": 80.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 80.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 4,
+          "typeName": "Ellipse"
+        },
+        {
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "color": "#16A085"
+          },
+          "typeKey": 18,
+          "typeName": "SolidColor"
+        },
+        {
+          "properties": {
+            "name": "Auto Generated State Machine"
+          },
+          "typeKey": 53,
+          "typeName": "StateMachine"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [],
+          "name": "Auto Generated State Machine",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "18": {
+          "count": 1,
+          "name": "SolidColor"
+        },
+        "20": {
+          "count": 1,
+          "name": "Fill"
+        },
+        "3": {
+          "count": 1,
+          "name": "Shape"
+        },
+        "4": {
+          "count": 1,
+          "name": "Ellipse"
+        }
+      },
+      "width": 400.0
+    }
+  ],
+  "totalArtboards": 2
+}

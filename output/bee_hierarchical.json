@@ -1,0 +1,1435 @@
+{
+  "animations": [
+    {
+      "duration": 60,
+      "fps": 60,
+      "loop": 0,
+      "name": "MouseTrack"
+    },
+    {
+      "duration": 30,
+      "fps": 60,
+      "loop": 0,
+      "name": "MouseClickOn"
+    },
+    {
+      "duration": 60,
+      "fps": 60,
+      "loop": 0,
+      "name": "MouseClickOff"
+    },
+    {
+      "duration": 60,
+      "fps": 60,
+      "loop": 0,
+      "name": "Still"
+    },
+    {
+      "duration": 180,
+      "fps": 60,
+      "loop": 0,
+      "name": "Bee Idle"
+    },
+    {
+      "duration": 180,
+      "fps": 60,
+      "loop": 0,
+      "name": "Bee"
+    },
+    {
+      "duration": 180,
+      "fps": 60,
+      "loop": 0,
+      "name": "Leaves Jump"
+    },
+    {
+      "duration": 180,
+      "fps": 60,
+      "loop": 1,
+      "name": "Idle Leaves"
+    }
+  ],
+  "artboard": {
+    "height": 500.0,
+    "name": "Artboard",
+    "width": 500.0
+  },
+  "bones": [
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    },
+    {
+      "type": "bone"
+    }
+  ],
+  "hierarchicalShapes": [
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 251.0,
+      "y": 116.5
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [],
+      "stroke": {
+        "color": "#FFEBEB",
+        "thickness": 2.0
+      },
+      "type": "custom",
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 41.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 41.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [],
+      "stroke": {
+        "color": "#FFEBEB",
+        "thickness": 2.0
+      },
+      "type": "custom",
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 41.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 41.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 252.5,
+      "y": 211.26600646972656
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "distance": 24.831525802612305,
+              "rotation": -2.442504405975342,
+              "type": "cubicMirrored",
+              "x": 2.2255985736846924,
+              "y": 37.52508544921875
+            },
+            {
+              "distance": 38.589019775390625,
+              "rotation": -1.5112844705581665,
+              "type": "cubicMirrored",
+              "x": -38.47242736816406,
+              "y": -69.68226623535156
+            },
+            {
+              "distance": 35.10141372680664,
+              "rotation": 4.425333023071289,
+              "type": "cubicMirrored",
+              "x": -23.541152954101563,
+              "y": -159.58023071289063
+            },
+            {
+              "distance": 41.513877868652344,
+              "rotation": -2.380796432495117,
+              "type": "cubicMirrored",
+              "x": -124.94973754882813,
+              "y": -191.89976501464844
+            },
+            {
+              "distance": 33.86920928955078,
+              "rotation": -0.7744151949882507,
+              "type": "cubicMirrored",
+              "x": -118.02699279785156,
+              "y": -286.4679870605469
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#FFFFFF",
+        "thickness": 0.0
+      },
+      "type": "custom",
+      "x": -31.0,
+      "y": 72.73399353027344
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#747474"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 0.0,
+      "y": 32.73399353027344
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 450.0,
+      "paths": [],
+      "type": "rectangle",
+      "width": 457.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFBDBD"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 8.0,
+      "y": 124.73399353027344
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 48.0,
+      "paths": [],
+      "type": "rectangle",
+      "width": 265.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -2.5,
+      "y": 19.233993530273438
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#63C277"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 23.80521011352539,
+              "rotation": -3.1686084270477295,
+              "type": "cubicMirrored",
+              "x": -33.07866287231445,
+              "y": -40.99322509765625
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -52.35401916503906,
+              "y": -14.154205322265625
+            },
+            {
+              "distance": 10.748998641967773,
+              "rotation": -3.578366756439209,
+              "type": "cubicMirrored",
+              "x": -80.28800201416016,
+              "y": -21.037635803222656
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -85.75017547607422,
+              "y": 0.02734375
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -42.0,
+      "y": 77.5
+    },
+    {
+      "fill": {
+        "feather": {
+          "inner": false,
+          "offsetX": 0.0,
+          "offsetY": 0.0,
+          "strength": 30.0
+        },
+        "hasFeather": true,
+        "hasGradient": false,
+        "solidColor": "#0B7321"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 23.80521011352539,
+              "rotation": -3.1686084270477295,
+              "type": "cubicMirrored",
+              "x": -33.07866287231445,
+              "y": -40.99322509765625
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -52.35401916503906,
+              "y": -14.154205322265625
+            },
+            {
+              "distance": 10.748998641967773,
+              "rotation": -3.578366756439209,
+              "type": "cubicMirrored",
+              "x": -80.28800201416016,
+              "y": -21.037635803222656
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -85.75017547607422,
+              "y": 0.02734375
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -38.0,
+      "y": 77.5
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 7.62939453125e-06,
+      "y": 1.52587890625e-05
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -43.0,
+      "y": 72.49998474121094
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 3.5,
+      "y": 6.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -6.5,
+      "y": -56.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "distance": 5.5838117599487305,
+              "rotation": -2.870662212371826,
+              "type": "cubicMirrored",
+              "x": 0.44482421875,
+              "y": 1.160430908203125
+            },
+            {
+              "distance": 4.388473033905029,
+              "rotation": 1.3613710403442383,
+              "type": "cubicMirrored",
+              "x": -18.45654296875,
+              "y": 11.521240234375
+            },
+            {
+              "distance": 3.3525304794311523,
+              "rotation": -2.1622931957244873,
+              "type": "cubicMirrored",
+              "x": -2.347900390625,
+              "y": 5.582763671875
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -12.06494140625,
+              "y": 8.985595703125
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#902E2E",
+        "thickness": 0.5
+      },
+      "type": "custom",
+      "x": 7.04688835144043,
+      "y": -26.312929153442383
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#F06464"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "distance": 38.01884460449219,
+              "rotation": 2.7147552967071533,
+              "type": "cubicMirrored",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 14.056159973144531,
+              "rotation": 0.738774836063385,
+              "type": "cubicMirrored",
+              "x": -9.1083984375,
+              "y": 46.0615234375
+            },
+            {
+              "distance": 13.236800193786621,
+              "rotation": -1.3003464937210083,
+              "type": "cubicMirrored",
+              "x": 30.713912963867188,
+              "y": 26.54047203063965
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -5.972663879394531,
+      "y": -26.770153045654297
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 4.39048744738102e-06,
+              "y": 4.387809894979e-06
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 24.8582763671875,
+              "y": 55.40130615234375
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#237234",
+        "thickness": 4.0
+      },
+      "type": "custom",
+      "x": -7.876835823059082,
+      "y": -60.23095703125
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 29.5,
+      "y": 100.49998474121094
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -7.830352783203125,
+      "y": -11.69598388671875
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -2.9542274475097656,
+              "y": -0.43736305832862854
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -72.18618774414063,
+              "y": 215.3718719482422
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#FFBDBD",
+        "thickness": 1.0
+      },
+      "type": "custom",
+      "x": 66.66275024414063,
+      "y": -196.27125549316406
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#309445"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 45.141448974609375,
+              "rotation": 0.20531244575977325,
+              "type": "cubicMirrored",
+              "x": 79.740234375,
+              "y": -187.193359375
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 56.32421875,
+              "y": 0.0
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -23.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -10.0,
+      "y": 81.49998474121094
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 4.169647216796875,
+      "y": 7.30401611328125
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 68.65269470214844,
+              "y": -5.192673206329346
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 57.3857421875,
+              "y": 153.3271484375
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#FFBDBD",
+        "thickness": 1.0
+      },
+      "type": "custom",
+      "x": -45.45949935913086,
+      "y": -157.17323303222656
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#309445"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 3.841796875,
+              "y": 22.02734375
+            },
+            {
+              "distance": 37.326175689697266,
+              "rotation": -0.1037517637014389,
+              "type": "cubicMirrored",
+              "x": 34.374542236328125,
+              "y": -116.26139831542969
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 43.4765625,
+              "y": 22.02734375
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -28.800342559814453,
+      "y": -25.432191848754883
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -37.5,
+      "y": 81.49998474121094
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 3.669647216796875,
+      "y": 7.30401611328125
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 5.392578125,
+              "y": 6.273101806640625
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 57.3857421875,
+              "y": 153.3271484375
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#FFBDBD",
+        "thickness": 1.0
+      },
+      "type": "custom",
+      "x": -55.0,
+      "y": -151.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#309445"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 3.841796875,
+              "y": 22.02734375
+            },
+            {
+              "distance": 38.8907470703125,
+              "rotation": -0.3063451647758484,
+              "type": "cubicMirrored",
+              "x": -24.716796875,
+              "y": -122.130859375
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 43.4765625,
+              "y": 22.02734375
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -23.5,
+      "y": -22.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 28.5,
+      "y": 32.99998474121094
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 0.0,
+      "y": -8.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -14.5,
+      "y": -66.5
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "distance": 5.5838117599487305,
+              "rotation": -2.870662212371826,
+              "type": "cubicMirrored",
+              "x": 0.44482421875,
+              "y": 1.160430908203125
+            },
+            {
+              "distance": 4.388473033905029,
+              "rotation": 1.3613710403442383,
+              "type": "cubicMirrored",
+              "x": -18.45654296875,
+              "y": 11.521240234375
+            },
+            {
+              "distance": 3.3525304794311523,
+              "rotation": -2.1622931957244873,
+              "type": "cubicMirrored",
+              "x": -2.347900390625,
+              "y": 5.582763671875
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -12.06494140625,
+              "y": 8.985595703125
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#902E2E",
+        "thickness": 0.5
+      },
+      "type": "custom",
+      "x": 7.409718036651611,
+      "y": -25.556962966918945
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#F06464"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "distance": 38.01884460449219,
+              "rotation": 2.7147552967071533,
+              "type": "cubicMirrored",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 14.056159973144531,
+              "rotation": 0.738774836063385,
+              "type": "cubicMirrored",
+              "x": -9.1083984375,
+              "y": 46.0615234375
+            },
+            {
+              "distance": 13.236800193786621,
+              "rotation": -1.3003464937210083,
+              "type": "cubicMirrored",
+              "x": 30.713912963867188,
+              "y": 26.54047203063965
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": -5.609781742095947,
+      "y": -26.014049530029297
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 8.997355461120605,
+              "y": 78.77098083496094
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#237234",
+        "thickness": 3.0
+      },
+      "type": "custom",
+      "x": -15.472479820251465,
+      "y": -71.58837890625
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#63C277"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "distance": 23.80521011352539,
+              "rotation": -3.1686084270477295,
+              "type": "cubicMirrored",
+              "x": -33.07866287231445,
+              "y": -40.99322509765625
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -52.35401916503906,
+              "y": -14.154205322265625
+            },
+            {
+              "distance": 10.748998641967773,
+              "rotation": -3.578366756439209,
+              "type": "cubicMirrored",
+              "x": -80.28800201416016,
+              "y": -21.037635803222656
+            },
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": -85.75017547607422,
+              "y": 0.02734375
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": 45.0,
+      "y": 108.23399353027344
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -16.000001907348633,
+      "y": 82.23400115966797
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FF7D7D"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -3.855503564409446e-06,
+      "y": 2.0288989617256448e-06
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 19.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 19.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FF7D7D"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -3.855503564409446e-06,
+      "y": 2.0288989617256448e-06
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 19.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 19.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FF7D7D"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -3.855503564409446e-06,
+      "y": 2.0288989617256448e-06
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 19.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 19.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FF7D7D"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -3.855503564409446e-06,
+      "y": 2.0288989617256448e-06
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 19.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 19.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -10.00677490234375,
+      "y": 66.25907897949219
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": 0.3774546682834625,
+      "y": 0.35692089796066284
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFE9E9"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 2.3469724655151367,
+              "y": 3.598498582839966
+            },
+            {
+              "distance": 18.85904312133789,
+              "rotation": 0.09718535095453262,
+              "type": "cubicMirrored",
+              "x": 7.333169937133789,
+              "y": -20.194772720336914
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": 0.6225453615188599,
+      "y": 4.50334358215332
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -0.37743186950683594,
+      "y": 7.503348350524902
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#060606"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -6.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 26.0,
+      "paths": [],
+      "type": "rectangle",
+      "width": 6.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#060606"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 8.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 26.0,
+      "paths": [],
+      "type": "rectangle",
+      "width": 6.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFD33E"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 21.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 32.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFE9E9"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [
+        {
+          "isClosed": true,
+          "vertices": [
+            {
+              "radius": 0.0,
+              "type": "straight",
+              "x": 2.3469724655151367,
+              "y": 3.598498582839966
+            },
+            {
+              "distance": 18.85904312133789,
+              "rotation": 0.09718535095453262,
+              "type": "cubicMirrored",
+              "x": 7.333169937133789,
+              "y": -20.194772720336914
+            }
+          ]
+        }
+      ],
+      "type": "custom",
+      "x": 0.6225440502166748,
+      "y": 5.003354072570801
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "paths": [],
+      "type": "node",
+      "x": -0.3774602711200714,
+      "y": 7.503343105316162
+    },
+    {
+      "fill": {
+        "feather": {
+          "inner": false,
+          "offsetX": 0.0,
+          "offsetY": 0.0,
+          "strength": 30.0
+        },
+        "hasFeather": true,
+        "hasGradient": false,
+        "solidColor": "#FFCA16"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 21.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 32.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": true,
+      "paths": [
+        {
+          "isClosed": false,
+          "vertices": [
+            {
+              "distance": 24.831525802612305,
+              "rotation": -2.442504405975342,
+              "type": "cubicMirrored",
+              "x": 2.2255985736846924,
+              "y": 37.52508544921875
+            },
+            {
+              "distance": 38.589019775390625,
+              "rotation": -1.5112844705581665,
+              "type": "cubicMirrored",
+              "x": -38.47242736816406,
+              "y": -69.68226623535156
+            },
+            {
+              "distance": 35.10141372680664,
+              "rotation": 4.425333023071289,
+              "type": "cubicMirrored",
+              "x": -23.541152954101563,
+              "y": -159.58023071289063
+            },
+            {
+              "distance": 41.513877868652344,
+              "rotation": -2.380796432495117,
+              "type": "cubicMirrored",
+              "x": -124.94973754882813,
+              "y": -191.89976501464844
+            },
+            {
+              "distance": 33.86920928955078,
+              "rotation": -0.7744151949882507,
+              "type": "cubicMirrored",
+              "x": -118.02699279785156,
+              "y": -286.4679870605469
+            }
+          ]
+        }
+      ],
+      "stroke": {
+        "color": "#FFFFFF",
+        "thickness": 1.0
+      },
+      "type": "custom",
+      "x": -12.232376098632813,
+      "y": 28.733993530273438
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFA9A9"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": -35.5,
+      "y": 23.733993530273438
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 130.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 130.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFA9A9"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 1.0,
+      "y": 82.23399353027344
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 130.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 130.0,
+      "x": -6.5,
+      "y": -58.5
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#FFA9A9"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 1.0,
+      "y": 82.23399353027344
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 130.0,
+      "paths": [],
+      "type": "ellipse",
+      "width": 130.0,
+      "x": -6.5,
+      "y": -58.5
+    },
+    {
+      "fill": {
+        "hasGradient": false,
+        "solidColor": "#747474"
+      },
+      "hasFill": true,
+      "hasStroke": false,
+      "paths": [],
+      "type": "custom",
+      "x": 250.0,
+      "y": 250.0
+    },
+    {
+      "hasFill": false,
+      "hasStroke": false,
+      "height": 498.0,
+      "paths": [],
+      "type": "rectangle",
+      "width": 501.0,
+      "x": 0.0,
+      "y": 0.0
+    }
+  ],
+  "stateMachines": [
+    {
+      "inputs": [],
+      "layers": [
+        {
+          "name": "Idle",
+          "states": [
+            {
+              "animationName": "Bee",
+              "name": "S2",
+              "type": "animation"
+            }
+          ],
+          "transitions": []
+        },
+        {
+          "name": "Bee",
+          "states": [
+            {
+              "animationName": "Still",
+              "name": "S3",
+              "type": "animation"
+            },
+            {
+              "animationName": "MouseClickOff",
+              "name": "S4",
+              "type": "animation"
+            }
+          ],
+          "transitions": []
+        },
+        {
+          "name": "Leaves Jump",
+          "states": [
+            {
+              "animationName": "Bee Idle",
+              "name": "S1",
+              "type": "animation"
+            },
+            {
+              "animationName": "Bee",
+              "name": "S3",
+              "type": "animation"
+            }
+          ],
+          "transitions": []
+        },
+        {
+          "name": "MouseClick",
+          "states": [
+            {
+              "animationName": "Unknown",
+              "name": "S0",
+              "type": "animation"
+            },
+            {
+              "animationName": "MouseTrack",
+              "name": "S4",
+              "type": "animation"
+            }
+          ],
+          "transitions": []
+        },
+        {
+          "name": "MouseTrack",
+          "states": [],
+          "transitions": []
+        }
+      ],
+      "name": "State Machine 1"
+    }
+  ]
+}

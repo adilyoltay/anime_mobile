@@ -460,6 +460,25 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         }
         uint32_t nextSyntheticLocalId = maxLocalId + 1;
 
+        // PASS 0: Pre-scan all objects to build complete localId → typeKey mapping
+        // This prevents false synthetic Shape injection when parent appears later in JSON
+        std::cout << "  PASS 0: Building complete type mapping..." << std::endl;
+        for (const auto& objJson : abJson["objects"]) {
+            if (objJson.contains("localId")) {
+                uint32_t localId = objJson["localId"].get<uint32_t>();
+                uint16_t typeKey = objJson["typeKey"];
+                
+                // Skip stubs
+                if (objJson.contains("__unsupported__") && objJson["__unsupported__"].get<bool>()) {
+                    skippedLocalIds.insert(localId);
+                    continue;
+                }
+                
+                localIdToType[localId] = typeKey;
+            }
+        }
+        std::cout << "  Type mapping: " << localIdToType.size() << " objects (max localId: " << maxLocalId << ")" << std::endl;
+
         auto parentTypeFor = [&](uint32_t parentLocalId) -> uint16_t {
             if (parentLocalId == invalidParent)
             {
@@ -473,6 +492,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             return it != localIdToType.end() ? it->second : 0;
         };
 
+        // PASS 1: Create objects with accurate parent type info
+        std::cout << "  PASS 1: Creating objects with synthetic Shape injection (when needed)..." << std::endl;
         for (const auto& objJson : abJson["objects"]) {
             uint16_t typeKey = objJson["typeKey"];
 
@@ -517,7 +538,11 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             if (parentLocalId != invalidParent) {
                 auto remap = parentRemap.find(parentLocalId);
                 if (remap != parentRemap.end()) {
-                    parentLocalId = remap->second;
+                    // Only remap Fill (20) and Stroke (24) - NOT vertices (5,6,35)!
+                    if (typeKey == 20 || typeKey == 24) {
+                        parentLocalId = remap->second;
+                    }
+                    // Vertices keep original PointsPath parent
                 }
             }
 
@@ -574,8 +599,23 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
                 parentLocalId = shapeLocalId;
 
+                // Retroactively remap ONLY Fill/Stroke objects (NOT vertices!)
+                // that were already created and point to this parametric path
                 if (localId.has_value()) {
-                    parentRemap[*localId] = shapeLocalId;
+                    uint32_t pathLocalId = *localId;
+                    
+                    for (auto& pending : pendingObjects) {
+                        // Only remap Fill (20) and Stroke (24) - NOT vertices (5,6,35)!
+                        if ((pending.typeKey == 20 || pending.typeKey == 24) && 
+                            pending.parentLocalId == pathLocalId) {
+                            pending.parentLocalId = shapeLocalId;
+                        }
+                    }
+                    
+                    // Future objects referencing this path:
+                    // - If Fill/Stroke: remap to Shape
+                    // - If Vertex: keep original path
+                    parentRemap[pathLocalId] = shapeLocalId;
                 }
             }
 
@@ -635,7 +675,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
 
-        std::cout << "  Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
+        // PASS 2: Set all parent relationships (now with complete type mapping and synthetic shapes)
+        std::cout << "  PASS 2: Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
         int successCount = 0;
         int missingParentCount = 0;
         for (const auto& pending : pendingObjects)
