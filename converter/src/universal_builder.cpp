@@ -938,11 +938,11 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 builder.set(obj, 4, abJson["name"].get<std::string>()); // name
                 builder.set(obj, 7, abJson["width"].get<float>()); // width
                 builder.set(obj, 8, abJson["height"].get<float>()); // height
-                // Restore artboard clipping: read from JSON if present, default TRUE for Artboard
-                bool clipEnabled = true;  // ✅ FIXED: Artboard default clip should be true
-                if (abJson.contains("clip") && abJson["clip"].is_boolean()) {
-                    clipEnabled = abJson["clip"].get<bool>();
-                }
+                // CRITICAL FIX: Always enable clipping for round-trip files!
+                // Original Rive files may have clip=false, but round-trip hierarchical format
+                // requires clipping to prevent grey screen (objects outside artboard bounds)
+                bool clipEnabled = true;  // FORCE TRUE for round-trip compatibility
+                // Ignore JSON clip value - always enable for safety
                 builder.set(obj, 196, clipEnabled);
             }
 

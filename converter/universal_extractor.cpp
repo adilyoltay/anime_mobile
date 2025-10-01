@@ -155,6 +155,7 @@ int main(int argc, char* argv[]) {
         artboardJson["name"] = artboard->name();
         artboardJson["width"] = artboard->width();
         artboardJson["height"] = artboard->height();
+        artboardJson["clip"] = artboard->clip();  // CRITICAL: Export clip property (fixes grey screen!)
         artboardJson["objects"] = json::array();
         
         // Extract ALL objects with typeKey
