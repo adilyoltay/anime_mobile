@@ -451,6 +451,11 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
     }
     
+    // DISABLED: ArtboardCatalog causes "Unknown property key" warnings in Rive Play
+    // The catalog chunk uses type keys 8726/8776 which are not in the ToC,
+    // causing Rive Play to stop creating drawable objects → grey screen
+    // TODO: Either add 8726/8776 to ToC or use official runtime encoding
+    /*
     if (!artboardIds.empty()) {
         // Write ArtboardList (8726) wrapper
         writer.writeVarUint(static_cast<uint32_t>(8726)); // ArtboardList typeKey
@@ -464,6 +469,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
             writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
         }
     }
+    */
     
     std::cout << "  ✅ Artboard Catalog written (" << artboardIds.size() << " artboards)" << std::endl;
     
@@ -715,6 +721,11 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         }
     }
     
+    // DISABLED: ArtboardCatalog causes "Unknown property key" warnings in Rive Play  
+    // The catalog chunk uses type keys 8726/8776 which are not in the ToC,
+    // causing Rive Play to stop creating drawable objects → grey screen
+    // TODO: Either add 8726/8776 to ToC or use official runtime encoding
+    /*
     if (!artboardIds.empty()) {
         // Write ArtboardList (8726) wrapper
         writer.writeVarUint(static_cast<uint32_t>(8726)); // ArtboardList typeKey
@@ -728,6 +739,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
             writer.writeVarUint(static_cast<uint32_t>(0));    // Property terminator
         }
     }
+    */
     
     // Final chunk terminator
     writer.writeVarUint(static_cast<uint32_t>(0));
