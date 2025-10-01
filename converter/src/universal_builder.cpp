@@ -59,6 +59,49 @@
 namespace rive_converter
 {
 
+// PR2: Helper functions for type classification
+static bool isParametricPathType(uint16_t typeKey) {
+    return typeKey == 4 ||  // Ellipse
+           typeKey == 7 ||  // Rectangle
+           typeKey == 16;   // PointsPath
+}
+
+static bool isPaintOrDecorator(uint16_t typeKey) {
+    return typeKey == 20 ||  // Fill
+           typeKey == 24 ||  // Stroke
+           typeKey == 47 ||  // TrimPath
+           typeKey == 533 || // Feather
+           typeKey == 506 || // DashPath
+           typeKey == 692 || // Dash
+           typeKey == 22 ||  // LinearGradient
+           typeKey == 17 ||  // RadialGradient
+           typeKey == 19;    // GradientStop
+}
+
+static bool isVertexType(uint16_t typeKey) {
+    return typeKey == 5 ||   // StraightVertex
+           typeKey == 6 ||   // CubicDetachedVertex
+           typeKey == 35;    // CubicMirroredVertex
+}
+
+static bool isAnimGraphType(uint16_t typeKey) {
+    return typeKey == 25 ||  // KeyedObject
+           typeKey == 26 ||  // KeyedProperty
+           typeKey == 30 ||  // KeyFrameDouble
+           typeKey == 37 ||  // KeyFrameColor
+           typeKey == 50 ||  // KeyFrameId
+           typeKey == 84 ||  // KeyFrameBool
+           typeKey == 142 || // KeyFrameString
+           typeKey == 450;   // KeyFrameUint
+}
+
+static bool isShapePaintContainer(uint16_t typeKey) {
+    return typeKey == 3 ||   // Shape
+           typeKey == 4 ||   // Ellipse
+           typeKey == 7 ||   // Rectangle
+           typeKey == 16;    // PointsPath
+}
+
 // Helper to parse color strings
 static uint32_t parse_color(const std::string& colorStr) {
     if (colorStr.empty() || colorStr[0] != '#') return 0xFFFFFFFF;
@@ -484,17 +527,13 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         };
 
         const uint32_t invalidParent = 0xFFFFFFFFu;
-        auto isParametricPathType = [](uint16_t key) {
-            switch (key)
-            {
-                case 4:  // Ellipse
-                case 7:  // Rectangle
-                case 16: // PointsPath
-                    return true;
-                default:
-                    return false;
-            }
-        };
+        
+        // PR2: Debug counters for visibility
+        int shapeInserted = 0;
+        int paintsMoved = 0;
+        int verticesKept = 0;
+        int vertexRemapAttempted = 0;
+        int animNodeRemapAttempted = 0;
         
         // Map from JSON localId to builder object id
         std::map<uint32_t, uint32_t> localIdToBuilderObjectId;
@@ -529,6 +568,19 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
         std::cout << "  Type mapping: " << localIdToType.size() << " objects (max localId: " << maxLocalId << ")" << std::endl;
+        
+        // PR2: Enhanced Pass-0 - also build parent map for dependency analysis
+        std::unordered_map<uint32_t, uint32_t> localIdToParent;
+        for (const auto& objJson : abJson["objects"]) {
+            if (objJson.contains("localId") && objJson.contains("parentId")) {
+                uint32_t localId = objJson["localId"].get<uint32_t>();
+                uint32_t parentId = objJson["parentId"].get<uint32_t>();
+                if (skippedLocalIds.find(localId) == skippedLocalIds.end()) {
+                    localIdToParent[localId] = parentId;
+                }
+            }
+        }
+        std::cout << "  Parent map: " << localIdToParent.size() << " parent relationships" << std::endl;
 
         auto parentTypeFor = [&](uint32_t parentLocalId) -> uint16_t {
             if (parentLocalId == invalidParent)
@@ -697,11 +749,21 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             if (parentLocalId != invalidParent) {
                 auto remap = parentRemap.find(parentLocalId);
                 if (remap != parentRemap.end()) {
-                    // Only remap Fill (20) and Stroke (24) - NOT vertices (5,6,35)!
-                    if (typeKey == 20 || typeKey == 24) {
+                    // PR2: Paint-only remap whitelist
+                    if (isPaintOrDecorator(typeKey)) {
                         parentLocalId = remap->second;
+                        paintsMoved++;
                     }
-                    // Vertices keep original PointsPath parent
+                    // PR2: Blacklist enforcement - track attempts
+                    else if (isVertexType(typeKey)) {
+                        vertexRemapAttempted++;
+                        verticesKept++;
+                        // Vertices keep original PointsPath parent
+                    }
+                    else if (isAnimGraphType(typeKey)) {
+                        animNodeRemapAttempted++;
+                        // Animation nodes keep original parent
+                    }
                 }
             }
 
@@ -758,23 +820,31 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
                 parentLocalId = shapeLocalId;
 
-                // Retroactively remap ONLY Fill/Stroke objects (NOT vertices!)
+                // PR2: Retroactively remap ONLY paint/decorator objects (NOT vertices/anim!)
                 // that were already created and point to this parametric path
                 if (localId.has_value()) {
                     uint32_t pathLocalId = *localId;
                     
                     for (auto& pending : pendingObjects) {
-                        // Only remap Fill (20) and Stroke (24) - NOT vertices (5,6,35)!
-                        if ((pending.typeKey == 20 || pending.typeKey == 24) && 
+                        // PR2: Paint whitelist - only these get remapped
+                        if (isPaintOrDecorator(pending.typeKey) && 
                             pending.parentLocalId == pathLocalId) {
                             pending.parentLocalId = shapeLocalId;
+                            paintsMoved++;
+                        }
+                        // PR2: Vertex blacklist - explicitly keep with path
+                        else if (isVertexType(pending.typeKey) && 
+                                 pending.parentLocalId == pathLocalId) {
+                            verticesKept++;
+                            // Keep original parent (path)
                         }
                     }
                     
                     // Future objects referencing this path:
-                    // - If Fill/Stroke: remap to Shape
-                    // - If Vertex: keep original path
+                    // - If paint/decorator: remap to Shape
+                    // - If vertex/anim: keep original path (handled above)
                     parentRemap[pathLocalId] = shapeLocalId;
+                    shapeInserted++;
                 }
             }
             
@@ -977,6 +1047,18 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         if (missingParentCount > 0) {
             std::cerr << "  ⚠️  " << missingParentCount << " objects have missing parents (check cascade skip logic)" << std::endl;
         }
+        
+        // PR2: Debug summary
+        std::cout << "\n  === PR2 Hierarchy Debug Summary ===" << std::endl;
+        std::cout << "  Shapes inserted:         " << shapeInserted << std::endl;
+        std::cout << "  Paints moved:            " << paintsMoved << std::endl;
+        std::cout << "  Vertices kept:           " << verticesKept << std::endl;
+        std::cout << "  Vertex remap attempted:  " << vertexRemapAttempted << " (should be 0)" << std::endl;
+        std::cout << "  AnimNode remap attempted: " << animNodeRemapAttempted << " (should be 0)" << std::endl;
+        if (vertexRemapAttempted > 0 || animNodeRemapAttempted > 0) {
+            std::cerr << "  ⚠️  WARNING: Blacklist violation detected!" << std::endl;
+        }
+        std::cout << "  ===================================\n" << std::endl;
         
         // PR2c: Cycle detection on component parent graph
         // Build graph: node -> parent
