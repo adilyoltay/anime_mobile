@@ -327,15 +327,9 @@ if __name__ == "__main__":
     try:
         summary = analyze(args.file, return_data=args.json, strict=args.strict, dump_catalog=args.dump_catalog)
         if args.json:
+            # JSON mode: summary is dict
             print(json.dumps(summary, indent=2))
-        else:
-            for key, names in summary["header"].items():
-                print(f"{key}: {', '.join(names)}")
-            print()
-            for tk, props in summary["toc"].items():
-                print(f"{tk}: {', '.join(props)}")
-            print(f"\nStream properties:\n{json.dumps(summary['streamProps'], indent=2)}")
-            print(f"\nTotals: {summary['totals']}")
+        # else: Non-JSON mode already printed output in analyze()
         sys.exit(0)
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)

@@ -232,12 +232,14 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         writer.write(value);
     }
 
-    bool assetPreludeWritten = false; // Will be set to true after FontAsset
+    bool placeholderEmitted = false;  // PR1: Separate flags
+    bool fontBytesEmitted = false;
     std::unordered_map<uint32_t, uint32_t> localComponentIndex;
     uint32_t nextLocalIndex = 0;
     // PR2c: track all property keys written to the stream
     std::unordered_set<uint16_t> streamPropKeys;
-
+    
+    size_t objIndex = 0;
     for (const auto& object : document.objects)
     {
         writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
@@ -364,21 +366,41 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
             firstRun = false;
         }
 
-        writer.writeVarUint(uint32_t{0});
+        writer.writeVarUint(uint32_t{0}); // Property terminator
         
-        // Write FileAssetContents immediately after FontAsset (typeKey 141)
-        if (!assetPreludeWritten && object.core->coreType() == 141) // FontAsset
+        // PR1: Asset placeholder AFTER Backboard properties complete (if no font)
+        if (objIndex == 0 && !fontBytesEmitted && !placeholderEmitted && document.fontData.empty())
+        {
+            placeholderEmitted = true;
+            
+            // Write FileAssetContents (106) with empty bytes (212) as independent object
+            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
+            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+            writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty)
+            writer.writeVarUint(static_cast<uint32_t>(0));   // Property terminator
+            
+            std::cout << "  ℹ️  Asset placeholder after Backboard (no font embedded)" << std::endl;
+        }
+        
+        // PR1: Real font bytes AFTER FontAsset (141) properties complete
+        if (!fontBytesEmitted && object.core->coreType() == 141) // FontAsset
         {
             if (!document.fontData.empty())
             {
+                fontBytesEmitted = true;
+                
+                // Write FileAssetContents (106) as independent object
                 writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey)); // 106
                 writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey)); // 212
                 writer.writeVarUint(static_cast<uint32_t>(document.fontData.size()));
                 writer.write(document.fontData.data(), document.fontData.size());
                 writer.writeVarUint(uint32_t{0}); // property terminator
-                assetPreludeWritten = true;
+                
+                std::cout << "  ℹ️  Font bytes written after FontAsset (" << document.fontData.size() << " bytes)" << std::endl;
             }
         }
+        
+        objIndex++;
     }
 
     // PR2c: Print header/stream diff
@@ -516,7 +538,8 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         writer.write(value);
     }
 
-    bool assetPreludeWritten = false;
+    bool placeholderEmitted = false;  // PR1: Separate flags
+    bool fontBytesEmitted = false;
     std::unordered_map<uint32_t, uint32_t> localComponentIndex;
     uint32_t nextLocalIndex = 0;
 
@@ -527,21 +550,6 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     {
         const auto& object = document.objects[objIndex];
         writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
-        
-        // PR-RivePlay-Fix: Write single empty asset placeholder after Backboard (first object)
-        // This satisfies Rive Play's asset chunk expectation for the entire file
-        if (objIndex == 0 && !assetPreludeWritten)
-        {
-            assetPreludeWritten = true;
-            
-            // Write FileAssetContents (106) with empty bytes (212) - once for entire file
-            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
-            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
-            writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty asset)
-            writer.writeVarUint(static_cast<uint32_t>(0));   // End of properties
-            
-            std::cout << "  ℹ️  Asset placeholder written after Backboard (single, file-wide)" << std::endl;
-        }
 
         if (object.core->is<rive::Artboard>())
         {
@@ -642,18 +650,37 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
             firstRunCore = false;
         }
 
-        writer.writeVarUint(uint32_t{0});
+        writer.writeVarUint(uint32_t{0}); // Property terminator
         
-        if (!assetPreludeWritten && object.core->coreType() == 141)
+        // PR1: Asset placeholder AFTER Backboard properties complete (if no font)
+        if (objIndex == 0 && !fontBytesEmitted && !placeholderEmitted && document.fontData.empty())
+        {
+            placeholderEmitted = true;
+            
+            // Write FileAssetContents (106) with empty bytes (212) as independent object
+            writer.writeVarUint(static_cast<uint32_t>(106)); // FileAssetContents typeKey
+            writer.writeVarUint(static_cast<uint32_t>(212)); // bytes property key
+            writer.writeVarUint(static_cast<uint32_t>(0));   // length = 0 (empty)
+            writer.writeVarUint(static_cast<uint32_t>(0));   // Property terminator
+            
+            std::cout << "  ℹ️  Asset placeholder after Backboard (no font embedded)" << std::endl;
+        }
+        
+        // PR1: Real font bytes AFTER FontAsset (141) properties complete
+        if (!fontBytesEmitted && object.core->coreType() == 141)
         {
             if (!document.fontData.empty())
             {
+                fontBytesEmitted = true;
+                
+                // Write FileAssetContents (106) as independent object
                 writer.writeVarUint(static_cast<uint32_t>(rive::FileAssetContentsBase::typeKey));
-                writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey));
+                writer.writeVarUint(static_cast<uint32_t>(kFileAssetBytesKey)); // 212
                 writer.writeVarUint(static_cast<uint32_t>(document.fontData.size()));
                 writer.write(document.fontData.data(), document.fontData.size());
-                writer.writeVarUint(uint32_t{0});
-                assetPreludeWritten = true;
+                writer.writeVarUint(uint32_t{0}); // Property terminator
+                
+                std::cout << "  ℹ️  Font bytes written after FontAsset (" << document.fontData.size() << " bytes)" << std::endl;
             }
         }
     }
