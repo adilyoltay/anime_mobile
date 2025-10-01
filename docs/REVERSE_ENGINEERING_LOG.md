@@ -266,3 +266,67 @@ Offset 245: 80 7c 43 0e 19 44 53 43 00 03 05...
 **Time Spent:** 1.0 / 40 hours (2.5%)  
 **Status:** 🟡 In Progress (slower than expected)  
 **Confidence:** 🔴 Low (format more complex than anticipated)
+
+---
+
+## 📋 Session 3: Binary Diff Breakthrough (Oct 1, 21:49)
+
+### Strategy Shift: Binary Search Approach
+
+**Key Insight:** Instead of decoding packed format,  
+FIND keyframe values in original binary!
+
+### Method
+1. Extract KeyFrames from hierarchical JSON (350 frames)
+2. Convert float values to bytes
+3. Search for these bytes in original RIV
+4. Analyze surrounding structure
+
+### Breakthrough Results! 🎯
+
+**Test Cases:**
+```
+Frame=0, Value=251.0
+  Value bytes: 00007b43 → Found at offset 150! ✅
+
+Frame=0, Value=116.5  
+  Value bytes: 0000e942 → Found at offset 155! ✅
+
+Frame=25, Value=1.5
+  Frame bytes: 0000c841 → NOT FOUND ❌
+  Value bytes: 0000c03f → Found at offset 4133! ✅
+```
+
+**Discovery:**
+- ✅ VALUE floats ARE stored as-is (IEEE 754)
+- ❌ FRAME values NOT stored as floats (different encoding!)
+- ✅ Values found in sequential offsets (150, 155 - packed together!)
+
+### Hypothesis: Packed Format Structure
+
+```
+Packed Blob:
+  [type marker]
+  [metadata?]
+  [frame1 encoded] [value1 float] [frame2 encoded] [value2 float] ...
+         ^                 ^
+         varint?         IEEE754 ✅
+```
+
+**Frame encoding options:**
+- Varint (compact for small integers like 0, 25, 30)
+- Delta encoding (differences)
+- Custom encoding
+
+### Next Steps (HIGH PRIORITY)
+
+1. ✅ Extract context around found values (offsets 150, 155)
+2. ⏳ Decode frame encoding (reverse varint?)
+3. ⏳ Map entire keyframe sequence
+4. ⏳ Write encoder prototype
+
+---
+
+**Time Spent:** 1.5 / 40 hours (3.75%)  
+**Status:** 🟢 BREAKTHROUGH! (binary search working)  
+**Confidence:** 🟡 Medium → 🟢 High (found actual data!)
