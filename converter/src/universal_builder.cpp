@@ -535,6 +535,14 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         int vertexRemapAttempted = 0;
         int animNodeRemapAttempted = 0;
         
+        // PR3: Animation graph counters
+        int keyedObjectCount = 0;
+        int keyedPropertyCount = 0;
+        int keyFrameCount = 0;
+        int interpolatorCount = 0;
+        int objectIdRemapSuccess = 0;
+        int objectIdRemapFail = 0;
+        
         // Map from JSON localId to builder object id
         std::map<uint32_t, uint32_t> localIdToBuilderObjectId;
         std::unordered_map<uint32_t, uint16_t> localIdToType; // Track type per localId
@@ -860,6 +868,16 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
 
             pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});
+            
+            // PR3: Track animation graph objects
+            if (typeKey == 25) keyedObjectCount++;
+            else if (typeKey == 26) keyedPropertyCount++;
+            else if (typeKey == 30 || typeKey == 37 || typeKey == 50 || typeKey == 84 || typeKey == 142 || typeKey == 450) {
+                keyFrameCount++;
+            }
+            else if (typeKey == 28 || typeKey == 138 || typeKey == 139 || typeKey == 174) {
+                interpolatorCount++;
+            }
 
             // If we just created a keyframe, remember it for interpolatorId wiring
             if (typeKey == 30 || // KeyFrameDouble
@@ -1048,7 +1066,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             std::cerr << "  ⚠️  " << missingParentCount << " objects have missing parents (check cascade skip logic)" << std::endl;
         }
         
-        // PR2: Debug summary
+        // PR2/PR3: Debug summary
         std::cout << "\n  === PR2 Hierarchy Debug Summary ===" << std::endl;
         std::cout << "  Shapes inserted:         " << shapeInserted << std::endl;
         std::cout << "  Paints moved:            " << paintsMoved << std::endl;
@@ -1057,6 +1075,19 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::cout << "  AnimNode remap attempted: " << animNodeRemapAttempted << " (should be 0)" << std::endl;
         if (vertexRemapAttempted > 0 || animNodeRemapAttempted > 0) {
             std::cerr << "  ⚠️  WARNING: Blacklist violation detected!" << std::endl;
+        }
+        std::cout << "  ===================================\n" << std::endl;
+        
+        // PR3: Animation graph summary
+        std::cout << "  === PR3 Animation Graph Summary ===" << std::endl;
+        std::cout << "  KeyedObjects:            " << keyedObjectCount << std::endl;
+        std::cout << "  KeyedProperties:         " << keyedPropertyCount << std::endl;
+        std::cout << "  KeyFrames:               " << keyFrameCount << std::endl;
+        std::cout << "  Interpolators:           " << interpolatorCount << std::endl;
+        std::cout << "  objectId remap success:  " << objectIdRemapSuccess << std::endl;
+        std::cout << "  objectId remap fail:     " << objectIdRemapFail << " (should be 0)" << std::endl;
+        if (objectIdRemapFail > 0) {
+            std::cerr << "  ⚠️  WARNING: objectId remap failures detected!" << std::endl;
         }
         std::cout << "  ===================================\n" << std::endl;
         
