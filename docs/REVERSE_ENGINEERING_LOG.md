@@ -188,3 +188,81 @@ Type 64 = **Packed KeyFrame Array!**
 **Status:** 🟡 In Progress  
 **Next Session:** Decode Type 64 structure  
 **Confidence:** 🔴 Low → 🟡 Medium (breakthrough on Type 64!)
+
+---
+
+## 📋 Session 2: Type 8064 Deep Dive (Oct 1, 21:46)
+
+### Goals
+- Decode Type 8064 binary structure
+- Identify encoding scheme (property vs raw binary)
+- Extract float patterns (keyframe data)
+
+### Tools Created
+- `deep_dive_8064.py` - Extract all 8064 blobs
+- `detect_floats_in_8064.py` - Float pattern detection
+
+### Findings
+
+**Problem:** Varuint detection inconsistent
+- Analyzer reports: 25 Type 8064 blobs
+- Manual search finds: 1 Type 8064 blob
+- **Root cause:** False positives in pattern matching
+
+**Type 8064 Structure Hypothesis:**
+```
+Offset 245: 80 7c 43 0e 19 44 53 43 00 03 05...
+            ^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^
+            type  data (not properties!)
+```
+
+**Float Detection:**
+- Found: 72.733994, -31.0, 0.0 patterns
+- Range: Valid keyframe data (0-100)
+- **Issue:** High noise ratio, many false positives
+
+**Property Key Pattern:**
+- Keys 66, 138, 63, 64, 65 detected
+- But parse is inconsistent
+- **Conclusion:** NOT standard property format
+
+### Challenges Discovered
+
+1. **Varuint Ambiguity**
+   - 0x80 0x7C can appear in data, not just type markers
+   - Need better detection (context-aware)
+
+2. **Binary vs Property Format**
+   - Type 8064 seems to be RAW BINARY
+   - Not property key-value pairs
+   - Need to understand binary layout
+
+3. **Multiple Encoding Schemes**
+   - Type 7776: Different from 8064
+   - Type 64: Different again
+   - Each needs separate decoder
+
+### Reality Check
+
+**Initial estimate:** 40 hours  
+**Current progress:** 1 hour (2.5%)  
+**Complexity:** Higher than expected
+
+**Blockers:**
+- Format is not property-based
+- Multiple incompatible encodings
+- High false positive rate in detection
+- No documentation or reference
+
+### Next Steps
+
+1. ✅ Fix varuint detection (context-aware)
+2. ⏳ Compare with expanded keyframes (1:1 mapping)
+3. ⏳ Try binary diff approach
+4. ⏳ Consider reaching out to Rive team
+
+---
+
+**Time Spent:** 1.0 / 40 hours (2.5%)  
+**Status:** 🟡 In Progress (slower than expected)  
+**Confidence:** 🔴 Low (format more complex than anticipated)
