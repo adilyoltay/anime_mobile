@@ -174,7 +174,8 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
 
 // Set property on object based on key name and value
 // Note: x/y are handled in main loop (different keys for Node vs Vertex)
-static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string& key, const nlohmann::json& value, const std::map<uint32_t, uint32_t>& idMapping) {
+static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string& key, const nlohmann::json& value, 
+                        const std::map<uint32_t, uint32_t>& idMapping, int& objectIdRemapSuccess, int& objectIdRemapFail) {
     // Transform properties (x/y handled in main loop!)
     if (key == "rotation") builder.set(obj, 15, value.get<float>());
     else if (key == "scaleX") builder.set(obj, 16, value.get<float>());
@@ -243,6 +244,11 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         auto it = idMapping.find(localId);
         if (it != idMapping.end()) {
             builder.set(obj, 51, it->second); // Use remapped builderId
+            objectIdRemapSuccess++; // PR3: Track successful remap
+        } else {
+            objectIdRemapFail++; // PR3: Track failed remap
+            std::cerr << "⚠️  PR3: objectId remap FAILED for localId=" << localId 
+                      << " (dangling reference!)" << std::endl;
         }
     }
     else if (key == "propertyKey") builder.set(obj, 53, value.get<uint32_t>()); // KeyedProperty (not an ID)
@@ -993,7 +999,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         }
                     }
                     else {
-                    setProperty(builder, obj, key, value, localIdToBuilderObjectId);
+                    setProperty(builder, obj, key, value, localIdToBuilderObjectId, objectIdRemapSuccess, objectIdRemapFail);
                 }
             }
         }
