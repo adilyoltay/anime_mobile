@@ -267,10 +267,15 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        // PR-KEYED-DATA-EXPORT: Assign synthetic IDs for runtime object targets
+        // PR-KEYED-DATA-EXPORT: Collect runtime object targets for export
         // Since resolve() doesn't work and KeyedObject doesn't expose target pointer,
-        // we create a unique synthetic ID per KeyedObject with objectId==0
-        int runtimeTargetCount = 0;
+        // we create placeholder entries for runtime objects referenced by KeyedObjects
+        struct RuntimeTarget {
+            const KeyedObject* ko;
+            uint32_t syntheticId;
+            uint32_t localId;
+        };
+        std::vector<RuntimeTarget> runtimeTargets;
         
         for (size_t i = 0; i < artboard->animationCount(); ++i) {
             auto* anim = artboard->animation(i);
@@ -279,22 +284,22 @@ int main(int argc, char* argv[]) {
                     auto* ko = la->getObject(k);
                     if (ko && ko->objectId() == 0) {
                         // This KeyedObject targets a runtime-created object
-                        // Assign a unique synthetic ID for its target
+                        // Assign synthetic ID and prepare for export
                         uint32_t syntheticId = nextSyntheticId++;
                         uint32_t localId = nextLocalId++;
                         
                         koToSyntheticId[ko] = syntheticId;
                         coreIdToLocalId[syntheticId] = localId;
                         
-                        runtimeTargetCount++;
+                        runtimeTargets.push_back({ko, syntheticId, localId});
                     }
                 }
             }
         }
         
-        if (runtimeTargetCount > 0) {
-            std::cout << "  Assigned " << runtimeTargetCount 
-                      << " synthetic IDs for runtime object targets" << std::endl;
+        if (!runtimeTargets.empty()) {
+            std::cout << "  Found " << runtimeTargets.size() 
+                      << " runtime object targets (will export placeholders)" << std::endl;
         }
         
         // Resolve missing IDs with full parent chain
@@ -591,6 +596,26 @@ int main(int argc, char* argv[]) {
             // For now, basic structure is enough for ID mapping
             
             artboardJson["objects"].push_back(objJson);
+        }
+        
+        // PR-KEYED-DATA-EXPORT: Export placeholder objects for runtime targets
+        // These are synthetic objects referenced by KeyedObjects with objectId==0
+        // Without these, builder would fail to resolve KeyedObject.objectId references
+        for (const auto& rt : runtimeTargets) {
+            json placeholderJson;
+            
+            // Use a generic component type (Node - typeKey 2)
+            // This is a placeholder; actual type is unknown
+            placeholderJson["typeKey"] = 2;  // Node (generic component)
+            placeholderJson["typeName"] = "Node";
+            placeholderJson["localId"] = rt.localId;
+            placeholderJson["parentId"] = 0;  // Artboard child (no parent info available)
+            placeholderJson["properties"] = json::object();
+            placeholderJson["properties"]["name"] = "__runtime_target_" + std::to_string(rt.localId);
+            placeholderJson["__runtime_placeholder__"] = true;  // Mark as placeholder
+            
+            typeCounts[2]++;
+            artboardJson["objects"].push_back(placeholderJson);
         }
         
         // Add LinearAnimation objects and their children (KeyedObject, KeyFrames) to objects[]
