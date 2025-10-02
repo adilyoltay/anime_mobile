@@ -461,6 +461,8 @@ int main(int argc, char* argv[]) {
             json smJson;
             smJson["typeKey"] = sm->coreType();
             smJson["typeName"] = getTypeName(sm->coreType());
+            smJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for StateMachine
+            smJson["parentId"] = 0;  // StateMachines are children of Artboard
             smJson["properties"] = json::object();
             smJson["properties"]["name"] = sm->name();
             artboardJson["objects"].push_back(smJson);
