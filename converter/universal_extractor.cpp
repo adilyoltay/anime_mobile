@@ -426,39 +426,56 @@ int main(int argc, char* argv[]) {
                                 kfJson["properties"]["value"] = kfi->value();
                             }
                             
-                            // CRITICAL FIX: Export interpolatorId (property key 69) for InterpolatingKeyFrame
+                            // Export interpolator if present (MUST come BEFORE KeyFrame export for ID mapping)
+                            // CRITICAL FIX: Build runtime ID → localId mapping for interpolatorId references
                             if (auto* ikf = dynamic_cast<const InterpolatingKeyFrame*>(kf)) {
-                                uint32_t interpId = ikf->interpolatorId();
-                                if (interpId != static_cast<uint32_t>(-1)) {
-                                    // Store the interpolatorId - will be used in post-processing to assign localId to interpolators
-                                    kfJson["properties"]["interpolatorId"] = interpId;
+                                if (auto* interpolator = ikf->interpolator()) {
+                                    uint32_t runtimeInterpId = ikf->interpolatorId();
+                                    
+                                    // Check if we've already exported this interpolator (shared across keyframes)
+                                    if (coreIdToLocalId.find(runtimeInterpId) == coreIdToLocalId.end()) {
+                                        // First time seeing this interpolator - export it
+                                        json interpJson;
+                                        interpJson["typeKey"] = interpolator->coreType();
+                                        interpJson["typeName"] = getTypeName(interpolator->coreType());
+                                        uint32_t interpLocalId = nextLocalId++;
+                                        interpJson["localId"] = interpLocalId;
+                                        interpJson["parentId"] = 0;  // Interpolators are top-level in artboard
+                                        interpJson["properties"] = json::object();
+                                        
+                                        // Export interpolator properties (x1, y1, x2, y2 for cubic)
+                                        if (auto* cubicInterp = dynamic_cast<const CubicEaseInterpolator*>(interpolator)) {
+                                            interpJson["properties"]["x1"] = cubicInterp->x1();
+                                            interpJson["properties"]["y1"] = cubicInterp->y1();
+                                            interpJson["properties"]["x2"] = cubicInterp->x2();
+                                            interpJson["properties"]["y2"] = cubicInterp->y2();
+                                        }
+                                        
+                                        artboardJson["objects"].push_back(interpJson);
+                                        
+                                        // CRITICAL: Map runtime ID → JSON localId for KeyFrame references
+                                        coreIdToLocalId[runtimeInterpId] = interpLocalId;
+                                    }
+                                }
+                            }
+                            
+                            // Export KeyFrame with remapped interpolatorId (property key 69)
+                            if (auto* ikf = dynamic_cast<const InterpolatingKeyFrame*>(kf)) {
+                                uint32_t runtimeInterpId = ikf->interpolatorId();
+                                if (runtimeInterpId != static_cast<uint32_t>(-1)) {
+                                    // Remap runtime ID → JSON localId (same as KeyedObject.objectId pattern)
+                                    auto idIt = coreIdToLocalId.find(runtimeInterpId);
+                                    if (idIt != coreIdToLocalId.end()) {
+                                        kfJson["properties"]["interpolatorId"] = idIt->second; // Use JSON localId
+                                    } else {
+                                        std::cerr << "⚠️  WARNING: interpolatorId " << runtimeInterpId 
+                                                  << " not in coreIdToLocalId (shouldn't happen!)" << std::endl;
+                                        kfJson["properties"]["interpolatorId"] = runtimeInterpId; // Fallback
+                                    }
                                 }
                             }
                             
                             artboardJson["objects"].push_back(kfJson);
-                            
-                            // Export interpolator if present (follows KeyFrame in file order)
-                            // CRITICAL FIX: Assign localId to interpolators so KeyFrames can reference them
-                            if (auto* ikf = dynamic_cast<const InterpolatingKeyFrame*>(kf)) {
-                                if (auto* interpolator = ikf->interpolator()) {
-                                    json interpJson;
-                                    interpJson["typeKey"] = interpolator->coreType();
-                                    interpJson["typeName"] = getTypeName(interpolator->coreType());
-                                    interpJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId
-                                    interpJson["parentId"] = 0;  // Interpolators are top-level in artboard
-                                    interpJson["properties"] = json::object();
-                                    
-                                    // Export interpolator properties (x1, y1, x2, y2 for cubic)
-                                    if (auto* cubicInterp = dynamic_cast<const CubicEaseInterpolator*>(interpolator)) {
-                                        interpJson["properties"]["x1"] = cubicInterp->x1();
-                                        interpJson["properties"]["y1"] = cubicInterp->y1();
-                                        interpJson["properties"]["x2"] = cubicInterp->x2();
-                                        interpJson["properties"]["y2"] = cubicInterp->y2();
-                                    }
-                                    
-                                    artboardJson["objects"].push_back(interpJson);
-                                }
-                            }
                         }
                     }
                 }
