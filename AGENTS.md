@@ -225,6 +225,44 @@ python3 converter/analyze_riv.py <out.riv>
   - **Remap**: targetId remap success: 1, fail: 0 ✅
   - **Documentation**: `riv_structure.md:87-103` - Constraint properties documented
   - **Note**: Object[30] NULL persists (unrelated to targetId - runtime constraint logic issue)
+- **PR-ORPHAN-SM (COMPLETE - Oct 2, 2024)**:
+  - **Problem**: StateMachine objects orphaned in extractor (no localId/parentId)
+  - **Root Cause**: Extractor skipped localId assignment for StateMachine objects
+  - **Implementation**:
+    - File: `converter/universal_extractor.cpp:464-465`
+    - Added: `smJson["localId"] = nextLocalId++;` (assign unique ID)
+    - Added: `smJson["parentId"] = 0;` (SM is child of artboard)
+  - **Result**: ✅ FULL ROUND-TRIP SUCCESS - All production files passed
+  - **Test Results**:
+    - rectangle.riv (16 objects): ✅ 7-step round-trip passed
+    - bee_baby.riv (1,142 objects): ✅ 7-step round-trip passed
+    - demo-casino-slots.riv (17,367 objects): ✅ 7-step round-trip passed
+  - **7-Step Validation**: Extract → Validate → Convert → Import → Extract → Convert → Import
+  - **Keyed Data**: 100% preservation (1,529 keyed objects in Casino Slots)
+  - **Documentation**: `ROUND_TRIP_SUCCESS_REPORT.md`
+- **PR-INTERPOLATORID (COMPLETE - Oct 2, 2024)**:
+  - **Problem**: Interpolator objects growing with each round-trip cycle
+  - **Root Cause**: Missing interpolatorId (property key 69) in KeyFrame export/import
+  - **Impact**: 370 → 489 → 528 interpolators (+42.7% growth per cycle)
+  - **Implementation - Extractor**:
+    - File: `converter/universal_extractor.cpp:429-435`
+    - Export interpolatorId property from InterpolatingKeyFrame objects
+    - Assign localId to interpolator objects (was missing)
+    - Set parentId=0 for interpolators (top-level in artboard)
+  - **Implementation - Builder**:
+    - File: `converter/src/universal_builder.cpp:281-285`
+    - Skip interpolatorId in property wiring (defer to PASS3)
+    - File: `converter/src/universal_builder.cpp:1263-1277`
+    - Collect interpolatorId in deferredComponentRefs
+    - File: `converter/src/universal_builder.cpp:1463-1510`
+    - Remap interpolatorId in PASS3 (localId → runtime component ID)
+  - **Result**: ✅ ROUND-TRIP STABILITY ACHIEVED
+  - **Test Results**:
+    - CubicInterpolator (28): 315 → 315 → 315 (0% growth) ✅
+    - Interpolator (138): 55 → 55 → 55 (0% growth) ✅
+    - Object count: C4 = C6 = 375 (STABLE) ✅
+    - File size: 8,879 bytes (STABLE) ✅
+  - **Documentation**: `ROUNDTRIP_INSTABILITY_ROOT_CAUSE.md`
 - **Next Steps** (Optional):
   - TrimPath-Compat: Investigate and fix TrimPath runtime requirements
   - StateMachine: Re-enable if needed (OMIT_STATE_MACHINE=false)
