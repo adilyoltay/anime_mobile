@@ -4944,6 +4944,9 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/data_bind/data_values/data_value_number.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/dependency_helper.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/dirtyable.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/draw_rules.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/draw_target.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/draw_target_placement.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/drawable.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/drawable_flag.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/enum_bitset.hpp
@@ -4999,6 +5002,8 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/data_bind/converters/data_converter_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/data_bind/data_bind_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/data_bind/data_bind_context_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/draw_rules_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/draw_target_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/drawable_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/event_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/layout_component_base.hpp

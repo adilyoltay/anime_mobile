@@ -1,0 +1,57 @@
+{
+  "artboards": [
+    {
+      "name": "Test",
+      "width": 500,
+      "height": 500,
+      "clip": true,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "typeName": "Artboard"
+        },
+        {
+          "typeKey": 3,
+          "localId": 1,
+          "parentId": 0,
+          "typeName": "Shape",
+          "properties": {
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 2,
+          "parentId": 1,
+          "typeName": "Rectangle",
+          "properties": {
+            "width": 200,
+            "height": 200,
+            "x": -100,
+            "y": -100
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 3,
+          "parentId": 1,
+          "typeName": "Fill",
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 4,
+          "parentId": 3,
+          "typeName": "SolidColor",
+          "properties": {
+            "color": "#FF0000"
+          }
+        }
+      ]
+    }
+  ]
+}

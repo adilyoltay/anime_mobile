@@ -15,6 +15,12 @@
 - `converter/src/serializer.cpp`: Core nesnelerini `.riv` byte dizisine ceviren katman.
 - `converter/analyze_riv.py`: Uretilen dosyalarin header/stream dogrulamasini yapan araci.
 
+## 2.1 Zorunlu SDK Uyumlulugu
+- Tum gelistirme kararlarinin Rive runtime SDK'nin guncel tanimlariyla (typeKey, property key, field tipi, varsayilan deger) bire bir uyumlu olmasi ZORUNLUDUR.
+- Yeni bir anahtar/ozellik eklenmeden once `include/rive/generated/` altindaki ilgili *_base.hpp dosyasi ile `core_registry.hpp` kayitlarina bakilarak dogrulama yapilacak.
+- Harici belgelerden gelen gecici haritalar veya varsayimlar kesinlikle kullanilmayacak; SDK tarafinda karsiligi yoksa ozellik eklenmeyecek.
+- Uyumsuzluk tespit edilirse PR geri cekilir, tesbit eden ajan bunu raporlamakla yukumludur.
+
 ## 3. Build ve Test Rutini
 ```
 cmake -S . -B build_converter

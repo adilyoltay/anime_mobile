@@ -205,7 +205,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "linkCornerRadius") builder.set(obj, rive::RectangleBase::linkCornerRadiusPropertyKey, value.get<bool>());
     
     // Path
-    else if (key == "isClosed") builder.set(obj, 120, value.get<bool>());
+    else if (key == "isClosed") builder.set(obj, 32, value.get<bool>());  // PointsCommonPathBase::isClosedPropertyKey
     else if (key == "pathFlags") builder.set(obj, 128, value.get<uint32_t>());
     
     // Vertices
@@ -410,9 +410,7 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[121] = rive::CoreUintType::id;   // drawTargetIdPropertyKey
     
     // Path
-    // Note: Property 120 shared by DrawTarget.placementValue and PointsPath.isClosed
-    // This is OK - different object types use same key for different purposes
-    typeMap[120] = rive::CoreBoolType::id; // isClosed (PointsPath)
+    typeMap[32] = rive::CoreBoolType::id;  // isClosed (PointsCommonPathBase::isClosedPropertyKey)
     typeMap[128] = rive::CoreUintType::id; // pathFlags
 
     // Drawable defaults
@@ -1184,8 +1182,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
             
-            // PR-DRAWTARGET: DrawTarget properties
-            if (typeKey == 48) { // DrawTarget
+            // PR-DRAWTARGET: DrawTarget properties (read directly from JSON)
+            if (typeKey == 48 && objJson.contains("properties")) { // DrawTarget
+                const auto& props = objJson["properties"];
                 if (props.contains("drawableId")) {
                     uint32_t drawableId = props["drawableId"].get<uint32_t>();
                     // Defer for PASS 3 remapping (needs component ID translation)
@@ -1197,8 +1196,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
             
-            // PR-DRAWTARGET: DrawRules properties
-            if (typeKey == 49) { // DrawRules
+            // PR-DRAWTARGET: DrawRules properties (read directly from JSON)
+            if (typeKey == 49 && objJson.contains("properties")) { // DrawRules
+                const auto& props = objJson["properties"];
                 if (props.contains("drawTargetId")) {
                     uint32_t targetId = props["drawTargetId"].get<uint32_t>();
                     // Defer for PASS 3 remapping
