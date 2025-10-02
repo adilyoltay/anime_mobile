@@ -111,11 +111,11 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 
 ---
 
-### 🔄 PR-KEYED-ORDER (IN PROGRESS)
+### ✅ PR-KEYED-ORDER (COMPLETED)
 **Branch:** `feat/null-objects-typekey-trace`  
-**Status:** 🔄 Implementation in progress  
-**Priority:** P1 - High  
-**Duration:** 2-3 hours (estimated)  
+**Status:** ✅ COMPLETED - All P0/P2 reviews addressed  
+**Priority:** P0 - Critical  
+**Duration:** 3 hours  
 
 **Objective:** Fix structural hierarchy serialization order (parent-first guarantee)
 
@@ -135,6 +135,23 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 **Conclusion:** The majority of NULLs stem from **extractor bugs** (incorrect parentId assignments). Converter-side fixes can only address a small subset. Recommend fixing extractor's parent assignment logic.
 
 **UPDATE - FIXED:** Extractor was missing localId assignment for KeyedObject/KeyedProperty/KeyFrame, causing builder to skip them (localId=null → missing in mapping). After fix: **0 NULL objects, round-trip SUCCESS!**
+
+**Final Commits (9 total):**
+1. `39fa92a8` - Multi-artboard NULL detection fix
+2. `835571a9` - Verbose import diagnostics
+3. `c2be8bc4` - `<cstdlib>` include fix
+4. `ae603091` - Parent-first topological sort (converter)
+5. `8e3c34b3` - Extractor Shape fallback for orphan paints
+6. `22f8d7b2` - **CRITICAL: Keyed animation localId assignment** ⭐
+7. `7b539dac` - **P0: Synthetic Shape reuse for geometry+paints** ⭐
+8. `4354b02e` - **P0: Remove bogus keyed animation parentId** ⭐
+9. `e3b36579` - **P2: Accurate CI test count reporting** ⭐
+
+**Review Status:**
+- ✅ All P0 reviews addressed
+- ✅ All P2 reviews addressed
+- ✅ Round-trip tests: SUCCESS (0 NULL objects)
+- ✅ Ready for merge
 
 **Analysis Required:**
 1. Review `universal_builder.cpp` keyed types order:
