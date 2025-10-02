@@ -229,6 +229,7 @@ int main(int argc, char* argv[]) {
         std::map<uint16_t, int> typeCounts;
         std::map<Component*, uint32_t> compToLocalId; // Component → localId mapping
         std::map<uint32_t, uint32_t> coreIdToLocalId; // Runtime Core ID → localId (for KeyedObject.objectId)
+        std::map<Core*, uint32_t> objPtrToLocalId; // Object pointer → localId (for runtime objects with ID=0)
         uint32_t nextLocalId = 0;
         
         // First pass: Assign localIds and build Core ID mapping
@@ -249,9 +250,11 @@ int main(int argc, char* argv[]) {
             
             if (obj->is<Artboard>()) {
                 coreIdToLocalId[runtimeCoreId] = 0;
+                objPtrToLocalId[obj] = 0;  // Track artboard by pointer too
                 nextLocalId = 1;
             } else {
                 coreIdToLocalId[runtimeCoreId] = nextLocalId;
+                objPtrToLocalId[obj] = nextLocalId;  // Track all file objects by pointer
                 nextLocalId++;
             }
             
@@ -285,8 +288,17 @@ int main(int argc, char* argv[]) {
         std::function<void(Core*)> resolveWithParents = [&](Core* obj) {
             if (!obj) return;
             
+            // Check if already resolved via pointer (runtime objects may have ID=0)
+            if (objPtrToLocalId.count(obj)) return;
+            
             uint32_t runtimeId = artboard->idOf(obj);
-            if (coreIdToLocalId.count(runtimeId)) return;  // Already resolved
+            
+            // CRITICAL: Detect runtime-created objects
+            // artboard->idOf() returns 0 for objects not in m_Objects
+            bool isRuntimeObject = (runtimeId == 0 && !obj->is<Artboard>());
+            
+            // If has valid ID and already mapped, skip
+            if (!isRuntimeObject && coreIdToLocalId.count(runtimeId)) return;
             
             // CRITICAL: Resolve parent FIRST (recursive)
             if (auto* comp = dynamic_cast<Component*>(obj)) {
@@ -297,7 +309,12 @@ int main(int argc, char* argv[]) {
             
             // Now resolve this object (parent already has localId)
             uint32_t localId = nextLocalId++;
-            coreIdToLocalId[runtimeId] = localId;
+            
+            // Track via both runtime ID and pointer
+            if (!isRuntimeObject) {
+                coreIdToLocalId[runtimeId] = localId;
+            }
+            objPtrToLocalId[obj] = localId;  // Always track by pointer
             resolvedObjects.push_back(obj);
             
             // Track Component* if applicable
@@ -508,25 +525,23 @@ int main(int argc, char* argv[]) {
             objJson["typeKey"] = tk;
             objJson["typeName"] = getTypeName(tk);
             
-            // Get localId from coreIdToLocalId mapping
-            uint32_t runtimeId = artboard->idOf(obj);
-            auto idIt = coreIdToLocalId.find(runtimeId);
-            if (idIt != coreIdToLocalId.end()) {
-                objJson["localId"] = idIt->second;
+            // Get localId from pointer mapping (runtime objects have ID=0)
+            auto ptrIt = objPtrToLocalId.find(obj);
+            if (ptrIt != objPtrToLocalId.end()) {
+                objJson["localId"] = ptrIt->second;
             }
             
             // Set parentId (parent chain already resolved recursively)
             if (auto* comp = dynamic_cast<Component*>(obj)) {
                 auto* parent = comp->parent();
                 if (parent) {
-                    uint32_t parentRuntimeId = artboard->idOf(parent);
-                    auto parentIt = coreIdToLocalId.find(parentRuntimeId);
-                    if (parentIt != coreIdToLocalId.end()) {
-                        objJson["parentId"] = parentIt->second;
+                    // Use pointer-based lookup (works for both file and runtime objects)
+                    auto parentPtrIt = objPtrToLocalId.find(static_cast<Core*>(parent));
+                    if (parentPtrIt != objPtrToLocalId.end()) {
+                        objJson["parentId"] = parentPtrIt->second;
                     } else {
                         // SHOULD NOT HAPPEN due to recursive resolution
-                        std::cerr << "⚠️  WARNING: Parent ID " << parentRuntimeId 
-                                  << " not found despite recursive resolution!" << std::endl;
+                        std::cerr << "⚠️  WARNING: Parent pointer not found despite recursive resolution!" << std::endl;
                         objJson["parentId"] = 0;  // Fallback
                     }
                 } else {
