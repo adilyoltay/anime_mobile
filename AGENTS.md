@@ -269,16 +269,31 @@ python3 converter/analyze_riv.py <out.riv>
     - interpolatorId remap: 333/333 success (100%) ✅
     - Shared interpolators: localId=240 shared by 278 KeyFrames ✅
   - **Documentation**: `ROUNDTRIP_INSTABILITY_ROOT_CAUSE.md`, `FINAL_ROUNDTRIP_VALIDATION.md`
+- **PR-KEYED-DATA-EXPORT (PLANNED - Oct 2, 2024)**:
+  - **Problem**: Multiple round-trips lose keyed data (KeyedObject, KeyedProperty, KeyFrame)
+  - **Root Cause**: Extractor uses artboard->objects() which only returns file-loaded components (8)
+  - **Impact**: RT1 creates 600 objects but RT1→JSON exports only 8 components → orphaned keyed data
+  - **Solution**: Replace with component graph traversal to export ALL components (285+)
+  - **Approach**: `collectAllComponents()` via BFS traversal of component hierarchy
+  - **Status**: 🔴 NOT STARTED
+  - **Priority**: P1 (High)
+  - **Estimated Effort**: 5 days
+  - **Success Metrics**:
+    - C3 components: 8 → 285+ ✓
+    - C5 keyed data: 0 → 475+ ✓
+    - objectId remap: 2% → 100% ✓
+    - Round-trip convergence: 3 cycles ✓
+  - **Documentation**: `docs/PR_PLAN_KEYED_DATA_EXPORT.md`, `docs/PR_KEYED_DATA_QUICKREF.md`
 - **Next Steps** (Optional):
   - TrimPath-Compat: Investigate and fix TrimPath runtime requirements
   - StateMachine: Re-enable if needed (OMIT_STATE_MACHINE=false)
-  - Extractor keyed round-trip: Fix segfault
 
 ## 13. Acik Gorevler - Guncel Liste
 
 **📋 Detayli liste:** `OPEN_TASKS_PRIORITY.md`
 
 ### Yuksek Oncelik
+- **PR-KEYED-DATA-EXPORT**: Component graph traversal for full keyed data preservation (P1)
 - **Constraint targetId**: ✅ TAMAMLANDI (Full round-trip with targetId export/import/remap)
 - **TrimPath-Compat**: Runtime uyumluluğunu çöz ve yeniden etkinleştir
 
