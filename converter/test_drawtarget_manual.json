@@ -1,0 +1,70 @@
+{
+  "artboards": [
+    {
+      "name": "Test DrawTarget",
+      "width": 500,
+      "height": 500,
+      "objects": [
+        {
+          "typeKey": 1,
+          "typeName": "Artboard",
+          "localId": 0,
+          "properties": {
+            "name": "Test DrawTarget",
+            "width": 500,
+            "height": 500
+          }
+        },
+        {
+          "typeKey": 3,
+          "typeName": "Shape",
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "Rectangle",
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 7,
+          "typeName": "Rectangle",
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "width": 200,
+            "height": 100
+          }
+        },
+        {
+          "typeKey": 20,
+          "typeName": "Fill",
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 18,
+          "typeName": "SolidColor",
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "color": "#FF5733"
+          }
+        },
+        {
+          "typeKey": 48,
+          "typeName": "DrawTarget",
+          "localId": 5,
+          "parentId": 0,
+          "properties": {
+            "drawableId": 1,
+            "placementValue": 0
+          }
+        }
+      ]
+    }
+  ]
+}

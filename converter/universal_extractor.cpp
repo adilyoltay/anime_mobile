@@ -54,6 +54,8 @@
 #include "rive/bones/bone.hpp"
 #include "rive/bones/root_bone.hpp"
 #include "rive/constraints/follow_path_constraint.hpp"
+#include "rive/draw_target.hpp"
+#include "rive/draw_rules.hpp"
 #include "utils/no_op_factory.hpp"
 
 using json = nlohmann::json;
@@ -106,6 +108,8 @@ const char* getTypeName(uint16_t typeKey) {
         case 165: return "FollowPathConstraint";
         case 420: return "LayoutComponentStyle";
         case 533: return "Feather";
+        case 48: return "DrawTarget";
+        case 49: return "DrawRules";
         default: return "Unknown";
     }
 }
@@ -303,6 +307,26 @@ int main(int argc, char* argv[]) {
             if (auto* rootBone = dynamic_cast<RootBone*>(obj)) {
                 objJson["properties"]["x"] = rootBone->x();
                 objJson["properties"]["y"] = rootBone->y();
+            }
+            
+            // DrawTarget (typeKey 48) - PR-DRAWTARGET
+            if (auto* drawTarget = dynamic_cast<DrawTarget*>(obj)) {
+                objJson["properties"]["drawableId"] = drawTarget->drawableId();        // Property 119
+                objJson["properties"]["placementValue"] = drawTarget->placementValue(); // Property 120
+                if (auto* comp = dynamic_cast<Component*>(obj)) {
+                    std::cout << "  ✅ [DrawTarget] localId=" << compToLocalId[comp]
+                              << " drawableId=" << drawTarget->drawableId()
+                              << " placement=" << drawTarget->placementValue() << std::endl;
+                }
+            }
+            
+            // DrawRules (typeKey 49) - PR-DRAWTARGET
+            if (auto* drawRules = dynamic_cast<DrawRules*>(obj)) {
+                objJson["properties"]["drawTargetId"] = drawRules->drawTargetId();  // Property 121
+                if (auto* comp = dynamic_cast<Component*>(obj)) {
+                    std::cout << "  ✅ [DrawRules] localId=" << compToLocalId[comp]
+                              << " drawTargetId=" << drawRules->drawTargetId() << std::endl;
+                }
             }
             
             // Constraints - FollowPathConstraint

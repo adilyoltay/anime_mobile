@@ -8,14 +8,12 @@
 
 ## 2. Referans Belgeler
 - **📚 `docs/`**: Detayli dokümanlar klasörü (hierarchical parser, implementation guides)
-  - `docs/HIERARCHICAL_COMPLETE.md`: Hierarchical parser production dokumanı
-  - `docs/NEXT_SESSION_HIERARCHICAL.md`: Implementation guide ve referans
 - `converter/src/riv_structure.md`: Binary format ve serializer davranisinin ayrintili ozeti. Ilk once burayi inceleyin.
 - `converter/src/core_builder.cpp`: JSON verisinden runtime core nesnelerini olusturan katman.
 - `converter/src/serializer.cpp`: Core nesnelerini `.riv` byte dizisine ceviren katman.
 - `converter/analyze_riv.py`: Uretilen dosyalarin header/stream dogrulamasini yapan araci.
 
-## 2.1 Zorunlu SDK Uyumlulugu
+## 2.1 Zorunlu SDK Uyumlulugu (En önemli kural !)
 - Tum gelistirme kararlarinin Rive runtime SDK'nin guncel tanimlariyla (typeKey, property key, field tipi, varsayilan deger) bire bir uyumlu olmasi ZORUNLUDUR.
 - Yeni bir anahtar/ozellik eklenmeden once `include/rive/generated/` altindaki ilgili *_base.hpp dosyasi ile `core_registry.hpp` kayitlarina bakilarak dogrulama yapilacak.
 - Harici belgelerden gelen gecici haritalar veya varsayimlar kesinlikle kullanilmayacak; SDK tarafinda karsiligi yoksa ozellik eklenmeyecek.
@@ -229,24 +227,6 @@ python3 converter/analyze_riv.py <out.riv>
   - TrimPath-Compat: Investigate and fix TrimPath runtime requirements
   - StateMachine: Re-enable if needed (OMIT_STATE_MACHINE=false)
   - Extractor keyed round-trip: Fix segfault
-
-## 13. Acik Gorevler - Guncel Liste
-
-**📋 Detayli liste:** `OPEN_TASKS_PRIORITY.md`
-
-### Yuksek Oncelik
-- **Constraint targetId**: ✅ TAMAMLANDI (Full round-trip with targetId export/import/remap)
-- **TrimPath-Compat**: Runtime uyumluluğunu çöz ve yeniden etkinleştir
-
-### Orta Oncelik
-- **CI/CD Enhancement**: GitHub Actions integration, coverage reporting
-- **Type Coverage Report**: Implemented vs total types tracking
-
-### Dusuk Oncelik
-- StateMachine keyed data re-enable (diagnostic flag kaldır)
-- Extractor keyed round-trip segfault fix
-- TransitionCondition implementation (%1 usage)
-- Documentation consolidation (eski raporları arşivle)
 
 ## 14. Multiple Artboards Kontrol Listesi
 - [x] JSON format "artboards" array kullan.
