@@ -105,6 +105,17 @@ static Core* readRuntimeObject(BinaryReader& reader,
 {
     auto coreObjectKey = reader.readVarUintAs<int>();
     auto object = CoreRegistry::makeCoreInstance(coreObjectKey);
+    
+    // Verbose logging for debugging NULL objects
+    static bool verbose = std::getenv("RIVE_IMPORT_VERBOSE") != nullptr;
+    if (verbose) {
+        if (object == nullptr) {
+            fprintf(stderr, "[VERBOSE] TypeKey %d: CoreRegistry::makeCoreInstance returned nullptr (unregistered type)\n", coreObjectKey);
+        } else {
+            fprintf(stderr, "[VERBOSE] TypeKey %d: Created %s\n", coreObjectKey, object->coreType() == coreObjectKey ? "OK" : "MISMATCH");
+        }
+    }
+    
     while (true)
     {
         auto propertyKey = reader.readVarUintAs<uint16_t>();
@@ -116,11 +127,35 @@ static Core* readRuntimeObject(BinaryReader& reader,
 
         if (reader.hasError())
         {
+            if (verbose)
+            {
+                fprintf(stderr,
+                        "[VERBOSE] TypeKey %d: Reader error while reading property %u\n",
+                        coreObjectKey,
+                        propertyKey);
+            }
             delete object;
             return nullptr;
         }
         if (object == nullptr || !object->deserialize(propertyKey, reader))
         {
+            if (verbose)
+            {
+                if (object == nullptr)
+                {
+                    fprintf(stderr,
+                            "[VERBOSE] TypeKey %d: object is nullptr before property %u, attempting field-type fallback\n",
+                            coreObjectKey,
+                            propertyKey);
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "[VERBOSE] TypeKey %d: deserialize(property %u) returned false, attempting field-type fallback\n",
+                            coreObjectKey,
+                            propertyKey);
+                }
+            }
             // We have an unknown object or property, first see if core knows
             // the property type.
             int id = CoreRegistry::propertyFieldId(propertyKey);
@@ -132,6 +167,13 @@ static Core* readRuntimeObject(BinaryReader& reader,
 
             if (id == -1)
             {
+                if (verbose)
+                {
+                    fprintf(stderr,
+                            "[VERBOSE] TypeKey %d: Unknown property key %u (not in registry or ToC) → discarding object\n",
+                            coreObjectKey,
+                            propertyKey);
+                }
                 // Still couldn't find it, give up.
                 fprintf(stderr,
                         "Unknown property key %d, missing from property ToC.\n",
@@ -140,6 +182,14 @@ static Core* readRuntimeObject(BinaryReader& reader,
                 return nullptr;
             }
 
+            if (verbose)
+            {
+                fprintf(stderr,
+                        "[VERBOSE] TypeKey %d: Falling back to field id %d for property %u\n",
+                        coreObjectKey,
+                        id,
+                        propertyKey);
+            }
             switch (id)
             {
                 case CoreUintType::id:
@@ -159,6 +209,12 @@ static Core* readRuntimeObject(BinaryReader& reader,
     }
     if (object == nullptr)
     {
+        if (verbose)
+        {
+            fprintf(stderr,
+                    "[VERBOSE] TypeKey %d: object is nullptr after properties; returning nullptr\n",
+                    coreObjectKey);
+        }
         // fprintf(stderr,
         //         "File contains an unknown object with coreType " RIVE_FMT_U64
         //         ", which " "this runtime doesn't understand.\n",

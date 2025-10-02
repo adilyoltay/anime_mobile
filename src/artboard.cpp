@@ -109,6 +109,8 @@ static bool canContinue(StatusCode code)
 
 bool Artboard::validateObjects()
 {
+    // Verbose diagnostics: log invalid components that will be nulled out
+    static bool verbose = std::getenv("RIVE_IMPORT_VERBOSE") != nullptr;
     auto size = m_Objects.size();
     std::vector<bool> valid(size);
 
@@ -141,6 +143,15 @@ bool Artboard::validateObjects()
                 if (valid[i])
                 {
                     continue;
+                }
+                if (verbose)
+                {
+                    auto obj = m_Objects[i];
+                    uint16_t t = obj ? obj->coreType() : 0;
+                    fprintf(stderr,
+                            "[VERBOSE] INVALID component at m_Objects[%zu] typeKey=%u → deleting (NULL in artboard)\n",
+                            i,
+                            t);
                 }
                 delete m_Objects[i];
                 m_Objects[i] = nullptr;
