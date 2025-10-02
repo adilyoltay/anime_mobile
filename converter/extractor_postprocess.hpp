@@ -39,15 +39,14 @@ inline void injectRequiredDefaults(json& objJson, DiagnosticCounters& diag)
             if (!props.contains("modeValue")) { props["modeValue"] = 0; injected = true; }
             break;
             
-        case 49: // Feather (typeKey 533 is old, 49 is correct)
-        case 533: // Feather (legacy)
+        case 533: // Feather (correct typeKey per SDK)
             if (!props.contains("strength")) { props["strength"] = 0.0; injected = true; }
             if (!props.contains("offsetX")) { props["offsetX"] = 0.0; injected = true; }
             if (!props.contains("offsetY")) { props["offsetY"] = 0.0; injected = true; }
             if (!props.contains("inner")) { props["inner"] = false; injected = true; }
             break;
             
-        case 48: // Dash
+        case 507: // Dash (correct typeKey per SDK)
             if (!props.contains("length")) { props["length"] = 0.0; injected = true; }
             if (!props.contains("lengthIsPercentage")) { props["lengthIsPercentage"] = false; injected = true; }
             break;
@@ -56,6 +55,8 @@ inline void injectRequiredDefaults(json& objJson, DiagnosticCounters& diag)
             if (!props.contains("offset")) { props["offset"] = 0.0; injected = true; }
             if (!props.contains("offsetIsPercentage")) { props["offsetIsPercentage"] = false; injected = true; }
             break;
+            
+        // PR-DRAWTARGET: typeKey 48 (DrawTarget) and 49 (DrawRules) - no default injection needed
             
         case 19: // GradientStop
             if (!props.contains("colorValue")) { props["colorValue"] = 4278190080u; injected = true; } // 0xFF000000

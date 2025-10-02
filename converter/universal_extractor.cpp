@@ -311,21 +311,45 @@ int main(int argc, char* argv[]) {
             
             // DrawTarget (typeKey 48) - PR-DRAWTARGET
             if (auto* drawTarget = dynamic_cast<DrawTarget*>(obj)) {
-                objJson["properties"]["drawableId"] = drawTarget->drawableId();        // Property 119
+                uint32_t runtimeDrawableId = drawTarget->drawableId();
+                uint32_t localDrawableId = runtimeDrawableId;  // Default: keep runtime ID
+                
+                // Remap runtime Core ID back to localId (same pattern as FollowPathConstraint.targetId)
+                auto it = coreIdToLocalId.find(runtimeDrawableId);
+                if (it != coreIdToLocalId.end()) {
+                    localDrawableId = it->second;
+                    objJson["properties"]["drawableId"] = localDrawableId;  // Property 119 (localId)
+                } else {
+                    objJson["properties"]["drawableId"] = runtimeDrawableId;  // Fallback: keep runtime ID
+                    std::cerr << "  ⚠️  DrawTarget drawableId not found in coreIdToLocalId: " << runtimeDrawableId << std::endl;
+                }
                 objJson["properties"]["placementValue"] = drawTarget->placementValue(); // Property 120
+                
                 if (auto* comp = dynamic_cast<Component*>(obj)) {
                     std::cout << "  ✅ [DrawTarget] localId=" << compToLocalId[comp]
-                              << " drawableId=" << drawTarget->drawableId()
+                              << " drawableId=" << localDrawableId
                               << " placement=" << drawTarget->placementValue() << std::endl;
                 }
             }
             
             // DrawRules (typeKey 49) - PR-DRAWTARGET
             if (auto* drawRules = dynamic_cast<DrawRules*>(obj)) {
-                objJson["properties"]["drawTargetId"] = drawRules->drawTargetId();  // Property 121
+                uint32_t runtimeTargetId = drawRules->drawTargetId();
+                uint32_t localTargetId = runtimeTargetId;  // Default: keep runtime ID
+                
+                // Remap runtime Core ID back to localId
+                auto it = coreIdToLocalId.find(runtimeTargetId);
+                if (it != coreIdToLocalId.end()) {
+                    localTargetId = it->second;
+                    objJson["properties"]["drawTargetId"] = localTargetId;  // Property 121 (localId)
+                } else {
+                    objJson["properties"]["drawTargetId"] = runtimeTargetId;  // Fallback: keep runtime ID
+                    std::cerr << "  ⚠️  DrawRules drawTargetId not found in coreIdToLocalId: " << runtimeTargetId << std::endl;
+                }
+                
                 if (auto* comp = dynamic_cast<Component*>(obj)) {
                     std::cout << "  ✅ [DrawRules] localId=" << compToLocalId[comp]
-                              << " drawTargetId=" << drawRules->drawTargetId() << std::endl;
+                              << " drawTargetId=" << localTargetId << std::endl;
                 }
             }
             
