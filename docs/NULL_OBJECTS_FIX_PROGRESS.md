@@ -111,13 +111,28 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 
 ---
 
-### 📝 PR-KEYED-ORDER (PLANNED)
-**Branch:** TBD  
-**Status:** 📝 Planned (blocked by PR-KEYED-TRACE)  
+### 🔄 PR-KEYED-ORDER (IN PROGRESS)
+**Branch:** `feat/null-objects-typekey-trace`  
+**Status:** 🔄 Implementation in progress  
 **Priority:** P1 - High  
 **Duration:** 2-3 hours (estimated)  
 
-**Objective:** Fix keyed animation data serialization order
+**Objective:** Fix structural hierarchy serialization order (parent-first guarantee)
+
+**Strategy:** Based on PR-KEYED-TRACE findings, the primary issue is structural hierarchy (Shape→Path→Vertices, Shape→Paints) rather than keyed animation data. Implementing parent-first topological sorting for all objects.
+
+**Changes Made:**
+1. ✅ Parent-first topological sort (multi-pass algorithm, sorts 806 objects in 1 pass)
+2. ✅ Synthetic Shape injection for Fill/Stroke with non-Shape parents
+3. ✅ Extended orphan paint fix to include Artboard-parented paints
+
+**Results:**
+- Before: 233 NULL objects (extractor output)
+- After: 230 NULL objects (3 fixed, 98.7% still failing)
+- **Root cause:** Input JSON has incorrect parent relationships (Fill→Artboard instead of Fill→Shape→Artboard)
+- Converter mitigations are insufficient for wholesale parent corrections
+
+**Conclusion:** The majority of NULLs stem from **extractor bugs** (incorrect parentId assignments). Converter-side fixes can only address a small subset. Recommend fixing extractor's parent assignment logic.
 
 **Analysis Required:**
 1. Review `universal_builder.cpp` keyed types order:

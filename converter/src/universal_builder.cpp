@@ -758,8 +758,54 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             return it != localIdToType.end() ? it->second : 0;
         };
 
-        // PASS 1: Create objects with accurate parent type info
-        std::cout << "  PASS 1: Creating objects with synthetic Shape injection (when needed)..." << std::endl;
+        // PASS 1: Create objects with parent-first topological ordering
+        std::cout << "  PASS 1: Sorting objects for parent-first emission..." << std::endl;
+        
+        // PR-KEYED-ORDER: Topological sort by parentId to ensure parents are created before children
+        std::vector<nlohmann::json> sortedObjects;
+        for (const auto& objJson : abJson["objects"]) {
+            sortedObjects.push_back(objJson);
+        }
+        
+        // Multi-pass sort: emit objects whose parents have already been emitted
+        std::unordered_set<uint32_t> emittedLocalIds;
+        emittedLocalIds.insert(0); // Artboard (parent of everything)
+        
+        std::vector<nlohmann::json> orderedObjects;
+        size_t lastSize = 0;
+        int pass = 0;
+        
+        while (!sortedObjects.empty() && sortedObjects.size() != lastSize && pass < 100) {
+            lastSize = sortedObjects.size();
+            std::vector<nlohmann::json> remaining;
+            
+            for (const auto& objJson : sortedObjects) {
+                uint32_t parentId = objJson.contains("parentId") ? objJson["parentId"].get<uint32_t>() : 0;
+                
+                // Emit if parent exists or this is artboard (typeKey 1)
+                if (objJson["typeKey"].get<uint16_t>() == 1 || emittedLocalIds.count(parentId) > 0) {
+                    orderedObjects.push_back(objJson);
+                    if (objJson.contains("localId")) {
+                        emittedLocalIds.insert(objJson["localId"].get<uint32_t>());
+                    }
+                } else {
+                    remaining.push_back(objJson);
+                }
+            }
+            
+            sortedObjects = remaining;
+            pass++;
+        }
+        
+        if (!sortedObjects.empty()) {
+            std::cerr << "  ⚠️  WARNING: " << sortedObjects.size() << " objects have forward/circular parent references (will emit anyway)" << std::endl;
+            for (const auto& obj : sortedObjects) {
+                orderedObjects.push_back(obj);
+            }
+        }
+        
+        std::cout << "  Topologically sorted " << orderedObjects.size() << " objects in " << pass << " passes" << std::endl;
+        std::cout << "  PASS 1B: Creating objects in parent-first order..." << std::endl;
         
         // PR2: Diagnostic counters for keyed data
         std::map<uint16_t, int> keyedInJson;
@@ -770,7 +816,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         bool skipKeyframeData = false; // Flag to cascade-skip KeyedProperty/KeyFrame after invalid KeyedObject
         CoreObject* lastKeyframe = nullptr; // Track last created InterpolatingKeyFrame for interpolatorId wiring
         
-        for (const auto& objJson : abJson["objects"]) {
+        for (const auto& objJson : orderedObjects) {
             uint16_t typeKey = objJson["typeKey"];
             
             // PR2: Count keyed types in JSON
@@ -935,8 +981,25 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 localId = objJson["localId"].get<uint32_t>();
             }
 
-            bool needsShapeContainer =
-                isParametricPathType(typeKey) && parentTypeFor(parentLocalId) != 3;
+            // PR-KEYED-ORDER: Inject Shape container for:
+            // 1. Parametric paths (Rectangle/Ellipse/etc) with non-Shape parent
+            // 2. Top-level paints (Fill/Stroke) with non-Shape parent
+            bool needsShapeContainer = false;
+            uint16_t pType = parentTypeFor(parentLocalId);
+            
+            if (isParametricPathType(typeKey) && pType != 3) {
+                needsShapeContainer = true;
+            } else if (isTopLevelPaint(typeKey) && parentLocalId != invalidParent) {
+                // For Fill/Stroke: check if parent is NOT Shape (3)
+                // Parent can be: Artboard (1), Node (2), or unknown types
+                if (pType != 3) {
+                    needsShapeContainer = true;
+                    std::cout << "  [auto] Paint typeKey=" << typeKey 
+                              << " localId=" << (localId.has_value() ? *localId : 0)
+                              << " parent=" << parentLocalId 
+                              << " (type=" << pType << ") → inject Shape" << std::endl;
+                }
+            }
 
             std::unordered_set<std::string> consumedKeys;
             if (needsShapeContainer) {
@@ -1330,8 +1393,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             {
                 uint16_t parentType = parentTypeFor(pending.parentLocalId);
                 
-                // If parent is NOT a Shape (typeKey 3) or Artboard (typeKey 1/0)
-                if (parentType != 0 && parentType != 1 && parentType != 3) {
+                // PR-KEYED-ORDER: If parent is NOT a Shape (typeKey 3), inject synthetic Shape
+                // This includes Artboard (1), Node (2), and any other non-Shape parent
+                if (parentType != 0 && parentType != 3) {
                     uint32_t originalParent = pending.parentLocalId;
                     uint32_t shapeLocalId;
                     
