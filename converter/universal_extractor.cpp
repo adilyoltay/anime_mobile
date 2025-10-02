@@ -231,6 +231,7 @@ int main(int argc, char* argv[]) {
         std::map<uint32_t, uint32_t> coreIdToLocalId; // Runtime Core ID → localId (for KeyedObject.objectId)
         std::map<Core*, uint32_t> objPtrToLocalId; // Object pointer → localId (for runtime objects with ID=0)
         std::map<Core*, uint32_t> objPtrToRuntimeId; // Synthetic runtime ID for runtime objects
+        std::map<const KeyedObject*, uint32_t> koToSyntheticId; // KeyedObject → synthetic target ID (for runtime targets)
         uint32_t nextLocalId = 0;
         uint32_t nextSyntheticId = 0x80000000; // Start synthetic IDs at 2^31 to avoid collision
         
@@ -266,24 +267,42 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        // PR-KEYED-DATA-EXPORT: APPROACH 3 - Keyed Data Hints
-        // Collect referenced component IDs from keyed data and resolve them
-        std::unordered_set<uint32_t> referencedIds;
+        // PR-KEYED-DATA-EXPORT: Assign synthetic IDs for runtime object targets
+        // Since resolve() doesn't work and KeyedObject doesn't expose target pointer,
+        // we create a unique synthetic ID per KeyedObject with objectId==0
+        int runtimeTargetCount = 0;
+        
         for (size_t i = 0; i < artboard->animationCount(); ++i) {
             auto* anim = artboard->animation(i);
             if (auto* la = dynamic_cast<LinearAnimation*>(anim)) {
                 for (size_t k = 0; k < la->numKeyedObjects(); ++k) {
                     auto* ko = la->getObject(k);
-                    if (ko) {
-                        referencedIds.insert(ko->objectId());
+                    if (ko && ko->objectId() == 0) {
+                        // This KeyedObject targets a runtime-created object
+                        // Assign a unique synthetic ID for its target
+                        uint32_t syntheticId = nextSyntheticId++;
+                        uint32_t localId = nextLocalId++;
+                        
+                        koToSyntheticId[ko] = syntheticId;
+                        coreIdToLocalId[syntheticId] = localId;
+                        
+                        runtimeTargetCount++;
                     }
                 }
             }
         }
         
+        if (runtimeTargetCount > 0) {
+            std::cout << "  Assigned " << runtimeTargetCount 
+                      << " synthetic IDs for runtime object targets" << std::endl;
+        }
+        
         // Resolve missing IDs with full parent chain
+        // NOTE: This logic is currently unused because artboard->resolve() doesn't work
+        // for runtime objects, but keeping it for potential future SDK improvements
         int resolvedCount = 0;
         std::vector<Core*> resolvedObjects;  // Track resolved objects for export
+        std::unordered_set<uint32_t> referencedIds;  // Empty for now (resolve doesn't work)
         
         // PR-KEYED-DATA-EXPORT: Recursive parent resolution helper
         // Ensures entire parent chain is resolved before child
@@ -602,19 +621,16 @@ int main(int argc, char* argv[]) {
                     
                     // Remap runtime Core ID to localId for rebuild
                     uint32_t runtimeCoreId = ko->objectId();
-                    
-                    // CRITICAL P0 FIX: For runtime objects, objectId() returns 0
-                    // Try to resolve the actual object and use synthetic ID if available
                     uint32_t effectiveId = runtimeCoreId;
+                    
+                    // CRITICAL P0 FIX: For runtime objects (objectId==0),
+                    // use per-KeyedObject synthetic ID since we can't access target pointer
                     if (runtimeCoreId == 0) {
-                        // Try to resolve object by ID
-                        auto* targetObj = artboard->resolve(runtimeCoreId);
-                        if (targetObj && !targetObj->is<Artboard>()) {
-                            // This is a runtime object, check for synthetic ID
-                            auto synIt = objPtrToRuntimeId.find(targetObj);
-                            if (synIt != objPtrToRuntimeId.end()) {
-                                effectiveId = synIt->second;  // Use synthetic ID
-                            }
+                        auto koIt = koToSyntheticId.find(ko);
+                        if (koIt != koToSyntheticId.end()) {
+                            effectiveId = koIt->second;  // Use KeyedObject-specific synthetic ID
+                        } else {
+                            std::cerr << "⚠️  ERROR: KeyedObject with objectId=0 has no synthetic ID!" << std::endl;
                         }
                     }
                     
