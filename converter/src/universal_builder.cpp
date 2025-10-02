@@ -921,19 +921,20 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
 
-            // PRE-CHECK: If this is a KeyedObject, verify its objectId target exists
-            // Otherwise skip it AND set flag to cascade-skip its children (KeyedProperty/KeyFrame)
+            // PR2: Relaxed pre-check - topological sort guarantees targets exist
+            // Only log warning for diagnostic purposes (e.g., TrimPath skip issues)
             if (typeKey == 25) { // KeyedObject
                 if (objJson.contains("properties") && objJson["properties"].contains("objectId")) {
                     uint32_t targetLocalId = objJson["properties"]["objectId"].get<uint32_t>();
                     auto it = localIdToBuilderObjectId.find(targetLocalId);
                     if (it == localIdToBuilderObjectId.end()) {
-                        std::cerr << "Cascade skip: KeyedObject targets missing localId=" << targetLocalId << std::endl;
-                        skipKeyframeData = true; // Flag to skip following KeyedProperty/KeyFrame children
-                        if (objJson.contains("localId")) {
-                            skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
-                        }
-                        continue; // Skip this KeyedObject
+                        // Topological sort should prevent this, but can happen if target was filtered
+                        std::cerr << "⚠️  WARNING: KeyedObject targets missing localId=" << targetLocalId 
+                                  << " (likely filtered object like TrimPath)" << std::endl;
+                        // PR2: Don't skip - let it proceed and fail gracefully if needed
+                        // Skipping causes cascade failures for all animation data
+                        // skipKeyframeData = true;
+                        // continue;
                     }
                 }
             }
