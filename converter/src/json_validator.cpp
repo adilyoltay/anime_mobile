@@ -252,6 +252,7 @@ void JSONValidator::printResults(const ValidationResult& result, bool verbose)
                 std::string typeName;
                 switch (typeKey) {
                     case 47: typeName = "TrimPath"; break;
+                    case 49: typeName = "Feather"; break;
                     case 533: typeName = "Feather"; break;
                     case 507: typeName = "Dash"; break;
                     case 506: typeName = "DashPath"; break;
