@@ -136,7 +136,7 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 
 **UPDATE - FIXED:** Extractor was missing localId assignment for KeyedObject/KeyedProperty/KeyFrame, causing builder to skip them (localId=null → missing in mapping). After fix: **0 NULL objects, round-trip SUCCESS!**
 
-**Final Commits (9 total):**
+**Final Commits (10 total):**
 1. `39fa92a8` - Multi-artboard NULL detection fix
 2. `835571a9` - Verbose import diagnostics
 3. `c2be8bc4` - `<cstdlib>` include fix
@@ -144,13 +144,22 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 5. `8e3c34b3` - Extractor Shape fallback for orphan paints
 6. `22f8d7b2` - **CRITICAL: Keyed animation localId assignment** ⭐
 7. `7b539dac` - **P0: Synthetic Shape reuse for geometry+paints** ⭐
-8. `4354b02e` - **P0: Remove bogus keyed animation parentId** ⭐
+8. `4354b02e` - ~~Remove keyed parentId~~ (reverted by #10)
 9. `e3b36579` - **P2: Accurate CI test count reporting** ⭐
+10. `ae4e70ec` - **P0: Restore parentId + skip setParent for keyed types** ⭐
+
+**Key Insight (Commit #10):**
+Keyed animation objects need `parentId=0` for TWO reasons:
+1. **Topological sort ordering:** Without parentId, they appear as roots and emit BEFORE animation targets → KeyedObject.objectId lookup fails → cascade skip strips animations
+2. **But NOT for Component hierarchy:** Animation graph managed separately by animation system
+
+Solution: Keep `parentId=0` in JSON BUT skip `builder.setParent()` for animation graph types in PASS2 (check `isAnimGraphType()` before setParent call).
 
 **Review Status:**
-- ✅ All P0 reviews addressed
+- ✅ All P0 reviews addressed (3 iterations)
 - ✅ All P2 reviews addressed
 - ✅ Round-trip tests: SUCCESS (0 NULL objects)
+- ✅ Animations load correctly
 - ✅ Ready for merge
 
 **Analysis Required:**
