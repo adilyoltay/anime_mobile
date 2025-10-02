@@ -1,5 +1,6 @@
 #include "serializer.hpp"
 #include "core_builder.hpp"
+#include "serializer_diagnostics.hpp"
 #include <iostream>
 
 #include "rive/component.hpp"
@@ -209,22 +210,38 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     buffer.reserve(16384); // Reserve 16KB for large files
     VectorBinaryWriter writer(&buffer);
 
+    SerializerDiagnostics diag;
+    if (diag.isEnabled())
+    {
+        diag.info("Starting RIV serialization (serialize_minimal_riv)");
+        diag.logCount("Objects", document.objects.size());
+        diag.logCount("Header keys", headerKeys.size());
+    }
+
     // File header
+    diag.beginChunk("HEADER", buffer.size());
     writer.write(reinterpret_cast<const uint8_t*>("RIVE"), 4);
     writer.writeVarUint(static_cast<uint32_t>(File::majorVersion));
     writer.writeVarUint(static_cast<uint32_t>(File::minorVersion));
     writer.writeVarUint(uint32_t{0}); // file id placeholder
+    diag.endChunk("HEADER", buffer.size());
 
+    // Table of Contents
+    diag.beginChunk("TOC", buffer.size(), headerKeys.size() * 2);  // ~2 bytes per key
     for (auto key : headerKeys)
     {
         writer.writeVarUint(static_cast<uint32_t>(key));
     }
     writer.writeVarUint(uint32_t{0});
+    diag.endChunk("TOC", buffer.size());
 
     // NOTE: No padding between ToC and bitmap
     // RuntimeHeader::read() expects bitmap to start immediately after 0 terminator
     // See include/rive/runtime_header.hpp:87-93 - readUint32() is called right after ToC loop
 
+    // Bitmap
+    diag.beginChunk("BITMAP", buffer.size());
+    diag.checkAlignment("Bitmap", buffer.size(), 4);
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);
     for (size_t index = 0; index < headerKeys.size(); ++index)
@@ -239,6 +256,11 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     {
         writer.write(value);
     }
+    diag.endChunk("BITMAP", buffer.size());
+
+    // Objects
+    diag.beginChunk("OBJECTS", buffer.size());
+    diag.logCount("Object count", document.objects.size());
 
     bool placeholderEmitted = false;  // PR1: Separate flags
     bool fontBytesEmitted = false;
@@ -440,6 +462,9 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
 
     // End object stream with terminator
     writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
+    diag.endChunk("OBJECTS", buffer.size());
+    
+    diag.printSummary();
     
     // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
     // This must come AFTER object stream terminator, as a separate chunk
@@ -529,22 +554,38 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     buffer.reserve(16384); // Reserve 16KB for large files
     VectorBinaryWriter writer(&buffer);
 
+    SerializerDiagnostics diag;
+    if (diag.isEnabled())
+    {
+        diag.info("Starting RIV serialization (serialize_core_document)");
+        diag.logCount("Objects", document.objects.size());
+        diag.logCount("Header keys", headerKeys.size());
+    }
+
     // File header
+    diag.beginChunk("HEADER", buffer.size());
     writer.write(reinterpret_cast<const uint8_t*>("RIVE"), 4);
     writer.writeVarUint(static_cast<uint32_t>(rive::File::majorVersion));
     writer.writeVarUint(static_cast<uint32_t>(rive::File::minorVersion));
     writer.writeVarUint(uint32_t{0}); // file id
+    diag.endChunk("HEADER", buffer.size());
 
+    // Table of Contents
+    diag.beginChunk("TOC", buffer.size(), headerKeys.size() * 2);
     for (auto key : headerKeys)
     {
         writer.writeVarUint(static_cast<uint32_t>(key));
     }
     writer.writeVarUint(uint32_t{0});
+    diag.endChunk("TOC", buffer.size());
 
     // NOTE: No padding between ToC and bitmap
     // RuntimeHeader::read() expects bitmap to start immediately after 0 terminator
     // See include/rive/runtime_header.hpp:87-93 - readUint32() is called right after ToC loop
 
+    // Bitmap
+    diag.beginChunk("BITMAP", buffer.size());
+    diag.checkAlignment("Bitmap", buffer.size(), 4);
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);
     for (size_t index = 0; index < headerKeys.size(); ++index)
@@ -559,6 +600,11 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     {
         writer.write(value);
     }
+    diag.endChunk("BITMAP", buffer.size());
+
+    // Objects
+    diag.beginChunk("OBJECTS", buffer.size());
+    diag.logCount("Object count", document.objects.size());
 
     bool placeholderEmitted = false;  // PR1: Separate flags
     bool fontBytesEmitted = false;
@@ -714,6 +760,9 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     
     // End object stream with terminator
     writer.writeVarUint(static_cast<uint32_t>(0)); // Object stream terminator
+    diag.endChunk("OBJECTS", buffer.size());
+    
+    diag.printSummary();
 
     // PR-RivePlay-Catalog: Write Artboard Catalog chunk for proper artboard selection
     // This must come AFTER object stream terminator, as a separate chunk
