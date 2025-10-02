@@ -134,6 +134,8 @@ RIVE_IMPORT_VERBOSE=1 ./converter/import_test ../output/roundtrip/bee_baby_round
 
 **Conclusion:** The majority of NULLs stem from **extractor bugs** (incorrect parentId assignments). Converter-side fixes can only address a small subset. Recommend fixing extractor's parent assignment logic.
 
+**UPDATE - FIXED:** Extractor was missing localId assignment for KeyedObject/KeyedProperty/KeyFrame, causing builder to skip them (localId=null → missing in mapping). After fix: **0 NULL objects, round-trip SUCCESS!**
+
 **Analysis Required:**
 1. Review `universal_builder.cpp` keyed types order:
    - LinearAnimation (31)

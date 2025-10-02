@@ -670,6 +670,8 @@ int main(int argc, char* argv[]) {
                     json koJson;
                     koJson["typeKey"] = ko->coreType();
                     koJson["typeName"] = getTypeName(ko->coreType());
+                    koJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedObject
+                    koJson["parentId"] = 0;  // KeyedObjects are children of Artboard/Animation
                     koJson["properties"] = json::object();
                     
                     // Remap runtime Core ID to localId for rebuild
@@ -707,6 +709,8 @@ int main(int argc, char* argv[]) {
                         json kpJson;
                         kpJson["typeKey"] = kp->coreType();
                         kpJson["typeName"] = getTypeName(kp->coreType());
+                        kpJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedProperty
+                        kpJson["parentId"] = 0;  // KeyedProperty children of Artboard/Animation
                         kpJson["properties"] = json::object();
                         kpJson["properties"]["propertyKey"] = kp->propertyKey();
                         artboardJson["objects"].push_back(kpJson);
@@ -719,6 +723,8 @@ int main(int argc, char* argv[]) {
                             json kfJson;
                             kfJson["typeKey"] = kf->coreType();
                             kfJson["typeName"] = getTypeName(kf->coreType());
+                            kfJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyFrame
+                            kfJson["parentId"] = 0;  // KeyFrames children of Artboard/Animation
                             kfJson["properties"] = json::object();
                             kfJson["properties"]["frame"] = kf->frame();
                             kfJson["properties"]["seconds"] = kf->seconds();
