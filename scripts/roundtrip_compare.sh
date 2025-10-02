@@ -11,6 +11,7 @@ if [ $# -lt 1 ]; then
     echo "  1. Extract original RIV to JSON"
     echo "  2. Convert JSON back to RIV"
     echo "  3. Compare original vs round-trip"
+    echo "  4. Track growth metrics"
     echo ""
     exit 1
 fi
@@ -38,7 +39,7 @@ echo ""
 mkdir -p "$OUTPUT_DIR"
 
 # Step 1: Extract to JSON
-echo -e "${BLUE}[1/3]${RESET} Extracting RIV to JSON..."
+echo -e "${BLUE}[1/4]${RESET} Extracting RIV to JSON..."
 EXTRACTED_JSON="$OUTPUT_DIR/${BASENAME}_extracted.json"
 if ! "$EXTRACTOR" "$ORIGINAL_RIV" "$EXTRACTED_JSON" > /dev/null 2>&1; then
     echo "❌ FAILED: Extraction failed"
@@ -48,7 +49,7 @@ fi
 echo -e "${GREEN}✅${RESET} Extracted to: $EXTRACTED_JSON"
 
 # Step 2: Convert back to RIV
-echo -e "${BLUE}[2/3]${RESET} Converting JSON back to RIV..."
+echo -e "${BLUE}[2/4]${RESET} Converting JSON back to RIV..."
 ROUNDTRIP_RIV="$OUTPUT_DIR/${BASENAME}_roundtrip.riv"
 if ! "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV" > /dev/null 2>&1; then
     echo "❌ FAILED: Conversion failed"
@@ -58,7 +59,7 @@ fi
 echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
 
 # Step 3: Compare
-echo -e "${BLUE}[3/3]${RESET} Comparing original vs round-trip..."
+echo -e "${BLUE}[3/4]${RESET} Comparing original vs round-trip..."
 echo ""
 
 # Run visual comparison (don't exit on diff)
@@ -81,11 +82,31 @@ else
     exit $JSON_EXIT
 fi
 
+# Step 4: Growth tracking
+echo -e "${BLUE}[4/4]${RESET} Tracking growth metrics..."
+echo ""
+
+GROWTH_JSON="$OUTPUT_DIR/${BASENAME}_growth.json"
+python3 scripts/track_roundtrip_growth.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$GROWTH_JSON"
+GROWTH_EXIT=$?
+
+# Show growth summary
+python3 scripts/track_roundtrip_growth.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV"
+
+echo -e "${YELLOW}📊${RESET} Growth metrics saved: $GROWTH_JSON"
+echo ""
+
 # Final status
 if [ -n "$COMPARISON_FAILED" ]; then
     echo -e "${YELLOW}⚠️  Differences detected (exit code: $COMPARISON_FAILED)${RESET}"
     echo -e "   Review the report above for details."
     exit $COMPARISON_FAILED
+elif [ $GROWTH_EXIT -eq 2 ]; then
+    echo -e "${RED}❌ Growth threshold exceeded!${RESET}"
+    exit 2
+elif [ $GROWTH_EXIT -eq 1 ]; then
+    echo -e "${YELLOW}⚠️  Growth warning${RESET}"
+    exit 1
 else
     echo -e "${GREEN}✅ Round-trip successful - files match!${RESET}"
 fi
