@@ -56,7 +56,11 @@
 #include "rive/bones/bone.hpp"
 #include "rive/bones/root_bone.hpp"
 #include "rive/constraints/follow_path_constraint.hpp"
+#include "rive/container_component.hpp"
 #include "utils/no_op_factory.hpp"
+
+#include <queue>
+#include <unordered_set>
 
 using json = nlohmann::json;
 using namespace rive;
@@ -68,6 +72,38 @@ struct ObjectInfo {
     bool isComponent;
     json properties; // Generic property storage
 };
+
+// PR-KEYED-DATA-EXPORT: Collect ALL components via graph traversal
+// This captures both file-loaded AND runtime-created components
+std::vector<Component*> collectAllComponents(Artboard* artboard) {
+    std::vector<Component*> result;
+    std::unordered_set<Component*> visited;
+    std::queue<Component*> queue;
+    
+    // Start from artboard (root component)
+    queue.push(artboard);
+    
+    while (!queue.empty()) {
+        Component* comp = queue.front();
+        queue.pop();
+        
+        // Skip if already visited (prevent cycles)
+        if (visited.count(comp)) continue;
+        visited.insert(comp);
+        result.push_back(comp);
+        
+        // Traverse children (only ContainerComponent has children() method)
+        // Must check is<ContainerComponent>() before as<ContainerComponent>()
+        if (comp->is<ContainerComponent>()) {
+            auto* container = comp->as<ContainerComponent>();
+            for (auto* child : container->children()) {
+                queue.push(child);
+            }
+        }
+    }
+    
+    return result;
+}
 
 // Helper to get type name (for debugging)
 const char* getTypeName(uint16_t typeKey) {
@@ -153,7 +189,33 @@ int main(int argc, char* argv[]) {
         
         std::cout << "\nArtboard #" << artboardIdx << ": " << artboard->name() << std::endl;
         std::cout << "  Size: " << artboard->width() << "x" << artboard->height() << std::endl;
-        std::cout << "  Objects: " << artboard->objects().size() << std::endl;
+        std::cout << "  File objects: " << artboard->objects().size() << std::endl;
+        
+        // PR-KEYED-DATA-EXPORT: Collect components from BOTH sources
+        // 1. File objects (artboard->objects()) - file-loaded components
+        // 2. Graph traversal - runtime-created components in hierarchy
+        std::unordered_set<Component*> allComponentsSet;
+        
+        // Add file-loaded components
+        for (auto* obj : artboard->objects()) {
+            if (!obj) continue;
+            if (auto* comp = dynamic_cast<Component*>(obj)) {
+                allComponentsSet.insert(comp);
+            }
+        }
+        
+        // Add hierarchy-traversed components (may include runtime-created)
+        auto hierarchyComponents = collectAllComponents(artboard);
+        for (auto* comp : hierarchyComponents) {
+            allComponentsSet.insert(comp);
+        }
+        
+        // Convert to vector
+        std::vector<Component*> allComponents(allComponentsSet.begin(), allComponentsSet.end());
+        
+        std::cout << "  File-loaded components: " << artboard->objects().size() << std::endl;
+        std::cout << "  Hierarchy components: " << hierarchyComponents.size() << std::endl;
+        std::cout << "  Total unique components: " << allComponents.size() << std::endl;
         
         json artboardJson;
         artboardJson["name"] = artboard->name();
@@ -169,20 +231,65 @@ int main(int argc, char* argv[]) {
         uint32_t nextLocalId = 0;
         
         // First pass: Assign localIds and build Core ID mapping
+        // PR-KEYED-DATA-EXPORT: Build coreIdToLocalId for ALL objects (not just components)
+        // This ensures KeyedObject.objectId references can be remapped
         for (auto* obj : artboard->objects()) {
-            if (!obj) continue;  // Skip nullptr entries (e.g., from skipped TrimPath)
+            if (!obj) continue;
+            uint32_t runtimeCoreId = artboard->idOf(obj);
+            
+            if (obj->is<Artboard>()) {
+                coreIdToLocalId[runtimeCoreId] = 0;
+                nextLocalId = 1;
+            } else {
+                coreIdToLocalId[runtimeCoreId] = nextLocalId;
+                nextLocalId++;
+            }
+            
+            // Also track Component* specifically for component export
             if (auto* comp = dynamic_cast<Component*>(obj)) {
-                uint32_t runtimeCoreId = artboard->idOf(obj);
-                if (obj->is<Artboard>()) {
-                    compToLocalId[comp] = 0;
-                    coreIdToLocalId[runtimeCoreId] = 0;
-                    nextLocalId = 1;
-                } else {
-                    compToLocalId[comp] = nextLocalId;
-                    coreIdToLocalId[runtimeCoreId] = nextLocalId;
-                    nextLocalId++;
+                compToLocalId[comp] = coreIdToLocalId[runtimeCoreId];
+            }
+        }
+        
+        // PR-KEYED-DATA-EXPORT: APPROACH 3 - Keyed Data Hints
+        // Collect referenced component IDs from keyed data and resolve them
+        std::unordered_set<uint32_t> referencedIds;
+        for (size_t i = 0; i < artboard->animationCount(); ++i) {
+            auto* anim = artboard->animation(i);
+            if (auto* la = dynamic_cast<LinearAnimation*>(anim)) {
+                for (size_t k = 0; k < la->numKeyedObjects(); ++k) {
+                    auto* ko = la->getObject(k);
+                    if (ko) {
+                        referencedIds.insert(ko->objectId());
+                    }
                 }
             }
+        }
+        
+        // Resolve missing IDs and add to mapping
+        int resolvedCount = 0;
+        std::vector<Core*> resolvedObjects;  // Track resolved objects for export
+        
+        for (uint32_t runtimeId : referencedIds) {
+            if (coreIdToLocalId.count(runtimeId)) continue;  // Already mapped
+            
+            // Try to resolve this ID
+            auto* obj = artboard->resolve(runtimeId);
+            if (obj) {
+                uint32_t localId = nextLocalId++;
+                coreIdToLocalId[runtimeId] = localId;
+                resolvedCount++;
+                resolvedObjects.push_back(obj);
+                
+                // Track Component* if applicable
+                if (auto* comp = dynamic_cast<Component*>(obj)) {
+                    compToLocalId[comp] = localId;
+                }
+            }
+        }
+        
+        if (resolvedCount > 0) {
+            std::cout << "  Resolved " << resolvedCount << " runtime components via resolve()" << std::endl;
         }
         
         // Second pass: Extract with correct parentId mapping
@@ -351,6 +458,56 @@ int main(int argc, char* argv[]) {
                 objJson["properties"]["x2"] = cubicInterp->x2();
                 objJson["properties"]["y2"] = cubicInterp->y2();
             }
+            
+            artboardJson["objects"].push_back(objJson);
+        }
+        
+        // PR-KEYED-DATA-EXPORT: Export resolved runtime components
+        // These are components found via resolve() that weren't in artboard->objects()
+        for (auto* obj : resolvedObjects) {
+            json objJson;
+            uint16_t tk = obj->coreType();
+            
+            objJson["typeKey"] = tk;
+            objJson["typeName"] = getTypeName(tk);
+            
+            // Get localId from coreIdToLocalId mapping
+            uint32_t runtimeId = artboard->idOf(obj);
+            auto idIt = coreIdToLocalId.find(runtimeId);
+            if (idIt != coreIdToLocalId.end()) {
+                objJson["localId"] = idIt->second;
+            }
+            
+            // Set parentId (runtime components typically have parent)
+            if (auto* comp = dynamic_cast<Component*>(obj)) {
+                auto* parent = comp->parent();
+                if (parent) {
+                    uint32_t parentRuntimeId = artboard->idOf(parent);
+                    auto parentIt = coreIdToLocalId.find(parentRuntimeId);
+                    if (parentIt != coreIdToLocalId.end()) {
+                        objJson["parentId"] = parentIt->second;
+                    } else {
+                        objJson["parentId"] = 0;  // Default to artboard
+                    }
+                } else {
+                    objJson["parentId"] = 0;  // No parent = artboard child
+                }
+            } else {
+                objJson["parentId"] = 0;
+            }
+            
+            objJson["properties"] = json::object();
+            typeCounts[tk]++;
+            
+            // Export basic properties (same as file objects)
+            if (auto* comp = dynamic_cast<Component*>(obj)) {
+                if (!comp->name().empty()) {
+                    objJson["properties"]["name"] = comp->name();
+                }
+            }
+            
+            // Add more property extraction as needed
+            // For now, basic structure is enough for ID mapping
             
             artboardJson["objects"].push_back(objJson);
         }
@@ -659,6 +816,40 @@ int main(int argc, char* argv[]) {
                 {"count", count},
                 {"name", getTypeName(tk)}
             };
+        }
+        
+        // PR-KEYED-DATA-EXPORT: Validation summary
+        int keyedObjectCount = 0;
+        int mappingHits = 0;
+        int mappingMisses = 0;
+        
+        for (size_t i = 0; i < artboard->animationCount(); ++i) {
+            auto* anim = artboard->animation(i);
+            if (auto* la = dynamic_cast<LinearAnimation*>(anim)) {
+                for (size_t k = 0; k < la->numKeyedObjects(); ++k) {
+                    auto* ko = la->getObject(k);
+                    if (!ko) continue;
+                    keyedObjectCount++;
+                    
+                    uint32_t runtimeId = ko->objectId();
+                    if (coreIdToLocalId.count(runtimeId)) {
+                        mappingHits++;
+                    } else {
+                        mappingMisses++;
+                    }
+                }
+            }
+        }
+        
+        if (keyedObjectCount > 0) {
+            std::cout << "\n  === PR-KEYED-DATA-EXPORT Validation ===" << std::endl;
+            std::cout << "  KeyedObject.objectId mapping: " << mappingHits << "/" << keyedObjectCount 
+                      << " (" << (mappingHits * 100 / keyedObjectCount) << "% success)" << std::endl;
+            if (mappingMisses > 0) {
+                std::cerr << "  ⚠️  Missing mappings: " << mappingMisses 
+                          << " (check warnings above)" << std::endl;
+            }
+            std::cout << "  =======================================" << std::endl;
         }
         
         // PR-Extractor-Fix: Post-process artboard (topological sort + defaults + sanity checks)
