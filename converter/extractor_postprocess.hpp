@@ -68,7 +68,7 @@ inline void injectRequiredDefaults(json& objJson, DiagnosticCounters& diag)
     }
 }
 
-// Topological sort: parents before children
+// Topological sort: parents before children + keyed data after targets
 inline std::vector<json> topologicalSort(const std::vector<json>& objects, DiagnosticCounters& diag)
 {
     // Build parent-child relationships
@@ -90,6 +90,34 @@ inline std::vector<json> topologicalSort(const std::vector<json>& objects, Diagn
         }
     }
     
+    // PR1: Build reference dependencies (objectId) for keyed animation data
+    // KeyedObject must come AFTER its animation target component
+    std::unordered_map<uint32_t, std::vector<uint32_t>> refDependencies;
+    int keyedDependencies = 0;
+    
+    for (size_t i = 0; i < objects.size(); i++) {
+        if (!objects[i].contains("localId")) continue;
+        uint32_t localId = objects[i]["localId"];
+        uint16_t typeKey = objects[i].value("typeKey", 0);
+        
+        // KeyedObject (25) has objectId reference
+        if (typeKey == 25 && objects[i].contains("properties")) {
+            auto& props = objects[i]["properties"];
+            if (props.contains("objectId")) {
+                uint32_t targetId = props["objectId"];
+                if (allLocalIds.find(targetId) != allLocalIds.end()) {
+                    // KeyedObject depends on its target (must come after)
+                    refDependencies[targetId].push_back(localId);
+                    keyedDependencies++;
+                }
+            }
+        }
+    }
+    
+    if (keyedDependencies > 0) {
+        std::cout << "  🔗 Added " << keyedDependencies << " keyed data dependencies (objectId references)" << std::endl;
+    }
+    
     // Check for missing parents and count forward references
     int forwardRefCount = 0;
     for (const auto& [child, parent] : childToParent) {
@@ -103,9 +131,29 @@ inline std::vector<json> topologicalSort(const std::vector<json>& objects, Diagn
     std::vector<json> sorted;
     std::unordered_map<uint32_t, int> inDegree;
     
-    // Calculate in-degrees (number of parents)
+    // Calculate in-degrees (parent edges + reference edges)
+    // Build reverse map: who depends on me via objectId?
+    std::unordered_map<uint32_t, uint32_t> refDependsOn; // KeyedObject localId → target localId
+    for (const auto& [targetId, dependents] : refDependencies) {
+        for (uint32_t dependentId : dependents) {
+            refDependsOn[dependentId] = targetId;
+        }
+    }
+    
     for (uint32_t id : allLocalIds) {
-        inDegree[id] = (childToParent.count(id) > 0) ? 1 : 0;
+        int degree = 0;
+        
+        // Parent dependency
+        if (childToParent.count(id) > 0) {
+            degree++;
+        }
+        
+        // Reference dependency (KeyedObject waits for its target)
+        if (refDependsOn.count(id) > 0) {
+            degree++;
+        }
+        
+        inDegree[id] = degree;
     }
     
     // Queue of nodes with no incoming edges (roots)
@@ -129,12 +177,22 @@ inline std::vector<json> topologicalSort(const std::vector<json>& objects, Diagn
         size_t idx = localIdToIndex[current];
         sorted.push_back(objects[idx]);
         
-        // Process children
+        // Process children (parent edges)
         if (parentToChildren.count(current)) {
             for (uint32_t child : parentToChildren[current]) {
                 inDegree[child]--;
                 if (inDegree[child] == 0) {
                     queue.push_back(child);
+                }
+            }
+        }
+        
+        // PR1: Process reference dependents (keyed data waiting for this target)
+        if (refDependencies.count(current)) {
+            for (uint32_t dependent : refDependencies[current]) {
+                inDegree[dependent]--;
+                if (inDegree[dependent] == 0) {
+                    queue.push_back(dependent);
                 }
             }
         }
