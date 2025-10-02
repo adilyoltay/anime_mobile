@@ -42,6 +42,10 @@ int main(int argc, char* argv[])
         std::cout << "SUCCESS: File imported successfully!" << std::endl;
         std::cout << "Artboard count: " << file->artboardCount() << std::endl;
         
+        // Accumulate NULL count across ALL artboards
+        int totalNullCount = 0;
+        int totalObjectCount = 0;
+        
         // List all artboards with their state machines
         for (size_t i = 0; i < file->artboardCount(); ++i)
         {
@@ -52,6 +56,24 @@ int main(int argc, char* argv[])
                 std::cout << "  Size: " << ab->width() << "x" << ab->height() << std::endl;
                 std::cout << "  Objects: " << ab->objects().size() << std::endl;
                 std::cout << "  State Machines: " << ab->stateMachineCount() << std::endl;
+                
+                // Check for NULL objects in THIS artboard
+                int artboardNullCount = 0;
+                size_t objIdx = 0;
+                for (auto* obj : ab->objects()) {
+                    if (obj == nullptr) {
+                        std::cout << "  Object[" << objIdx << "]: NULL!" << std::endl;
+                        artboardNullCount++;
+                    }
+                    objIdx++;
+                }
+                
+                totalNullCount += artboardNullCount;
+                totalObjectCount += ab->objects().size();
+                
+                if (artboardNullCount > 0) {
+                    std::cout << "  ⚠️  Found " << artboardNullCount << " NULL objects in this artboard" << std::endl;
+                }
                 
                 // Show state machines for this artboard
                 for (size_t smIdx = 0; smIdx < ab->stateMachineCount(); ++smIdx)
@@ -77,23 +99,31 @@ int main(int argc, char* argv[])
             }
         }
         
+        // CRITICAL: Check total NULL count across ALL artboards
+        if (totalNullCount > 0) {
+            std::cerr << "\n❌ IMPORT FAILED: Found " << totalNullCount << " NULL objects out of " 
+                      << totalObjectCount << " across " << file->artboardCount() << " artboard(s) (" 
+                      << (totalNullCount * 100.0 / totalObjectCount) << "%)" << std::endl;
+            std::cerr << "NULL objects are genuine serialization defects that will crash Rive Play!" << std::endl;
+            std::cerr << "File::readRuntimeObject() returned nullptr - runtime cannot deserialize these objects." << std::endl;
+            return 1;  // Hard failure
+        }
+        
         if (file->artboard())
         {
             std::cout << "Artboard name: " << file->artboard()->name() << std::endl;
             std::cout << "Artboard width: " << file->artboard()->width() << std::endl;
             std::cout << "Artboard height: " << file->artboard()->height() << std::endl;
 
-            // Check for Text objects
+            // Check for Text objects (diagnostic info only - NULL check already done above)
             auto* artboard = file->artboard();
             std::cout << "Artboard child count: " << artboard->objects().size() << std::endl;
             
             int textCount = 0, textStyleCount = 0, textRunCount = 0;
-            int nullCount = 0;
             size_t objIdx = 0;
             for (auto* obj : artboard->objects()) {
                 if (obj == nullptr) {
-                    std::cout << "  Object[" << objIdx << "]: NULL!" << std::endl;
-                    nullCount++;
+                    // Skip NULLs - already caught by multi-artboard check above
                     objIdx++;
                     continue;
                 }
@@ -104,16 +134,6 @@ int main(int argc, char* argv[])
                 objIdx++;
             }
             std::cout << "Total: " << textCount << " Text, " << textStyleCount << " TextStylePaint, " << textRunCount << " TextValueRun" << std::endl;
-            
-            // CRITICAL: NULL objects indicate serialization defects
-            if (nullCount > 0) {
-                std::cerr << "\n❌ IMPORT FAILED: Found " << nullCount << " NULL objects out of " 
-                          << artboard->objects().size() << " (" 
-                          << (nullCount * 100.0 / artboard->objects().size()) << "%)" << std::endl;
-                std::cerr << "NULL objects are genuine serialization defects that will crash Rive Play!" << std::endl;
-                std::cerr << "File::readRuntimeObject() returned nullptr - runtime cannot deserialize these objects." << std::endl;
-                return 1;  // Hard failure
-            }
             
             // Check for state machines
             std::cout << "\nState Machines:" << std::endl;
