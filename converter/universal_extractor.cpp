@@ -236,6 +236,15 @@ int main(int argc, char* argv[]) {
         // This ensures KeyedObject.objectId references can be remapped
         for (auto* obj : artboard->objects()) {
             if (!obj) continue;
+            
+            uint16_t tk = obj->coreType();
+            
+            // CRITICAL: Skip interpolators in first pass
+            // They'll get localIds assigned in keyed data section (with proper mapping)
+            if (tk == 28 || tk == 138 || tk == 139 || tk == 174) {
+                continue;  // Skip - will be assigned ID in animation export
+            }
+            
             uint32_t runtimeCoreId = artboard->idOf(obj);
             
             if (obj->is<Artboard>()) {
@@ -317,9 +326,16 @@ int main(int argc, char* argv[]) {
         for (auto* obj : artboard->objects()) {
             if (!obj) continue;  // CRITICAL: Skip nullptr entries (TrimPath skip creates null slots)
             
-            json objJson;
             uint16_t tk = obj->coreType();
             
+            // CRITICAL: Skip interpolators here - they're exported in keyed data section with localId
+            // Interpolator types: 28 (CubicEaseInterpolator), 138 (CubicValueInterpolator), 
+            //                     139 (LinearInterpolator), 174 (HoldInterpolator)
+            if (tk == 28 || tk == 138 || tk == 139 || tk == 174) {
+                continue;  // Skip - will be exported with animations
+            }
+            
+            json objJson;
             objJson["typeKey"] = tk;
             objJson["typeName"] = getTypeName(tk);
             
