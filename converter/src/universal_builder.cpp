@@ -1003,48 +1003,64 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
             std::unordered_set<std::string> consumedKeys;
             if (needsShapeContainer) {
-                uint32_t shapeLocalId = nextSyntheticLocalId++;
-                auto& shapeObj = builder.addCore(new rive::Shape());
+                uint32_t shapeLocalId;
+                bool reusingShape = false;
                 
-                // CRITICAL: Set drawable properties so Rive Play renders the shape!
-                builder.set(shapeObj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
-                builder.set(shapeObj, 129, static_cast<uint32_t>(4)); // drawableFlags = visible (4)
-                
-                pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
-                localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
-                localIdToType[shapeLocalId] = 3;
-                
-                // PR-ORPHAN-FIX: Track that this parent got a synthetic Shape
-                parentToSyntheticShape[parentLocalId] = shapeLocalId;
-
-                for (const auto& [key, value] : properties) {
-                    if (key == "x") {
-                        builder.set(shapeObj, 13, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "y") {
-                        builder.set(shapeObj, 14, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "rotation") {
-                        builder.set(shapeObj, 15, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "scaleX") {
-                        builder.set(shapeObj, 16, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "scaleY") {
-                        builder.set(shapeObj, 17, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "opacity") {
-                        builder.set(shapeObj, 18, value.get<float>());
-                        consumedKeys.insert(key);
-                    }
-                    else if (key == "name") {
-                        builder.set(shapeObj, 4, value.get<std::string>());
-                        consumedKeys.insert(key);
+                // P0 FIX: Check if parent already has a synthetic Shape (reuse for geometry + paints)
+                auto existingShape = parentToSyntheticShape.find(parentLocalId);
+                if (existingShape != parentToSyntheticShape.end()) {
+                    // Reuse existing Shape to keep geometry and paints together
+                    shapeLocalId = existingShape->second;
+                    reusingShape = true;
+                    std::cout << "  [auto] Reusing synthetic Shape " << shapeLocalId 
+                              << " for " << (isTopLevelPaint(typeKey) ? "paint" : "path")
+                              << " typeKey=" << typeKey << std::endl;
+                } else {
+                    // Create new synthetic Shape
+                    shapeLocalId = nextSyntheticLocalId++;
+                    auto& shapeObj = builder.addCore(new rive::Shape());
+                    
+                    // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                    builder.set(shapeObj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
+                    builder.set(shapeObj, 129, static_cast<uint32_t>(4)); // drawableFlags = visible (4)
+                    
+                    pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
+                    localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                    localIdToType[shapeLocalId] = 3;
+                    
+                    // PR-ORPHAN-FIX: Track that this parent got a synthetic Shape
+                    parentToSyntheticShape[parentLocalId] = shapeLocalId;
+                    
+                    // Set properties on new Shape (reused Shapes already have their properties)
+                    for (const auto& [key, value] : properties) {
+                        if (key == "x") {
+                            builder.set(shapeObj, 13, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "y") {
+                            builder.set(shapeObj, 14, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "rotation") {
+                            builder.set(shapeObj, 15, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "scaleX") {
+                            builder.set(shapeObj, 16, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "scaleY") {
+                            builder.set(shapeObj, 17, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "opacity") {
+                            builder.set(shapeObj, 18, value.get<float>());
+                            consumedKeys.insert(key);
+                        }
+                        else if (key == "name") {
+                            builder.set(shapeObj, 4, value.get<std::string>());
+                            consumedKeys.insert(key);
+                        }
                     }
                 }
 
