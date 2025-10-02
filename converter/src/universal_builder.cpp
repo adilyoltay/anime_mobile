@@ -73,12 +73,16 @@ static bool isPaintOrDecorator(uint16_t typeKey) {
     return typeKey == 20 ||  // Fill
            typeKey == 24 ||  // Stroke
            typeKey == 47 ||  // TrimPath
-           typeKey == 533 || // Feather
-           typeKey == 506 || // DashPath
-           typeKey == 692 || // Dash
-           typeKey == 22 ||  // LinearGradient
-           typeKey == 17 ||  // RadialGradient
-           typeKey == 19;    // GradientStop
+           typeKey == 46 ||  // DashPath
+           typeKey == 533;   // Feather
+}
+
+// PR-ORPHAN-FIX: Top-level paints only (Fill/Stroke that attach to Shapes)
+// Excludes gradient components (LinearGradient, RadialGradient, GradientStop, SolidColor)
+// which are valid children of Fill/Stroke
+static bool isTopLevelPaint(uint16_t typeKey) {
+    return typeKey == 20 ||  // Fill
+           typeKey == 24;    // Stroke
 }
 
 static bool isVertexType(uint16_t typeKey) {
@@ -1252,8 +1256,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<PendingObject> newShapes;
         
         for (auto& pending : pendingObjects) {
-            // Check if this is a Paint or Decorator and has a valid parent
-            if (isPaintOrDecorator(pending.typeKey) && 
+            // Check if this is a TOP-LEVEL Paint (Fill/Stroke only) with a valid parent
+            // DO NOT process gradient components (LinearGradient, GradientStop, etc.)
+            // which are valid children of Fill/Stroke
+            if (isTopLevelPaint(pending.typeKey) && 
                 pending.parentLocalId != invalidParent)
             {
                 uint16_t parentType = parentTypeFor(pending.parentLocalId);
