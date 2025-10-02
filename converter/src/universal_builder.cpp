@@ -24,6 +24,8 @@
 #include "rive/shapes/paint/radial_gradient.hpp"
 #include "rive/shapes/paint/gradient_stop.hpp"
 #include "rive/shapes/paint/feather.hpp"
+#include "rive/shapes/paint/dash.hpp"
+#include "rive/shapes/paint/dash_path.hpp"
 #include "rive/shapes/clipping_shape.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
@@ -172,6 +174,8 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 165: return new rive::FollowPathConstraint();
         // case 420: return new rive::LayoutComponentStyle(); // Requires WITH_RIVE_LAYOUT - skipped for now
         case 533: return new rive::Feather();
+        case 507: return new rive::Dash();      // Dash (DashBase::typeKey)
+        case 506: return new rive::DashPath();  // DashPath (DashPathBase::typeKey)
         // DrawTarget/DrawRules (PR-DRAWTARGET)
         case 48: return new rive::DrawTarget();
         case 49: return new rive::DrawRules();
