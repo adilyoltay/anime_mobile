@@ -51,6 +51,8 @@
 #include "rive/shapes/paint/radial_gradient.hpp"
 #include "rive/shapes/paint/gradient_stop.hpp"
 #include "rive/shapes/paint/feather.hpp"
+#include "rive/shapes/paint/dash.hpp"
+#include "rive/shapes/paint/dash_path.hpp"
 #include "rive/bones/bone.hpp"
 #include "rive/bones/root_bone.hpp"
 #include "rive/constraints/follow_path_constraint.hpp"
@@ -105,6 +107,8 @@ const char* getTypeName(uint16_t typeKey) {
         case 141: return "FontAsset";
         case 165: return "FollowPathConstraint";
         case 420: return "LayoutComponentStyle";
+        case 506: return "DashPath";
+        case 507: return "Dash";
         case 533: return "Feather";
         default: return "Unknown";
     }
@@ -166,6 +170,7 @@ int main(int argc, char* argv[]) {
         
         // First pass: Assign localIds and build Core ID mapping
         for (auto* obj : artboard->objects()) {
+            if (!obj) continue;  // Skip nullptr entries (e.g., from skipped TrimPath)
             if (auto* comp = dynamic_cast<Component*>(obj)) {
                 uint32_t runtimeCoreId = artboard->idOf(obj);
                 if (obj->is<Artboard>()) {
@@ -182,6 +187,8 @@ int main(int argc, char* argv[]) {
         
         // Second pass: Extract with correct parentId mapping
         for (auto* obj : artboard->objects()) {
+            if (!obj) continue;  // CRITICAL: Skip nullptr entries (TrimPath skip creates null slots)
+            
             json objJson;
             uint16_t tk = obj->coreType();
             
@@ -294,6 +301,14 @@ int main(int argc, char* argv[]) {
                 objJson["properties"]["offsetX"] = feather->offsetX();
                 objJson["properties"]["offsetY"] = feather->offsetY();
                 objJson["properties"]["inner"] = feather->inner();
+            }
+            if (auto* dashPath = dynamic_cast<DashPath*>(obj)) {
+                objJson["properties"]["offset"] = dashPath->offset();
+                objJson["properties"]["offsetIsPercentage"] = dashPath->offsetIsPercentage();
+            }
+            if (auto* dash = dynamic_cast<Dash*>(obj)) {
+                objJson["properties"]["length"] = dash->length();
+                objJson["properties"]["lengthIsPercentage"] = dash->lengthIsPercentage();
             }
             
             // Bones

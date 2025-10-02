@@ -1,0 +1,137 @@
+{
+  "artboards": [
+    {
+      "animations": [],
+      "clip": true,
+      "height": 500.0,
+      "name": "Test Gradient Hierarchy",
+      "objects": [
+        {
+          "localId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 1,
+          "typeName": "Artboard"
+        },
+        {
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "x": 250.0,
+            "y": 250.0
+          },
+          "typeKey": 3,
+          "typeName": "Shape"
+        },
+        {
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          },
+          "typeKey": 20,
+          "typeName": "Fill"
+        },
+        {
+          "localId": 4,
+          "parentId": 3,
+          "properties": {},
+          "typeKey": 22,
+          "typeName": "LinearGradient"
+        },
+        {
+          "localId": 6,
+          "parentId": 4,
+          "properties": {
+            "color": "#FFFFFF",
+            "colorValue": 4278190080,
+            "position": 1.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 5,
+          "parentId": 4,
+          "properties": {
+            "color": "#FFFFFF",
+            "colorValue": 4278190080,
+            "position": 0.0
+          },
+          "typeKey": 19,
+          "typeName": "GradientStop"
+        },
+        {
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "height": 100.0,
+            "linkCornerRadius": true,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "scaleX": 1.0,
+            "scaleY": 1.0,
+            "width": 200.0,
+            "x": 0.0,
+            "y": 0.0
+          },
+          "typeKey": 7,
+          "typeName": "Rectangle"
+        },
+        {
+          "properties": {
+            "name": "Auto Generated State Machine"
+          },
+          "typeKey": 53,
+          "typeName": "StateMachine"
+        }
+      ],
+      "stateMachines": [
+        {
+          "inputs": [],
+          "layers": [],
+          "name": "Auto Generated State Machine",
+          "typeKey": 53
+        }
+      ],
+      "typeSummary": {
+        "1": {
+          "count": 1,
+          "name": "Artboard"
+        },
+        "19": {
+          "count": 2,
+          "name": "GradientStop"
+        },
+        "20": {
+          "count": 1,
+          "name": "Fill"
+        },
+        "22": {
+          "count": 1,
+          "name": "LinearGradient"
+        },
+        "3": {
+          "count": 1,
+          "name": "Shape"
+        },
+        "7": {
+          "count": 1,
+          "name": "Rectangle"
+        }
+      },
+      "width": 500.0
+    }
+  ],
+  "totalArtboards": 1
+}
