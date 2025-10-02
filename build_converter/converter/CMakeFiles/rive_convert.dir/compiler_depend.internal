@@ -5013,6 +5013,8 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_mirrored_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/cubic_vertex_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/ellipse_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/dash_base.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/dash_path_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/feather_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/fill_base.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/generated/shapes/paint/gradient_stop_base.hpp
@@ -5067,6 +5069,8 @@ converter/CMakeFiles/rive_convert.dir/src/universal_builder.cpp.o
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/ellipse.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/blend_mode.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/color.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/dash.hpp
+ /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/dash_path.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/feather.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/fill.hpp
  /Users/adilyoltay/Desktop/rive-runtime/include/rive/shapes/paint/gradient_stop.hpp
