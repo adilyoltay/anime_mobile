@@ -1473,6 +1473,13 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             {
                 continue;
             }
+            
+            // P0 FIX: Skip setParent for animation graph types (managed by animation system, not Component hierarchy)
+            // KeyedObject/KeyedProperty/KeyFrame have parentId=0 for topological sort but shouldn't be reparented
+            if (isAnimGraphType(pending.typeKey))
+            {
+                continue;
+            }
 
             auto it = localIdToBuilderObjectId.find(pending.parentLocalId);
             if (it != localIdToBuilderObjectId.end())
