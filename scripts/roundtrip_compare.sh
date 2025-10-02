@@ -72,13 +72,17 @@ if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" > "$IMPORT_LOG" 2>&1; then
     exit 1
 fi
 
-# Check for NULL objects (warning sign)
+# Check for NULL objects (now a hard failure thanks to import_test update)
 NULL_COUNT=$(grep -c "NULL!" "$IMPORT_LOG" || echo 0)
 if [ $NULL_COUNT -gt 0 ]; then
-    echo -e "${YELLOW}⚠️  WARNING: Found $NULL_COUNT NULL objects${RESET}"
-    echo "   This may cause issues in Rive Play!"
+    echo -e "${RED}❌ FAILED: Found $NULL_COUNT NULL objects${RESET}"
+    echo "   Serialization defects detected - these will crash Rive Play!"
+    echo ""
+    echo "NULL object details:"
+    grep "NULL!" "$IMPORT_LOG" | head -20
+    exit 1
 else
-    echo -e "${GREEN}✅${RESET} Import test passed"
+    echo -e "${GREEN}✅${RESET} Import test passed (no NULL objects)"
 fi
 
 # Step 4: Compare

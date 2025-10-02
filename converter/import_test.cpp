@@ -88,10 +88,12 @@ int main(int argc, char* argv[])
             std::cout << "Artboard child count: " << artboard->objects().size() << std::endl;
             
             int textCount = 0, textStyleCount = 0, textRunCount = 0;
+            int nullCount = 0;
             size_t objIdx = 0;
             for (auto* obj : artboard->objects()) {
                 if (obj == nullptr) {
                     std::cout << "  Object[" << objIdx << "]: NULL!" << std::endl;
+                    nullCount++;
                     objIdx++;
                     continue;
                 }
@@ -102,6 +104,16 @@ int main(int argc, char* argv[])
                 objIdx++;
             }
             std::cout << "Total: " << textCount << " Text, " << textStyleCount << " TextStylePaint, " << textRunCount << " TextValueRun" << std::endl;
+            
+            // CRITICAL: NULL objects indicate serialization defects
+            if (nullCount > 0) {
+                std::cerr << "\n❌ IMPORT FAILED: Found " << nullCount << " NULL objects out of " 
+                          << artboard->objects().size() << " (" 
+                          << (nullCount * 100.0 / artboard->objects().size()) << "%)" << std::endl;
+                std::cerr << "NULL objects are genuine serialization defects that will crash Rive Play!" << std::endl;
+                std::cerr << "File::readRuntimeObject() returned nullptr - runtime cannot deserialize these objects." << std::endl;
+                return 1;  // Hard failure
+            }
             
             // Check for state machines
             std::cout << "\nState Machines:" << std::endl;
