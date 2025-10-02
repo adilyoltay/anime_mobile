@@ -921,20 +921,21 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
 
-            // PR2: Relaxed pre-check - topological sort guarantees targets exist
-            // Only log warning for diagnostic purposes (e.g., TrimPath skip issues)
+            // PR2-REVERTED: MUST skip when KeyedObject target missing
+            // Emitting with objectId=0 causes runtime importer HANG (dangling reference)
+            // Topological sort guarantees ordering, but filtered objects (TrimPath) still cause misses
             if (typeKey == 25) { // KeyedObject
                 if (objJson.contains("properties") && objJson["properties"].contains("objectId")) {
                     uint32_t targetLocalId = objJson["properties"]["objectId"].get<uint32_t>();
                     auto it = localIdToBuilderObjectId.find(targetLocalId);
                     if (it == localIdToBuilderObjectId.end()) {
-                        // Topological sort should prevent this, but can happen if target was filtered
-                        std::cerr << "⚠️  WARNING: KeyedObject targets missing localId=" << targetLocalId 
-                                  << " (likely filtered object like TrimPath)" << std::endl;
-                        // PR2: Don't skip - let it proceed and fail gracefully if needed
-                        // Skipping causes cascade failures for all animation data
-                        // skipKeyframeData = true;
-                        // continue;
+                        std::cerr << "Cascade skip: KeyedObject targets missing localId=" << targetLocalId 
+                                  << " (filtered object - prevents runtime hang)" << std::endl;
+                        skipKeyframeData = true; // Flag to skip following KeyedProperty/KeyFrame children
+                        if (objJson.contains("localId")) {
+                            skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
+                        }
+                        continue; // MUST skip - objectId=0 causes importer hang
                     }
                 }
             }
