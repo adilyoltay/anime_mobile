@@ -76,7 +76,12 @@ static bool isPaintOrDecorator(uint16_t typeKey) {
            typeKey == 24 ||  // Stroke
            typeKey == 47 ||  // TrimPath
            typeKey == 506 || // DashPath (DashPathBase::typeKey)
-           typeKey == 533;   // Feather
+           typeKey == 507 || // Dash (DashBase::typeKey)
+           typeKey == 533 || // Feather
+           typeKey == 22 ||  // LinearGradient
+           typeKey == 17 ||  // RadialGradient
+           typeKey == 19 ||  // GradientStop
+           typeKey == 18;    // SolidColor
 }
 
 // PR-ORPHAN-FIX: Top-level paints only (Fill/Stroke that attach to Shapes)
