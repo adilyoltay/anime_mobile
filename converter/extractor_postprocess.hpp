@@ -41,7 +41,7 @@ inline void injectRequiredDefaults(json& objJson, DiagnosticCounters& diag)
             
         case 49: // Feather (typeKey 533 is old, 49 is correct)
         case 533: // Feather (legacy)
-            if (!props.contains("strength")) { props["strength"] = 0.0; injected = true; }
+            if (!props.contains("strength")) { props["strength"] = 12.0; injected = true; } // FeatherBase::m_Strength default
             if (!props.contains("offsetX")) { props["offsetX"] = 0.0; injected = true; }
             if (!props.contains("offsetY")) { props["offsetY"] = 0.0; injected = true; }
             if (!props.contains("inner")) { props["inner"] = false; injected = true; }
