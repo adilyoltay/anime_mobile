@@ -1,0 +1,50 @@
+{
+  "artboards": [
+    {
+      "name": "Test Orphan Paint",
+      "width": 500,
+      "height": 500,
+      "objects": [
+        {
+          "typeKey": 1,
+          "typeName": "Artboard",
+          "localId": 0,
+          "properties": {
+            "name": "Test Orphan Paint",
+            "width": 500,
+            "height": 500
+          }
+        },
+        {
+          "typeKey": 2,
+          "typeName": "Node",
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "OrphanContainer",
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 20,
+          "typeName": "Fill",
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 18,
+          "typeName": "SolidColor",
+          "localId": 3,
+          "parentId": 2,
+          "properties": {
+            "color": "#FF5733"
+          }
+        }
+      ]
+    }
+  ]
+}

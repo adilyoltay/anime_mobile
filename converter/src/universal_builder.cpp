@@ -1245,6 +1245,54 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         }
         std::cout << "  =================================\n" << std::endl;
         
+        // PASS 1.5: Auto-fix orphan Fill/Stroke (PR-ORPHAN-FIX)
+        std::cout << "  PASS 1.5: Fixing orphan paints..." << std::endl;
+        
+        int orphanFixed = 0;
+        std::vector<PendingObject> newShapes;
+        
+        for (auto& pending : pendingObjects) {
+            // Check if this is a Paint or Decorator and has a valid parent
+            if (isPaintOrDecorator(pending.typeKey) && 
+                pending.parentLocalId != invalidParent)
+            {
+                uint16_t parentType = parentTypeFor(pending.parentLocalId);
+                
+                // If parent is NOT a Shape (typeKey 3) or Artboard (typeKey 1/0)
+                if (parentType != 0 && parentType != 1 && parentType != 3) {
+                    // Create synthetic Shape
+                    uint32_t shapeLocalId = nextSyntheticLocalId++;
+                    auto& shapeObj = builder.addCore(new rive::Shape());
+                    
+                    // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                    builder.set(shapeObj, 23, static_cast<uint32_t>(3));   // blendModeValue = SrcOver
+                    builder.set(shapeObj, 129, static_cast<uint32_t>(4));  // drawableFlags = visible (4)
+                    
+                    localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                    localIdToType[shapeLocalId] = 3;
+                    
+                    uint32_t originalParent = pending.parentLocalId;
+                    newShapes.push_back({&shapeObj, 3, shapeLocalId, originalParent});
+                    
+                    // Reparent the orphan paint to the synthetic Shape
+                    pending.parentLocalId = shapeLocalId;
+                    orphanFixed++;
+                    
+                    std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
+                              << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
+                              << ") → synthetic Shape " << shapeLocalId 
+                              << " (original parent typeKey=" << parentType << ")" << std::endl;
+                }
+            }
+        }
+        
+        // Add synthetic Shapes to pendingObjects
+        for (auto& newShape : newShapes) {
+            pendingObjects.push_back(newShape);
+        }
+        
+        std::cout << "  ✅ Fixed " << orphanFixed << " orphan paints" << std::endl;
+        
         // PASS 2: Set all parent relationships (now with complete type mapping and synthetic shapes)
         std::cout << "  PASS 2: Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
         int successCount = 0;
