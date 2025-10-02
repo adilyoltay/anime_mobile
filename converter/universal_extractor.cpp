@@ -61,6 +61,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <functional>
 
 using json = nlohmann::json;
 using namespace rive;
@@ -266,9 +267,35 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        // Resolve missing IDs and add to mapping
+        // Resolve missing IDs with full parent chain
         int resolvedCount = 0;
         std::vector<Core*> resolvedObjects;  // Track resolved objects for export
+        
+        // PR-KEYED-DATA-EXPORT: Recursive parent resolution helper
+        // Ensures entire parent chain is resolved before child
+        std::function<void(Core*)> resolveWithParents = [&](Core* obj) {
+            if (!obj) return;
+            
+            uint32_t runtimeId = artboard->idOf(obj);
+            if (coreIdToLocalId.count(runtimeId)) return;  // Already resolved
+            
+            // CRITICAL: Resolve parent FIRST (recursive)
+            if (auto* comp = dynamic_cast<Component*>(obj)) {
+                if (auto* parent = comp->parent()) {
+                    resolveWithParents(static_cast<Core*>(parent));
+                }
+            }
+            
+            // Now resolve this object (parent already has localId)
+            uint32_t localId = nextLocalId++;
+            coreIdToLocalId[runtimeId] = localId;
+            resolvedObjects.push_back(obj);
+            
+            // Track Component* if applicable
+            if (auto* comp = dynamic_cast<Component*>(obj)) {
+                compToLocalId[comp] = localId;
+            }
+        };
         
         for (uint32_t runtimeId : referencedIds) {
             if (coreIdToLocalId.count(runtimeId)) continue;  // Already mapped
@@ -276,20 +303,14 @@ int main(int argc, char* argv[]) {
             // Try to resolve this ID
             auto* obj = artboard->resolve(runtimeId);
             if (obj) {
-                uint32_t localId = nextLocalId++;
-                coreIdToLocalId[runtimeId] = localId;
-                resolvedCount++;
-                resolvedObjects.push_back(obj);
-                
-                // Track Component* if applicable
-                if (auto* comp = dynamic_cast<Component*>(obj)) {
-                    compToLocalId[comp] = localId;
-                }
+                size_t beforeCount = resolvedObjects.size();
+                resolveWithParents(obj);  // Recursive resolution
+                resolvedCount += (resolvedObjects.size() - beforeCount);
             }
         }
         
         if (resolvedCount > 0) {
-            std::cout << "  Resolved " << resolvedCount << " runtime components via resolve()" << std::endl;
+            std::cout << "  Resolved " << resolvedCount << " runtime components (with parent chains)" << std::endl;
         }
         
         // Second pass: Extract with correct parentId mapping
@@ -478,7 +499,7 @@ int main(int argc, char* argv[]) {
                 objJson["localId"] = idIt->second;
             }
             
-            // Set parentId (runtime components typically have parent)
+            // Set parentId (parent chain already resolved recursively)
             if (auto* comp = dynamic_cast<Component*>(obj)) {
                 auto* parent = comp->parent();
                 if (parent) {
@@ -487,7 +508,10 @@ int main(int argc, char* argv[]) {
                     if (parentIt != coreIdToLocalId.end()) {
                         objJson["parentId"] = parentIt->second;
                     } else {
-                        objJson["parentId"] = 0;  // Default to artboard
+                        // SHOULD NOT HAPPEN due to recursive resolution
+                        std::cerr << "⚠️  WARNING: Parent ID " << parentRuntimeId 
+                                  << " not found despite recursive resolution!" << std::endl;
+                        objJson["parentId"] = 0;  // Fallback
                     }
                 } else {
                     objJson["parentId"] = 0;  // No parent = artboard child
