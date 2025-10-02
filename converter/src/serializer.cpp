@@ -221,17 +221,9 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     }
     writer.writeVarUint(uint32_t{0});
 
-    // Ensure bitmap is 4-byte aligned
-    size_t tocEnd = buffer.size();
-    size_t paddingNeeded = (4 - (tocEnd % 4)) % 4;
-    for (size_t i = 0; i < paddingNeeded; ++i)
-    {
-        writer.write(uint8_t{0}); // Padding byte
-    }
-    if (paddingNeeded > 0)
-    {
-        std::cout << "  ℹ️  ToC padding: " << paddingNeeded << " bytes (offset " << tocEnd << " -> " << buffer.size() << ")" << std::endl;
-    }
+    // NOTE: No padding between ToC and bitmap
+    // RuntimeHeader::read() expects bitmap to start immediately after 0 terminator
+    // See include/rive/runtime_header.hpp:87-93 - readUint32() is called right after ToC loop
 
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);
@@ -549,17 +541,9 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     }
     writer.writeVarUint(uint32_t{0});
 
-    // Ensure bitmap is 4-byte aligned
-    size_t tocEnd = buffer.size();
-    size_t paddingNeeded = (4 - (tocEnd % 4)) % 4;
-    for (size_t i = 0; i < paddingNeeded; ++i)
-    {
-        writer.write(uint8_t{0}); // Padding byte
-    }
-    if (paddingNeeded > 0)
-    {
-        std::cout << "  ℹ️  ToC padding: " << paddingNeeded << " bytes (offset " << tocEnd << " -> " << buffer.size() << ")" << std::endl;
-    }
+    // NOTE: No padding between ToC and bitmap
+    // RuntimeHeader::read() expects bitmap to start immediately after 0 terminator
+    // See include/rive/runtime_header.hpp:87-93 - readUint32() is called right after ToC loop
 
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);

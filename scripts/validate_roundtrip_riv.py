@@ -85,15 +85,9 @@ def analyze_riv_structure(data: bytes) -> Dict[str, Any]:
         
         result['header']['propertyKeys'] = header_keys
         result['header']['propertyCount'] = len(header_keys)
+        result['chunks'].append(('TOC', toc_start, pos - toc_start))
         
-        # ToC includes padding to 4-byte alignment
-        toc_end_unaligned = pos
-        padding_needed = (4 - (pos % 4)) % 4
-        pos += padding_needed
-        
-        result['chunks'].append(('TOC', toc_start, toc_end_unaligned - toc_start))
-        if padding_needed > 0:
-            result['chunks'].append(('TOC_PADDING', toc_end_unaligned, padding_needed))
+        # NOTE: No padding between ToC and bitmap (per RuntimeHeader::read specification)
             
     except Exception as e:
         result['errors'].append(f"Failed to parse ToC: {e}")
@@ -217,12 +211,9 @@ def analyze_riv_structure(data: bytes) -> Dict[str, Any]:
 
 def validate_alignment(data: bytes, result: Dict[str, Any]) -> None:
     """Validate that chunks are properly aligned."""
-    # Bitmap must be 4-byte aligned
-    bitmap_info = result['header'].get('bitmap', {})
-    bitmap_offset = bitmap_info.get('offset', 0)
-    
-    if bitmap_offset % 4 != 0:
-        result['errors'].append(f"Bitmap not 4-byte aligned: offset {bitmap_offset}")
+    # NOTE: Bitmap does NOT need to be 4-byte aligned
+    # Per RuntimeHeader::read(), bitmap starts immediately after ToC terminator
+    # No padding is inserted, alignment is not enforced
     
     # Check asset data alignment (if present)
     asset_data = result['header'].get('assetData', {})
