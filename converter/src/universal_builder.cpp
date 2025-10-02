@@ -52,6 +52,9 @@
 #include "rive/constraints/translation_constraint.hpp"
 #include "rive/constraints/follow_path_constraint.hpp"
 #include "rive/shapes/paint/trim_path.hpp"
+#include "rive/drawable.hpp"
+#include "rive/draw_target.hpp"
+#include "rive/draw_rules.hpp"
 // Layout system requires WITH_RIVE_LAYOUT (yoga dependency)
 // #include "rive/layout/layout_component_style.hpp"
 #include "rive/generated/backboard_base.hpp"
@@ -165,6 +168,9 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 165: return new rive::FollowPathConstraint();
         // case 420: return new rive::LayoutComponentStyle(); // Requires WITH_RIVE_LAYOUT - skipped for now
         case 533: return new rive::Feather();
+        // DrawTarget/DrawRules (PR-DRAWTARGET)
+        case 48: return new rive::DrawTarget();
+        case 49: return new rive::DrawRules();
         // Add more as needed
         default:
             std::cerr << "Unknown typeKey: " << typeKey << std::endl;
@@ -267,6 +273,10 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "thickness") builder.set(obj, 140, value.get<float>());
     else if (key == "cap") builder.set(obj, 48, value.get<uint32_t>());
     else if (key == "join") builder.set(obj, 49, value.get<uint32_t>());
+
+    // Drawable
+    else if (key == "blendMode" || key == "blendModeValue") builder.set(obj, 23, value.get<uint32_t>());
+    else if (key == "drawableFlags") builder.set(obj, 129, value.get<uint32_t>());
     
     // Gradient
     else if (key == "position") builder.set(obj, 39, value.get<float>());
@@ -392,9 +402,22 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[364] = rive::CoreBoolType::id;   // orient
     typeMap[365] = rive::CoreBoolType::id;   // offset
     
+    // DrawTarget (typeKey 48) - PR-DRAWTARGET
+    typeMap[119] = rive::CoreUintType::id;   // drawableIdPropertyKey
+    typeMap[120] = rive::CoreUintType::id;   // placementValuePropertyKey
+    
+    // DrawRules (typeKey 49) - PR-DRAWTARGET
+    typeMap[121] = rive::CoreUintType::id;   // drawTargetIdPropertyKey
+    
     // Path
-    typeMap[120] = rive::CoreBoolType::id; // isClosed
+    // Note: Property 120 shared by DrawTarget.placementValue and PointsPath.isClosed
+    // This is OK - different object types use same key for different purposes
+    typeMap[120] = rive::CoreBoolType::id; // isClosed (PointsPath)
     typeMap[128] = rive::CoreUintType::id; // pathFlags
+
+    // Drawable defaults
+    typeMap[23] = rive::CoreUintType::id;  // blendModeValue
+    typeMap[129] = rive::CoreUintType::id; // drawableFlags
     
     // Vertices
     typeMap[24] = rive::CoreDoubleType::id; // vertex x (shared)
@@ -624,6 +647,14 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             uint32_t jsonTargetLocalId;
         };
         std::vector<DeferredTargetId> deferredTargetIds;
+        
+        // PR-DRAWTARGET: Deferred component references for DrawTarget/DrawRules
+        struct DeferredComponentRef {
+            CoreObject* obj;
+            uint16_t propertyKey;
+            uint32_t jsonComponentLocalId;
+        };
+        std::vector<DeferredComponentRef> deferredComponentRefs;
 
         uint32_t maxLocalId = 0;
         for (const auto& objJson : abJson["objects"]) {
@@ -862,6 +893,11 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             if (needsShapeContainer) {
                 uint32_t shapeLocalId = nextSyntheticLocalId++;
                 auto& shapeObj = builder.addCore(new rive::Shape());
+                
+                // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                builder.set(shapeObj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
+                builder.set(shapeObj, 129, static_cast<uint32_t>(4)); // drawableFlags = visible (4)
+                
                 pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
                 localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
                 localIdToType[shapeLocalId] = 3;
@@ -932,6 +968,12 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
             
             auto& obj = builder.addCore(coreObj);
+
+            // Ensure drawable objects are visible/renderable by default
+            if (coreObj->is<rive::Drawable>()) {
+                builder.set(obj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
+                builder.set(obj, 129, static_cast<uint32_t>(4)); // drawableFlags = Visible
+            }
             
             // Set Artboard name and size from artboard-level JSON
             if (typeKey == 1 && abJson.contains("name")) { // Artboard
@@ -1141,6 +1183,28 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     setProperty(builder, obj, key, value, localIdToBuilderObjectId, objectIdRemapSuccess, objectIdRemapFail);
                 }
             }
+            
+            // PR-DRAWTARGET: DrawTarget properties
+            if (typeKey == 48) { // DrawTarget
+                if (props.contains("drawableId")) {
+                    uint32_t drawableId = props["drawableId"].get<uint32_t>();
+                    // Defer for PASS 3 remapping (needs component ID translation)
+                    deferredComponentRefs.push_back({&obj, 119, drawableId});
+                }
+                if (props.contains("placementValue")) {
+                    uint32_t placement = props["placementValue"].get<uint32_t>();
+                    builder.set(obj, 120, placement);
+                }
+            }
+            
+            // PR-DRAWTARGET: DrawRules properties
+            if (typeKey == 49) { // DrawRules
+                if (props.contains("drawTargetId")) {
+                    uint32_t targetId = props["drawTargetId"].get<uint32_t>();
+                    // Defer for PASS 3 remapping
+                    deferredComponentRefs.push_back({&obj, 121, targetId});
+                }
+            }
         }
 
         // PR2: Print diagnostic summary for keyed data
@@ -1252,6 +1316,48 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             std::cout << "  targetId remap success:  " << targetIdRemapSuccess << std::endl;
             std::cout << "  targetId remap fail:     " << targetIdRemapFail << " (should be 0)" << std::endl;
             std::cout << "  ===================================\n" << std::endl;
+        }
+        
+        // PR-DRAWTARGET: PASS 3 - Remap DrawTarget/DrawRules component references
+        int drawTargetRemapSuccess = 0;
+        int drawTargetRemapFail = 0;
+        int drawRulesRemapSuccess = 0;
+        int drawRulesRemapFail = 0;
+        
+        for (const auto& deferred : deferredComponentRefs) {
+            auto it = localIdToBuilderObjectId.find(deferred.jsonComponentLocalId);
+            if (it != localIdToBuilderObjectId.end()) {
+                builder.set(*deferred.obj, deferred.propertyKey, it->second);
+                
+                if (deferred.propertyKey == 119) { // drawableId
+                    drawTargetRemapSuccess++;
+                    std::cout << "  DrawTarget.drawableId remap: " << deferred.jsonComponentLocalId
+                              << " → " << it->second << std::endl;
+                } else if (deferred.propertyKey == 121) { // drawTargetId
+                    drawRulesRemapSuccess++;
+                    std::cout << "  DrawRules.drawTargetId remap: " << deferred.jsonComponentLocalId
+                              << " → " << it->second << std::endl;
+                }
+            } else {
+                if (deferred.propertyKey == 119) {
+                    drawTargetRemapFail++;
+                    std::cerr << "  ⚠️  DrawTarget.drawableId remap FAILED: "
+                              << deferred.jsonComponentLocalId << " not found" << std::endl;
+                } else if (deferred.propertyKey == 121) {
+                    drawRulesRemapFail++;
+                    std::cerr << "  ⚠️  DrawRules.drawTargetId remap FAILED: "
+                              << deferred.jsonComponentLocalId << " not found" << std::endl;
+                }
+            }
+        }
+        
+        if (!deferredComponentRefs.empty()) {
+            std::cout << "  === DrawTarget/DrawRules Remapping ===" << std::endl;
+            std::cout << "  DrawTarget.drawableId success: " << drawTargetRemapSuccess << std::endl;
+            std::cout << "  DrawTarget.drawableId fail:    " << drawTargetRemapFail << " (should be 0)" << std::endl;
+            std::cout << "  DrawRules.drawTargetId success: " << drawRulesRemapSuccess << std::endl;
+            std::cout << "  DrawRules.drawTargetId fail:    " << drawRulesRemapFail << " (should be 0)" << std::endl;
+            std::cout << "  ======================================\n" << std::endl;
         }
         
         // PR2c: Cycle detection on component parent graph
