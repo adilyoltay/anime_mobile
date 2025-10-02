@@ -91,7 +91,8 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Count test results from log
-        PASSED=$(grep -c "ALL TESTS PASSED" round_trip_ci.log 2>/dev/null || echo 0)
+        # Match individual test pattern only (not final summary): "test_name: ALL TESTS PASSED"
+        PASSED=$(grep -c ": ALL TESTS PASSED" round_trip_ci.log 2>/dev/null || echo 0)
         FAILED=$(grep -c "❌ FAILED" round_trip_ci.log 2>/dev/null || echo 0)
         
         echo "### Summary" >> $GITHUB_STEP_SUMMARY
