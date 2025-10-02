@@ -7,7 +7,8 @@ on:
       - 'converter/**'
       - 'src/**'
       - 'include/**'
-      - 'scripts/round_trip_ci.sh'
+      - 'scripts/*.sh'
+      - 'scripts/*.py'
       - '.github/workflows/roundtrip.yml'
   pull_request:
     branches: [ main, develop ]
@@ -15,7 +16,8 @@ on:
       - 'converter/**'
       - 'src/**'
       - 'include/**'
-      - 'scripts/round_trip_ci.sh'
+      - 'scripts/*.sh'
+      - 'scripts/*.py'
       - '.github/workflows/roundtrip.yml'
 
 jobs:
@@ -65,29 +67,57 @@ jobs:
         fi
     
     - name: Run Round-trip Tests
+      id: roundtrip
       run: |
         ./scripts/round_trip_ci.sh
+      continue-on-error: true
     
     - name: Upload Test Artifacts
-      if: failure()
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: test-outputs
         path: |
-          output/*.riv
-          output/*.json
+          output/**/*.riv
+          output/**/*.json
+          output/**/*.txt
         retention-days: 7
     
-    - name: Test Summary
+    - name: Generate Test Report
       if: always()
       run: |
-        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "## 🧪 Round-trip Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ $? -eq 0 ]; then
-          echo "✅ All round-trip tests passed" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test results
+        PASSED=$(grep -c "ALL TESTS PASSED" scripts/round_trip_ci.sh.log 2>/dev/null || echo 0)
+        FAILED=$(grep -c "FAILED" scripts/round_trip_ci.sh.log 2>/dev/null || echo 0)
+        
+        echo "### Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Passed: $PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "- ❌ Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Add validation details
+        echo "### Validation Steps" >> $GITHUB_STEP_SUMMARY
+        echo "Each test file goes through:" >> $GITHUB_STEP_SUMMARY
+        echo "1. ✅ JSON validation" >> $GITHUB_STEP_SUMMARY
+        echo "2. ✅ RIV conversion" >> $GITHUB_STEP_SUMMARY
+        echo "3. ✅ Binary structure validation" >> $GITHUB_STEP_SUMMARY
+        echo "4. ✅ Stream integrity check" >> $GITHUB_STEP_SUMMARY
+        echo "5. ✅ Chunk analysis" >> $GITHUB_STEP_SUMMARY
+        echo "6. ✅ Import test" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.roundtrip.outcome }}" == "success" ]; then
+          echo "🎉 **All tests passed!**" >> $GITHUB_STEP_SUMMARY
         else
-          echo "❌ Some round-trip tests failed" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Some tests failed. Review artifacts for details.**" >> $GITHUB_STEP_SUMMARY
         fi
+    
+    - name: Fail if tests failed
+      if: steps.roundtrip.outcome != 'success'
+      run: exit 1
 
   test-validator-standalone:
     name: JSON Validator Unit Tests
