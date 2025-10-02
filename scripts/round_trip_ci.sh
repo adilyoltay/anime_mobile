@@ -60,7 +60,7 @@ for test_entry in "${TESTS[@]}"; do
     echo ""
     
     # Step 1: Validate JSON
-    echo "  [1/3] Validating JSON..."
+    echo "  [1/6] Validating JSON..."
     if ! "$VALIDATOR" "$test_file" > /dev/null 2>&1; then
         echo "  ❌ FAILED: JSON validation failed"
         echo ""
@@ -71,7 +71,7 @@ for test_entry in "${TESTS[@]}"; do
     echo "  ✅ JSON validation passed"
     
     # Step 2: Convert to RIV
-    echo "  [2/3] Converting to RIV..."
+    echo "  [2/6] Converting to RIV..."
     riv_file="${test_file%.json}.riv"
     if ! "$CONVERTER" "$test_file" "$riv_file" > /dev/null 2>&1; then
         echo "  ❌ FAILED: Conversion failed"
@@ -83,7 +83,7 @@ for test_entry in "${TESTS[@]}"; do
     echo "  ✅ Conversion successful"
     
     # Step 3: Binary structure validation
-    echo "  [3/5] Validating RIV structure..."
+    echo "  [3/6] Validating RIV structure..."
     if ! python3 scripts/validate_roundtrip_riv.py "$riv_file" > /dev/null 2>&1; then
         echo "  ❌ FAILED: RIV structure validation failed"
         echo ""
@@ -93,8 +93,19 @@ for test_entry in "${TESTS[@]}"; do
     fi
     echo "  ✅ RIV structure valid"
     
-    # Step 4: Chunk analysis
-    echo "  [4/5] Analyzing chunks..."
+    # Step 4: Stream integrity validation
+    echo "  [4/6] Validating stream integrity..."
+    if ! python3 scripts/validate_stream_integrity.py "$riv_file" > /dev/null 2>&1; then
+        echo "  ❌ FAILED: Stream integrity validation failed"
+        echo ""
+        python3 scripts/validate_stream_integrity.py "$riv_file"
+        FAILED=$((FAILED + 1))
+        continue
+    fi
+    echo "  ✅ Stream integrity valid"
+    
+    # Step 5: Chunk analysis
+    echo "  [5/6] Analyzing chunks..."
     python3 converter/analyze_riv.py "$riv_file" --json > "${riv_file}.analysis.json" 2>&1
     if [ $? -ne 0 ]; then
         echo "  ⚠️  WARNING: Chunk analysis had issues (non-fatal)"
@@ -102,8 +113,8 @@ for test_entry in "${TESTS[@]}"; do
         echo "  ✅ Chunk analysis complete"
     fi
     
-    # Step 5: Import test
-    echo "  [5/5] Testing import..."
+    # Step 6: Import test
+    echo "  [6/6] Testing import..."
     if ! "$IMPORT_TEST" "$riv_file" > /dev/null 2>&1; then
         echo "  ❌ FAILED: Import test failed"
         echo ""
