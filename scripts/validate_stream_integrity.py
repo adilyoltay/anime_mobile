@@ -14,14 +14,16 @@ def read_varuint(data: bytes, pos: int) -> Tuple[int, int]:
     """Read LEB128 variable-length unsigned integer."""
     result = 0
     shift = 0
+    start_pos = pos
     while pos < len(data):
         byte = data[pos]
         pos += 1
         result |= (byte & 0x7F) << shift
         if (byte & 0x80) == 0:
-            break
+            return result, pos
         shift += 7
-    return result, pos
+    # If we exit the loop, continuation bit was set but no more bytes available
+    raise EOFError(f"Unexpected EOF reading varuint at offset {start_pos}")
 
 def analyze_stream_integrity(riv_path: Path) -> Dict:
     """Analyze RIV file for stream integrity issues."""
