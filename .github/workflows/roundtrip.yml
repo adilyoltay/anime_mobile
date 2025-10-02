@@ -69,7 +69,7 @@ jobs:
     - name: Run Round-trip Tests
       id: roundtrip
       run: |
-        ./scripts/round_trip_ci.sh
+        ./scripts/round_trip_ci.sh 2>&1 | tee round_trip_ci.log
       continue-on-error: true
     
     - name: Upload Test Artifacts
@@ -81,6 +81,7 @@ jobs:
           output/**/*.riv
           output/**/*.json
           output/**/*.txt
+          round_trip_ci.log
         retention-days: 7
     
     - name: Generate Test Report
@@ -89,9 +90,9 @@ jobs:
         echo "## 🧪 Round-trip Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        # Count test results
-        PASSED=$(grep -c "ALL TESTS PASSED" scripts/round_trip_ci.sh.log 2>/dev/null || echo 0)
-        FAILED=$(grep -c "FAILED" scripts/round_trip_ci.sh.log 2>/dev/null || echo 0)
+        # Count test results from log
+        PASSED=$(grep -c "ALL TESTS PASSED" round_trip_ci.log 2>/dev/null || echo 0)
+        FAILED=$(grep -c "❌ FAILED" round_trip_ci.log 2>/dev/null || echo 0)
         
         echo "### Summary" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Passed: $PASSED" >> $GITHUB_STEP_SUMMARY
