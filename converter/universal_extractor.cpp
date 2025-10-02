@@ -230,7 +230,9 @@ int main(int argc, char* argv[]) {
         std::map<Component*, uint32_t> compToLocalId; // Component → localId mapping
         std::map<uint32_t, uint32_t> coreIdToLocalId; // Runtime Core ID → localId (for KeyedObject.objectId)
         std::map<Core*, uint32_t> objPtrToLocalId; // Object pointer → localId (for runtime objects with ID=0)
+        std::map<Core*, uint32_t> objPtrToRuntimeId; // Synthetic runtime ID for runtime objects
         uint32_t nextLocalId = 0;
+        uint32_t nextSyntheticId = 0x80000000; // Start synthetic IDs at 2^31 to avoid collision
         
         // First pass: Assign localIds and build Core ID mapping
         // PR-KEYED-DATA-EXPORT: Build coreIdToLocalId for ALL objects (not just components)
@@ -311,8 +313,13 @@ int main(int argc, char* argv[]) {
             uint32_t localId = nextLocalId++;
             
             // Track via both runtime ID and pointer
-            if (!isRuntimeObject) {
-                coreIdToLocalId[runtimeId] = localId;
+            if (isRuntimeObject) {
+                // CRITICAL: Assign synthetic runtime ID for collision-free mapping
+                uint32_t syntheticId = nextSyntheticId++;
+                objPtrToRuntimeId[obj] = syntheticId;
+                coreIdToLocalId[syntheticId] = localId;  // Map synthetic ID → localId
+            } else {
+                coreIdToLocalId[runtimeId] = localId;  // Map real ID → localId
             }
             objPtrToLocalId[obj] = localId;  // Always track by pointer
             resolvedObjects.push_back(obj);
@@ -595,11 +602,29 @@ int main(int argc, char* argv[]) {
                     
                     // Remap runtime Core ID to localId for rebuild
                     uint32_t runtimeCoreId = ko->objectId();
-                    auto idIt = coreIdToLocalId.find(runtimeCoreId);
+                    
+                    // CRITICAL P0 FIX: For runtime objects, objectId() returns 0
+                    // Try to resolve the actual object and use synthetic ID if available
+                    uint32_t effectiveId = runtimeCoreId;
+                    if (runtimeCoreId == 0) {
+                        // Try to resolve object by ID
+                        auto* targetObj = artboard->resolve(runtimeCoreId);
+                        if (targetObj && !targetObj->is<Artboard>()) {
+                            // This is a runtime object, check for synthetic ID
+                            auto synIt = objPtrToRuntimeId.find(targetObj);
+                            if (synIt != objPtrToRuntimeId.end()) {
+                                effectiveId = synIt->second;  // Use synthetic ID
+                            }
+                        }
+                    }
+                    
+                    auto idIt = coreIdToLocalId.find(effectiveId);
                     if (idIt != coreIdToLocalId.end()) {
                         koJson["properties"]["objectId"] = idIt->second; // Use localId
                     } else {
-                        std::cerr << "⚠️  WARNING: KeyedObject.objectId " << runtimeCoreId << " not in coreIdToLocalId (size=" << coreIdToLocalId.size() << ")" << std::endl;
+                        std::cerr << "⚠️  WARNING: KeyedObject.objectId " << effectiveId 
+                                  << " (runtime: " << runtimeCoreId << ") not in coreIdToLocalId (size=" 
+                                  << coreIdToLocalId.size() << ")" << std::endl;
                         koJson["properties"]["objectId"] = runtimeCoreId; // Fallback
                     }
                     
