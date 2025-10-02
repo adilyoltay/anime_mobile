@@ -1,6 +1,5 @@
 #include "rive/file.hpp"
 #include "rive/runtime_header.hpp"
-#include "rive/animation/animation.hpp"
 #include "rive/artboard_component_list.hpp"
 #include "rive/core/field_types/core_color_type.hpp"
 #include "rive/core/field_types/core_double_type.hpp"
@@ -13,6 +12,7 @@
 #include "rive/importers/data_converter_group_importer.hpp"
 #include "rive/importers/data_converter_formula_importer.hpp"
 #include "rive/importers/enum_importer.hpp"
+#include <cstdlib>
 #include "rive/importers/file_asset_importer.hpp"
 #include "rive/importers/import_stack.hpp"
 #include "rive/importers/keyed_object_importer.hpp"

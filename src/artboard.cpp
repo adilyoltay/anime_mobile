@@ -37,6 +37,7 @@
 #include "rive/profiler/profiler_macros.h"
 
 #include <unordered_map>
+#include <cstdlib>
 
 using namespace rive;
 
