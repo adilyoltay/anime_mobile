@@ -671,7 +671,7 @@ int main(int argc, char* argv[]) {
                     koJson["typeKey"] = ko->coreType();
                     koJson["typeName"] = getTypeName(ko->coreType());
                     koJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedObject
-                    koJson["parentId"] = 0;  // Keep in artboard child list for topological sort (emitted after targets)
+                    // PR1-FIX: NO parentId - let topological sort handle via objectId dependency
                     koJson["properties"] = json::object();
                     
                     // Remap runtime Core ID to localId for rebuild
@@ -710,7 +710,7 @@ int main(int argc, char* argv[]) {
                         kpJson["typeKey"] = kp->coreType();
                         kpJson["typeName"] = getTypeName(kp->coreType());
                         kpJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedProperty
-                        kpJson["parentId"] = 0;  // Keep in artboard child list for topological sort
+                        // PR1-FIX: NO parentId - let topological sort handle via parent KeyedObject
                         kpJson["properties"] = json::object();
                         kpJson["properties"]["propertyKey"] = kp->propertyKey();
                         artboardJson["objects"].push_back(kpJson);
@@ -724,7 +724,7 @@ int main(int argc, char* argv[]) {
                             kfJson["typeKey"] = kf->coreType();
                             kfJson["typeName"] = getTypeName(kf->coreType());
                             kfJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyFrame
-                            kfJson["parentId"] = 0;  // Keep in artboard child list for topological sort
+                            // PR1-FIX: NO parentId - let topological sort handle via parent KeyedProperty
                             kfJson["properties"] = json::object();
                             kfJson["properties"]["frame"] = kf->frame();
                             kfJson["properties"]["seconds"] = kf->seconds();
@@ -752,7 +752,7 @@ int main(int argc, char* argv[]) {
                                         interpJson["typeName"] = getTypeName(interpolator->coreType());
                                         uint32_t interpLocalId = nextLocalId++;
                                         interpJson["localId"] = interpLocalId;
-                                        interpJson["parentId"] = 0;  // Interpolators are top-level in artboard
+                                        // PR1-FIX: NO parentId - interpolators handled separately
                                         interpJson["properties"] = json::object();
                                         
                                         // Export interpolator properties (x1, y1, x2, y2 for cubic)
