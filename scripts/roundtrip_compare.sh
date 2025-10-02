@@ -66,8 +66,20 @@ python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" || COMPARI
 
 # Save JSON report (always generate, even on diff)
 REPORT_JSON="$OUTPUT_DIR/${BASENAME}_comparison.json"
-python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$REPORT_JSON" || true
-echo -e "${YELLOW}📄${RESET} Comparison report saved: $REPORT_JSON"
+set +e  # Temporarily disable exit-on-error
+python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$REPORT_JSON"
+JSON_EXIT=$?
+set -e  # Re-enable exit-on-error
+
+# Check JSON generation result
+if [ $JSON_EXIT -eq 0 ] || [ $JSON_EXIT -eq 1 ]; then
+    # Exit 0 (match) or 1 (diff) are both OK
+    echo -e "${YELLOW}📄${RESET} Comparison report saved: $REPORT_JSON"
+else
+    # Exit 2+ is a real error (file not found, parse error, etc.)
+    echo -e "❌ FAILED: JSON report generation failed (exit code: $JSON_EXIT)"
+    exit $JSON_EXIT
+fi
 
 # Final status
 if [ -n "$COMPARISON_FAILED" ]; then
