@@ -278,6 +278,12 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         // Skip - will be handled in PASS3
     }
     
+    // Animation - InterpolatingKeyFrame (interpolatorId needs DEFERRED remapping in PASS3)
+    // CRITICAL FIX: interpolatorId from JSON needs remapping to runtime component ID
+    else if (key == "interpolatorId") {
+        // Skip - will be handled in PASS3
+    }
+    
     // Constraints - TransformSpaceConstraint
     else if (key == "sourceSpaceValue") {
         if (value.is_number()) {
@@ -1253,6 +1259,22 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     deferredComponentRefs.push_back({&obj, 121, targetId});
                 }
             }
+            
+            // CRITICAL FIX: KeyFrame interpolatorId (read directly from JSON, defer for PASS3 remap)
+            if ((typeKey == 30 || // KeyFrameDouble
+                 typeKey == 37 || // KeyFrameColor
+                 typeKey == 50 || // KeyFrameId
+                 typeKey == 84 || // KeyFrameBool
+                 typeKey == 142 || // KeyFrameString
+                 typeKey == 450)   // KeyFrameUint
+                 && objJson.contains("properties")) {
+                const auto& props = objJson["properties"];
+                if (props.contains("interpolatorId")) {
+                    uint32_t interpolatorLocalId = props["interpolatorId"].get<uint32_t>();
+                    // Defer for PASS 3 remapping (localId → component ID)
+                    deferredComponentRefs.push_back({&obj, 69, interpolatorLocalId});
+                }
+            }
         }
 
         // PR2: Print diagnostic summary for keyed data
@@ -1438,6 +1460,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         int drawTargetRemapFail = 0;
         int drawRulesRemapSuccess = 0;
         int drawRulesRemapFail = 0;
+        int interpolatorIdRemapSuccess = 0;
+        int interpolatorIdRemapFail = 0;
         
         for (const auto& deferred : deferredComponentRefs) {
             auto it = localIdToBuilderObjectId.find(deferred.jsonComponentLocalId);
@@ -1446,12 +1470,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 
                 if (deferred.propertyKey == 119) { // drawableId
                     drawTargetRemapSuccess++;
-                    std::cout << "  DrawTarget.drawableId remap: " << deferred.jsonComponentLocalId
-                              << " → " << it->second << std::endl;
                 } else if (deferred.propertyKey == 121) { // drawTargetId
                     drawRulesRemapSuccess++;
-                    std::cout << "  DrawRules.drawTargetId remap: " << deferred.jsonComponentLocalId
-                              << " → " << it->second << std::endl;
+                } else if (deferred.propertyKey == 69) { // interpolatorId
+                    interpolatorIdRemapSuccess++;
                 }
             } else {
                 if (deferred.propertyKey == 119) {
@@ -1462,17 +1484,29 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     drawRulesRemapFail++;
                     std::cerr << "  ⚠️  DrawRules.drawTargetId remap FAILED: "
                               << deferred.jsonComponentLocalId << " not found" << std::endl;
+                } else if (deferred.propertyKey == 69) {
+                    interpolatorIdRemapFail++;
+                    std::cerr << "  ⚠️  KeyFrame.interpolatorId remap FAILED: "
+                              << deferred.jsonComponentLocalId << " not found" << std::endl;
                 }
             }
         }
         
-        if (!deferredComponentRefs.empty()) {
+        if (drawTargetRemapSuccess > 0 || drawTargetRemapFail > 0 || 
+            drawRulesRemapSuccess > 0 || drawRulesRemapFail > 0) {
             std::cout << "  === DrawTarget/DrawRules Remapping ===" << std::endl;
             std::cout << "  DrawTarget.drawableId success: " << drawTargetRemapSuccess << std::endl;
             std::cout << "  DrawTarget.drawableId fail:    " << drawTargetRemapFail << " (should be 0)" << std::endl;
             std::cout << "  DrawRules.drawTargetId success: " << drawRulesRemapSuccess << std::endl;
             std::cout << "  DrawRules.drawTargetId fail:    " << drawRulesRemapFail << " (should be 0)" << std::endl;
             std::cout << "  ======================================\n" << std::endl;
+        }
+        
+        if (interpolatorIdRemapSuccess > 0 || interpolatorIdRemapFail > 0) {
+            std::cout << "  === KeyFrame interpolatorId Remapping ===" << std::endl;
+            std::cout << "  interpolatorId remap success: " << interpolatorIdRemapSuccess << std::endl;
+            std::cout << "  interpolatorId remap fail:    " << interpolatorIdRemapFail << " (should be 0)" << std::endl;
+            std::cout << "  =========================================\n" << std::endl;
         }
         
         // PR2c: Cycle detection on component parent graph

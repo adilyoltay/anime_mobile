@@ -426,14 +426,26 @@ int main(int argc, char* argv[]) {
                                 kfJson["properties"]["value"] = kfi->value();
                             }
                             
+                            // CRITICAL FIX: Export interpolatorId (property key 69) for InterpolatingKeyFrame
+                            if (auto* ikf = dynamic_cast<const InterpolatingKeyFrame*>(kf)) {
+                                uint32_t interpId = ikf->interpolatorId();
+                                if (interpId != static_cast<uint32_t>(-1)) {
+                                    // Store the interpolatorId - will be used in post-processing to assign localId to interpolators
+                                    kfJson["properties"]["interpolatorId"] = interpId;
+                                }
+                            }
+                            
                             artboardJson["objects"].push_back(kfJson);
                             
                             // Export interpolator if present (follows KeyFrame in file order)
+                            // CRITICAL FIX: Assign localId to interpolators so KeyFrames can reference them
                             if (auto* ikf = dynamic_cast<const InterpolatingKeyFrame*>(kf)) {
                                 if (auto* interpolator = ikf->interpolator()) {
                                     json interpJson;
                                     interpJson["typeKey"] = interpolator->coreType();
                                     interpJson["typeName"] = getTypeName(interpolator->coreType());
+                                    interpJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId
+                                    interpJson["parentId"] = 0;  // Interpolators are top-level in artboard
                                     interpJson["properties"] = json::object();
                                     
                                     // Export interpolator properties (x1, y1, x2, y2 for cubic)
