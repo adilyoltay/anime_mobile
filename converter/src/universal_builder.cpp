@@ -253,12 +253,22 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
             if (value.is_number()) {
                 builder.set(obj, 116, static_cast<float>(value.get<double>()));
             }
+        } else if (typeKey == 506) { // DashPath (DashPathBase::offsetPropertyKey)
+            if (value.is_number()) {
+                builder.set(obj, 690, static_cast<float>(value.get<double>()));
+            }
         } else if (typeKey == 165) { // FollowPathConstraint
             if (value.is_boolean()) {
                 builder.set(obj, 365, value.get<bool>());
             } else if (value.is_number()) {
                 builder.set(obj, 365, value.get<double>() != 0.0);
             }
+        }
+    }
+    else if (key == "offsetIsPercentage") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 506) { // DashPath (DashPathBase::offsetIsPercentagePropertyKey)
+            builder.set(obj, 691, value.get<bool>());
         }
     }
     
@@ -300,8 +310,21 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "offsetY") builder.set(obj, 751, value.get<float>());
     else if (key == "inner") builder.set(obj, 752, value.get<bool>());
     
-    // Bone
-    else if (key == "length") builder.set(obj, 89, value.get<float>());
+    // Bone / Dash
+    else if (key == "length") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 507) { // Dash (DashBase::lengthPropertyKey)
+            builder.set(obj, 692, value.get<float>());
+        } else { // Bone (default)
+            builder.set(obj, 89, value.get<float>());
+        }
+    }
+    else if (key == "lengthIsPercentage") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 507) { // Dash (DashBase::lengthIsPercentagePropertyKey)
+            builder.set(obj, 693, value.get<bool>());
+        }
+    }
     
     // Cubic Interpolator (animation)
     else if (key == "x1") builder.set(obj, 63, value.get<float>());
@@ -455,6 +478,14 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[750] = rive::CoreDoubleType::id; // offsetX
     typeMap[751] = rive::CoreDoubleType::id; // offsetY
     typeMap[752] = rive::CoreBoolType::id; // inner
+    
+    // DashPath (typeKey 506)
+    typeMap[690] = rive::CoreDoubleType::id; // offset (DashPathBase::offsetPropertyKey)
+    typeMap[691] = rive::CoreBoolType::id;   // offsetIsPercentage (DashPathBase::offsetIsPercentagePropertyKey)
+    
+    // Dash (typeKey 507)
+    typeMap[692] = rive::CoreDoubleType::id; // length (DashBase::lengthPropertyKey)
+    typeMap[693] = rive::CoreBoolType::id;   // lengthIsPercentage (DashBase::lengthIsPercentagePropertyKey)
     
     // Bone
     typeMap[89] = rive::CoreDoubleType::id; // length
