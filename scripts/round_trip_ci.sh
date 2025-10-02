@@ -82,8 +82,28 @@ for test_entry in "${TESTS[@]}"; do
     fi
     echo "  ✅ Conversion successful"
     
-    # Step 3: Import test
-    echo "  [3/3] Testing import..."
+    # Step 3: Binary structure validation
+    echo "  [3/5] Validating RIV structure..."
+    if ! python3 scripts/validate_roundtrip_riv.py "$riv_file" > /dev/null 2>&1; then
+        echo "  ❌ FAILED: RIV structure validation failed"
+        echo ""
+        python3 scripts/validate_roundtrip_riv.py "$riv_file"
+        FAILED=$((FAILED + 1))
+        continue
+    fi
+    echo "  ✅ RIV structure valid"
+    
+    # Step 4: Chunk analysis
+    echo "  [4/5] Analyzing chunks..."
+    python3 converter/analyze_riv.py "$riv_file" --json > "${riv_file}.analysis.json" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "  ⚠️  WARNING: Chunk analysis had issues (non-fatal)"
+    else
+        echo "  ✅ Chunk analysis complete"
+    fi
+    
+    # Step 5: Import test
+    echo "  [5/5] Testing import..."
     if ! "$IMPORT_TEST" "$riv_file" > /dev/null 2>&1; then
         echo "  ❌ FAILED: Import test failed"
         echo ""

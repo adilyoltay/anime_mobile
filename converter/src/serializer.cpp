@@ -221,6 +221,18 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     }
     writer.writeVarUint(uint32_t{0});
 
+    // Ensure bitmap is 4-byte aligned
+    size_t tocEnd = buffer.size();
+    size_t paddingNeeded = (4 - (tocEnd % 4)) % 4;
+    for (size_t i = 0; i < paddingNeeded; ++i)
+    {
+        writer.write(uint8_t{0}); // Padding byte
+    }
+    if (paddingNeeded > 0)
+    {
+        std::cout << "  ℹ️  ToC padding: " << paddingNeeded << " bytes (offset " << tocEnd << " -> " << buffer.size() << ")" << std::endl;
+    }
+
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);
     for (size_t index = 0; index < headerKeys.size(); ++index)
@@ -536,6 +548,18 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         writer.writeVarUint(static_cast<uint32_t>(key));
     }
     writer.writeVarUint(uint32_t{0});
+
+    // Ensure bitmap is 4-byte aligned
+    size_t tocEnd = buffer.size();
+    size_t paddingNeeded = (4 - (tocEnd % 4)) % 4;
+    for (size_t i = 0; i < paddingNeeded; ++i)
+    {
+        writer.write(uint8_t{0}); // Padding byte
+    }
+    if (paddingNeeded > 0)
+    {
+        std::cout << "  ℹ️  ToC padding: " << paddingNeeded << " bytes (offset " << tocEnd << " -> " << buffer.size() << ")" << std::endl;
+    }
 
     const size_t bitmapCount = (headerKeys.size() + 3) / 4;
     std::vector<uint32_t> bitmap(bitmapCount, 0u);
