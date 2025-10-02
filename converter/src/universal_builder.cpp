@@ -73,7 +73,7 @@ static bool isPaintOrDecorator(uint16_t typeKey) {
     return typeKey == 20 ||  // Fill
            typeKey == 24 ||  // Stroke
            typeKey == 47 ||  // TrimPath
-           typeKey == 46 ||  // DashPath
+           typeKey == 506 || // DashPath (DashPathBase::typeKey)
            typeKey == 533;   // Feather
 }
 

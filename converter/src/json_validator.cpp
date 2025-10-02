@@ -161,10 +161,10 @@ std::vector<std::string> JSONValidator::getRequiredProperties(uint16_t typeKey)
         case 49: // Feather
             return {"strength", "offsetX", "offsetY", "inner"};
         
-        case 48: // Dash
+        case 507: // Dash (DashBase::typeKey)
             return {"length", "lengthIsPercentage"};
         
-        case 46: // DashPath
+        case 506: // DashPath (DashPathBase::typeKey, NOT 46 which is CubicWeight)
             return {"offset", "offsetIsPercentage"};
         
         case 19: // GradientStop
@@ -252,9 +252,9 @@ void JSONValidator::printResults(const ValidationResult& result, bool verbose)
                 std::string typeName;
                 switch (typeKey) {
                     case 47: typeName = "TrimPath"; break;
-                    case 49: typeName = "Feather"; break;
-                    case 48: typeName = "Dash"; break;
-                    case 46: typeName = "DashPath"; break;
+                    case 533: typeName = "Feather"; break;
+                    case 507: typeName = "Dash"; break;
+                    case 506: typeName = "DashPath"; break;
                     case 19: typeName = "GradientStop"; break;
                     default: typeName = "Type" + std::to_string(typeKey); break;
                 }
