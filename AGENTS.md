@@ -245,24 +245,30 @@ python3 converter/analyze_riv.py <out.riv>
   - **Root Cause**: Missing interpolatorId (property key 69) in KeyFrame export/import
   - **Impact**: 370 → 489 → 528 interpolators (+42.7% growth per cycle)
   - **Implementation - Extractor**:
-    - File: `converter/universal_extractor.cpp:429-435`
-    - Export interpolatorId property from InterpolatingKeyFrame objects
-    - Assign localId to interpolator objects (was missing)
-    - Set parentId=0 for interpolators (top-level in artboard)
+    - File: `converter/universal_extractor.cpp:429-478`
+    - Build coreIdToLocalId mapping for interpolators (runtime ID → JSON localId)
+    - Export interpolators BEFORE KeyFrames (populate mapping first)
+    - Prevent duplicate interpolator export (shared interpolator support)
+    - Export interpolatorId as JSON localId (NOT runtime ID)
+  - **CRITICAL BUG FIX (Oct 2, 2024 - Commit 49a88507)**:
+    - **Bug**: Exported runtime component ID instead of JSON localId
+    - **Impact**: 100% remap failures, shared interpolators would break
+    - **Fix**: Use coreIdToLocalId[runtimeID] → JSON localId (same as KeyedObject pattern)
+    - **Result**: 333/333 successful remaps, shared interpolators work correctly
   - **Implementation - Builder**:
     - File: `converter/src/universal_builder.cpp:281-285`
     - Skip interpolatorId in property wiring (defer to PASS3)
     - File: `converter/src/universal_builder.cpp:1263-1277`
     - Collect interpolatorId in deferredComponentRefs
     - File: `converter/src/universal_builder.cpp:1463-1510`
-    - Remap interpolatorId in PASS3 (localId → runtime component ID)
+    - Remap interpolatorId in PASS3 (JSON localId → runtime component ID)
   - **Result**: ✅ ROUND-TRIP STABILITY ACHIEVED
   - **Test Results**:
-    - CubicInterpolator (28): 315 → 315 → 315 (0% growth) ✅
-    - Interpolator (138): 55 → 55 → 55 (0% growth) ✅
-    - Object count: C4 = C6 = 375 (STABLE) ✅
-    - File size: 8,879 bytes (STABLE) ✅
-  - **Documentation**: `ROUNDTRIP_INSTABILITY_ROOT_CAUSE.md`
+    - CubicInterpolator (28): 16 → 16 → 16 (0% growth) ✅
+    - Interpolator (138): 52 → 52 → 52 (0% growth) ✅
+    - interpolatorId remap: 333/333 success (100%) ✅
+    - Shared interpolators: localId=240 shared by 278 KeyFrames ✅
+  - **Documentation**: `ROUNDTRIP_INSTABILITY_ROOT_CAUSE.md`, `FINAL_ROUNDTRIP_VALIDATION.md`
 - **Next Steps** (Optional):
   - TrimPath-Compat: Investigate and fix TrimPath runtime requirements
   - StateMachine: Re-enable if needed (OMIT_STATE_MACHINE=false)
