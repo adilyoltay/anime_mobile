@@ -406,7 +406,22 @@ int main(int argc, char* argv[]) {
                     if (it != compToLocalId.end()) {
                         objJson["parentId"] = it->second;
                     } else {
-                        objJson["parentId"] = 0; // Fallback to artboard
+                        // PR-KEYED-ORDER: For Fill/Stroke with missing parent, search for nearest Shape
+                        uint32_t fallbackParent = 0;
+                        if (tk == 20 || tk == 24) { // Fill or Stroke
+                            // Search backwards through already-emitted objects for a Shape
+                            for (auto rit = artboardJson["objects"].rbegin(); 
+                                 rit != artboardJson["objects"].rend(); ++rit) {
+                                if ((*rit)["typeKey"] == 3) { // Shape
+                                    fallbackParent = (*rit)["localId"];
+                                    std::cerr << "  ⚠️  Fill/Stroke typeKey=" << tk 
+                                              << " parent missing → fallback to Shape localId=" 
+                                              << fallbackParent << std::endl;
+                                    break;
+                                }
+                            }
+                        }
+                        objJson["parentId"] = fallbackParent; // Shape or Artboard (0)
                     }
                 }
             }
@@ -573,7 +588,20 @@ int main(int argc, char* argv[]) {
                     } else {
                         // SHOULD NOT HAPPEN due to recursive resolution
                         std::cerr << "⚠️  WARNING: Parent pointer not found despite recursive resolution!" << std::endl;
-                        objJson["parentId"] = 0;  // Fallback
+                        // PR-KEYED-ORDER: For Fill/Stroke, search for nearest Shape
+                        uint32_t fallbackParent = 0;
+                        if (tk == 20 || tk == 24) { // Fill or Stroke
+                            for (auto rit = artboardJson["objects"].rbegin(); 
+                                 rit != artboardJson["objects"].rend(); ++rit) {
+                                if ((*rit)["typeKey"] == 3) { // Shape
+                                    fallbackParent = (*rit)["localId"];
+                                    std::cerr << "  → Resolved Fill/Stroke fallback to Shape localId=" 
+                                              << fallbackParent << std::endl;
+                                    break;
+                                }
+                            }
+                        }
+                        objJson["parentId"] = fallbackParent;  // Shape or Artboard (0)
                     }
                 } else {
                     objJson["parentId"] = 0;  // No parent = artboard child
