@@ -60,10 +60,21 @@ echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
 # Step 3: Compare
 echo -e "${BLUE}[3/3]${RESET} Comparing original vs round-trip..."
 echo ""
-python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV"
 
-# Save JSON report
+# Run visual comparison (don't exit on diff)
+python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" || COMPARISON_FAILED=$?
+
+# Save JSON report (always generate, even on diff)
 REPORT_JSON="$OUTPUT_DIR/${BASENAME}_comparison.json"
-python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$REPORT_JSON"
+python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$REPORT_JSON" || true
 echo -e "${YELLOW}📄${RESET} Comparison report saved: $REPORT_JSON"
+
+# Final status
+if [ -n "$COMPARISON_FAILED" ]; then
+    echo -e "${YELLOW}⚠️  Differences detected (exit code: $COMPARISON_FAILED)${RESET}"
+    echo -e "   Review the report above for details."
+    exit $COMPARISON_FAILED
+else
+    echo -e "${GREEN}✅ Round-trip successful - files match!${RESET}"
+fi
 echo ""
