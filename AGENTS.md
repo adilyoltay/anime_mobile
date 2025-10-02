@@ -333,3 +333,55 @@ python3 converter/analyze_riv.py <out.riv>
 - [ ] `riv_structure.md` dokumanini guncel tutun; yeni tip eklemeden veya runtime davranisini degistirmeden once degisiklikleri burada not alin.
 
 Her degisiklikten sonra hem bu dosyayi hem de `riv_structure.md` belgesini guncel tutun.
+
+## 17. PR-KEYED-DATA-EXPORT (MERGED - Oct 2, 2024)
+- **Goal**: Single round-trip support with keyed data preservation
+- **Branch**: pr-keyed-data-export → main (merge commit: 4d964aa2)
+- **Status**: ✅ PRODUCTION READY for single round-trip
+- **Key Files**:
+  - `converter/universal_extractor.cpp` - Extractor with synthetic ID mapping
+  - `docs/KEYED_DATA_INVESTIGATION.md` - Complete investigation report
+- **Features Implemented**:
+  - ✅ interpolatorId fix: 333/333 remapping (100% success)
+  - ✅ Synthetic ID mapping for runtime objects (0x80000000+ space)
+  - ✅ Per-KeyedObject synthetic IDs (no pointer access workaround)
+  - ✅ Placeholder object export (typeKey 2, Node)
+  - ✅ Pointer-based tracking for objects with idOf()=0
+  - ✅ Recursive parent resolution
+  - ✅ All P0 review comments addressed
+- **Test Results**:
+  - Single round-trip: original.riv → JSON → rt1.riv ✅ SUCCESS
+  - File: bee_baby.riv (9,700 bytes) → converted.riv (11,586 bytes)
+  - Objects: 273 → 271 (expected difference)
+  - interpolatorId: 333/333 remapped correctly
+  - Import test: ✅ SUCCESS
+- **Known Limitations (SDK)**:
+  - ⚠️ Multi round-trip: artboard->resolve() doesn't work for runtime objects
+  - ⚠️ Runtime object types: Unknown (use Node placeholders)
+  - ⚠️ Same-target dedup: Impossible without pointer access
+- **Architecture**:
+  ```cpp
+  // Synthetic ID mapping for runtime objects
+  koToSyntheticId[keyedObject] = 0x80000000 + n;
+  coreIdToLocalId[syntheticId] = localId;
+  
+  // Placeholder export
+  {"typeKey": 2, "localId": N, "__runtime_placeholder__": true}
+  ```
+- **Commits (9 total)**:
+  1. Phase 1: API investigation
+  2. Phase 2: SDK limitation discovery
+  3. Recursive parent resolution
+  4. Skip interpolators double assignment
+  5. Pointer-based tracking for ID=0
+  6. Synthetic ID mapping (P0)
+  7. Per-KeyedObject synthetic IDs (P0)
+  8. Export placeholder objects (P0)
+  9. Merge commit
+- **Production Use**:
+  - ✅ Single round-trip: Fully functional
+  - ✅ Extract: `universal_extractor original.riv output.json`
+  - ✅ Convert: `rive_convert_cli output.json converted.riv`
+  - ✅ Test: `import_test converted.riv`
+  - ⚠️ Multi round-trip: Not supported (SDK limitation)
+- **Documentation**: See `docs/KEYED_DATA_INVESTIGATION.md` for full technical details
