@@ -87,11 +87,19 @@ echo -e "${BLUE}[4/4]${RESET} Tracking growth metrics..."
 echo ""
 
 GROWTH_JSON="$OUTPUT_DIR/${BASENAME}_growth.json"
+set +e  # Temporarily disable exit-on-error
 python3 scripts/track_roundtrip_growth.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$GROWTH_JSON"
 GROWTH_EXIT=$?
 
-# Show growth summary
+# Show growth summary (also capture exit code)
 python3 scripts/track_roundtrip_growth.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV"
+GROWTH_SUMMARY_EXIT=$?
+set -e  # Re-enable exit-on-error
+
+# Use whichever exit code is worse (higher value = worse)
+if [ $GROWTH_SUMMARY_EXIT -gt $GROWTH_EXIT ]; then
+    GROWTH_EXIT=$GROWTH_SUMMARY_EXIT
+fi
 
 echo -e "${YELLOW}📊${RESET} Growth metrics saved: $GROWTH_JSON"
 echo ""
