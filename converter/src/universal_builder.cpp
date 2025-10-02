@@ -646,6 +646,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<PendingObject> pendingObjects; // Stored in creation order
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
         std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
+        std::unordered_map<uint32_t, uint32_t> parentToSyntheticShape; // PR-ORPHAN-FIX: parent localId -> synthetic Shape localId
         
         // Deferred targetId remapping (PASS3)
         struct DeferredTargetId {
@@ -907,6 +908,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
                 localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
                 localIdToType[shapeLocalId] = 3;
+                
+                // PR-ORPHAN-FIX: Track that this parent got a synthetic Shape
+                parentToSyntheticShape[parentLocalId] = shapeLocalId;
 
                 for (const auto& [key, value] : properties) {
                     if (key == "x") {
@@ -1270,28 +1274,45 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 
                 // If parent is NOT a Shape (typeKey 3) or Artboard (typeKey 1/0)
                 if (parentType != 0 && parentType != 1 && parentType != 3) {
-                    // Create synthetic Shape
-                    uint32_t shapeLocalId = nextSyntheticLocalId++;
-                    auto& shapeObj = builder.addCore(new rive::Shape());
-                    
-                    // CRITICAL: Set drawable properties so Rive Play renders the shape!
-                    builder.set(shapeObj, 23, static_cast<uint32_t>(3));   // blendModeValue = SrcOver
-                    builder.set(shapeObj, 129, static_cast<uint32_t>(4));  // drawableFlags = visible (4)
-                    
-                    localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
-                    localIdToType[shapeLocalId] = 3;
-                    
                     uint32_t originalParent = pending.parentLocalId;
-                    newShapes.push_back({&shapeObj, 3, shapeLocalId, originalParent});
+                    uint32_t shapeLocalId;
                     
-                    // Reparent the orphan paint to the synthetic Shape
-                    pending.parentLocalId = shapeLocalId;
-                    orphanFixed++;
-                    
-                    std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
-                              << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
-                              << ") → synthetic Shape " << shapeLocalId 
-                              << " (original parent typeKey=" << parentType << ")" << std::endl;
+                    // PR-ORPHAN-FIX: Check if this parent already got a synthetic Shape in PASS 1
+                    auto existingShape = parentToSyntheticShape.find(originalParent);
+                    if (existingShape != parentToSyntheticShape.end()) {
+                        // Reuse existing synthetic Shape (e.g., created for parametric path)
+                        shapeLocalId = existingShape->second;
+                        pending.parentLocalId = shapeLocalId;
+                        orphanFixed++;
+                        
+                        std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
+                                  << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
+                                  << ") → REUSING synthetic Shape " << shapeLocalId 
+                                  << " (original parent typeKey=" << parentType << ")" << std::endl;
+                    } else {
+                        // Create NEW synthetic Shape
+                        shapeLocalId = nextSyntheticLocalId++;
+                        auto& shapeObj = builder.addCore(new rive::Shape());
+                        
+                        // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                        builder.set(shapeObj, 23, static_cast<uint32_t>(3));   // blendModeValue = SrcOver
+                        builder.set(shapeObj, 129, static_cast<uint32_t>(4));  // drawableFlags = visible (4)
+                        
+                        localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                        localIdToType[shapeLocalId] = 3;
+                        parentToSyntheticShape[originalParent] = shapeLocalId;
+                        
+                        newShapes.push_back({&shapeObj, 3, shapeLocalId, originalParent});
+                        
+                        // Reparent the orphan paint to the synthetic Shape
+                        pending.parentLocalId = shapeLocalId;
+                        orphanFixed++;
+                        
+                        std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
+                                  << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
+                                  << ") → NEW synthetic Shape " << shapeLocalId 
+                                  << " (original parent typeKey=" << parentType << ")" << std::endl;
+                    }
                 }
             }
         }
