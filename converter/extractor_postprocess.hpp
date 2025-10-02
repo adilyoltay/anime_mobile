@@ -240,14 +240,14 @@ inline void checkParentSanity(std::vector<json>& objects, DiagnosticCounters& di
         uint16_t typeKey = obj["typeKey"];
         bool shouldDrop = false;
         
-        // PR1: Keep TrimPath skip - causes KeyedObject import failures
-        // TrimPath (typeKey 47) at localId=189 breaks all KeyedObject deserialization
-        // Skipping 1 object is better than breaking 40 animations
-        if (typeKey == 47) { // TrimPath
-            diag.skippedTrimPath++;
-            diag.droppedObjects++;
-            continue; // Skip - causes import failures
-        }
+        // TrimPath re-enabled! LinearAnimation dependency fixes ordering
+        // KeyedObjects now have parentId → LinearAnimation comes first
+        // No longer need to skip TrimPath
+        // if (typeKey == 47) { // TrimPath - NO LONGER SKIP
+        //     diag.skippedTrimPath++;
+        //     diag.droppedObjects++;
+        //     continue;
+        // }
         
         // Ensure ClippingShape objects are preserved. Previous debug-only logic
         // skipped typeKey 42 and caused malformed masking and grey screen.

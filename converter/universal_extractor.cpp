@@ -61,6 +61,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 #include <functional>
 
 using json = nlohmann::json;
@@ -232,6 +233,7 @@ int main(int argc, char* argv[]) {
         std::map<Core*, uint32_t> objPtrToLocalId; // Object pointer → localId (for runtime objects with ID=0)
         std::map<Core*, uint32_t> objPtrToRuntimeId; // Synthetic runtime ID for runtime objects
         std::map<const KeyedObject*, uint32_t> koToSyntheticId; // KeyedObject → synthetic target ID (for runtime targets)
+        std::unordered_map<const LinearAnimation*, uint32_t> animationToLocalId; // LinearAnimation → localId
         uint32_t nextLocalId = 0;
         uint32_t nextSyntheticId = 0x80000000; // Start synthetic IDs at 2^31 to avoid collision
         
@@ -654,11 +656,17 @@ int main(int argc, char* argv[]) {
                 json animJson;
                 animJson["typeKey"] = la->coreType();
                 animJson["typeName"] = getTypeName(la->coreType());
+                // CRITICAL FIX: LinearAnimation MUST have localId for topological sort
+                uint32_t animLocalId = nextLocalId++;
+                animJson["localId"] = animLocalId;
+                animJson["parentId"] = 0; // Artboard child
                 animJson["properties"] = json::object();
                 animJson["properties"]["name"] = la->name();
                 animJson["properties"]["fps"] = la->fps();
                 animJson["properties"]["duration"] = la->duration();
                 animJson["properties"]["loop"] = la->loop();
+
+                animationToLocalId[la] = animLocalId;
                 
                 artboardJson["objects"].push_back(animJson);
                 
@@ -670,8 +678,9 @@ int main(int argc, char* argv[]) {
                     json koJson;
                     koJson["typeKey"] = ko->coreType();
                     koJson["typeName"] = getTypeName(ko->coreType());
-                    koJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedObject
-                    // PR1-FIX: NO parentId - let topological sort handle via objectId dependency
+                    uint32_t koLocalId = nextLocalId++;  // CRITICAL: Assign localId for KeyedObject
+                    koJson["localId"] = koLocalId;
+                    koJson["parentId"] = animLocalId;  // CRITICAL FIX: KeyedObject child of LinearAnimation
                     koJson["properties"] = json::object();
                     
                     // Remap runtime Core ID to localId for rebuild
@@ -709,8 +718,9 @@ int main(int argc, char* argv[]) {
                         json kpJson;
                         kpJson["typeKey"] = kp->coreType();
                         kpJson["typeName"] = getTypeName(kp->coreType());
-                        kpJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyedProperty
-                        // PR1-FIX: NO parentId - let topological sort handle via parent KeyedObject
+                        uint32_t kpLocalId = nextLocalId++;  // CRITICAL: Assign localId for KeyedProperty
+                        kpJson["localId"] = kpLocalId;
+                        kpJson["parentId"] = koLocalId;  // CRITICAL FIX: KeyedProperty child of KeyedObject
                         kpJson["properties"] = json::object();
                         kpJson["properties"]["propertyKey"] = kp->propertyKey();
                         artboardJson["objects"].push_back(kpJson);
@@ -724,7 +734,7 @@ int main(int argc, char* argv[]) {
                             kfJson["typeKey"] = kf->coreType();
                             kfJson["typeName"] = getTypeName(kf->coreType());
                             kfJson["localId"] = nextLocalId++;  // CRITICAL: Assign localId for KeyFrame
-                            // PR1-FIX: NO parentId - let topological sort handle via parent KeyedProperty
+                            kfJson["parentId"] = kpLocalId;  // CRITICAL FIX: KeyFrame child of KeyedProperty
                             kfJson["properties"] = json::object();
                             kfJson["properties"]["frame"] = kf->frame();
                             kfJson["properties"]["seconds"] = kf->seconds();
@@ -752,7 +762,7 @@ int main(int argc, char* argv[]) {
                                         interpJson["typeName"] = getTypeName(interpolator->coreType());
                                         uint32_t interpLocalId = nextLocalId++;
                                         interpJson["localId"] = interpLocalId;
-                                        // PR1-FIX: NO parentId - interpolators handled separately
+                                        interpJson["parentId"] = kpLocalId;  // Interpolator treated as KeyedProperty child for topo ordering
                                         interpJson["properties"] = json::object();
                                         
                                         // Export interpolator properties (x1, y1, x2, y2 for cubic)
@@ -1029,4 +1039,3 @@ int main(int argc, char* argv[]) {
     
     return 0;
 }
-

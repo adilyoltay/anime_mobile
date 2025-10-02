@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdlib>
 #include "rive/file.hpp"
 #include "rive/animation/state_machine_layer.hpp"
 #include "rive/animation/layer_state.hpp"
@@ -8,17 +9,30 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
+    if (argc < 2 || argc > 3)
     {
-        std::cerr << "Usage: " << argv[0] << " <riv_file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <riv_file> [expected_object_count]" << std::endl;
         return 1;
     }
 
+    const char* rivPath = argv[1];
+    long expectedObjectCount = -1;
+    if (argc == 3)
+    {
+        char* endPtr = nullptr;
+        expectedObjectCount = std::strtol(argv[2], &endPtr, 10);
+        if (endPtr == argv[2] || *endPtr != '\0' || expectedObjectCount < 0)
+        {
+            std::cerr << "Invalid expected object count: " << argv[2] << std::endl;
+            return 1;
+        }
+    }
+
     // Read file
-    std::ifstream inFile(argv[1], std::ios::binary | std::ios::ate);
+    std::ifstream inFile(rivPath, std::ios::binary | std::ios::ate);
     if (!inFile)
     {
-        std::cerr << "Failed to open file: " << argv[1] << std::endl;
+        std::cerr << "Failed to open file: " << rivPath << std::endl;
         return 1;
     }
     
@@ -44,7 +58,7 @@ int main(int argc, char* argv[])
         
         // Accumulate NULL count across ALL artboards
         int totalNullCount = 0;
-        int totalObjectCount = 0;
+        long totalObjectCount = 0;
         
         // List all artboards with their state machines
         for (size_t i = 0; i < file->artboardCount(); ++i)
@@ -107,6 +121,20 @@ int main(int argc, char* argv[])
             std::cerr << "NULL objects are genuine serialization defects that will crash Rive Play!" << std::endl;
             std::cerr << "File::readRuntimeObject() returned nullptr - runtime cannot deserialize these objects." << std::endl;
             return 1;  // Hard failure
+        }
+
+        if (expectedObjectCount >= 0 && totalObjectCount != expectedObjectCount)
+        {
+            std::cerr << "\n❌ IMPORT FAILED: Object count mismatch" << std::endl;
+            std::cerr << "  Expected: " << expectedObjectCount << std::endl;
+            std::cerr << "  Actual:   " << totalObjectCount << std::endl;
+            std::cerr << "  Diff:     " << (totalObjectCount - expectedObjectCount) << std::endl;
+                
+            return 1;
+        }
+        else if (expectedObjectCount >= 0)
+        {
+            std::cout << "Object count matches expected total (" << totalObjectCount << ")" << std::endl;
         }
         
         if (file->artboard())

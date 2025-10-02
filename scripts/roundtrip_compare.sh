@@ -4,6 +4,37 @@
 
 set -e
 
+REPO_ROOT=$(pwd)
+export REPO_ROOT
+
+get_riv_metrics() {
+    local riv_path="$1"
+    python3 - "$riv_path" <<'PY'
+import json
+import os
+import sys
+from pathlib import Path
+
+repo_root = Path(os.environ["REPO_ROOT"])
+sys.path.insert(0, str(repo_root / "converter"))
+
+from analyze_riv import analyze  # noqa: E402
+
+path = Path(sys.argv[1])
+summary = analyze(path, return_data=True)
+objects = summary.get("objects", [])
+
+KEYED_TYPES = {25, 26, 28, 30, 37, 50, 84, 138, 139, 142, 171, 174, 175, 450}
+
+metrics = {
+    "objects": len(objects),
+    "keyed": sum(1 for obj in objects if obj.get("typeKey") in KEYED_TYPES),
+}
+
+print(json.dumps(metrics))
+PY
+}
+
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <original.riv>"
     echo ""
@@ -38,6 +69,11 @@ echo ""
 echo "Original: $ORIGINAL_RIV"
 echo ""
 
+# Capture baseline metrics for original file
+ORIGINAL_METRICS=$(get_riv_metrics "$ORIGINAL_RIV")
+EXPECTED_OBJECTS=$(echo "$ORIGINAL_METRICS" | jq -r '.objects')
+EXPECTED_KEYED=$(echo "$ORIGINAL_METRICS" | jq -r '.keyed')
+
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
@@ -64,7 +100,7 @@ echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
 # Step 3: Import test (Rive Play compatibility)
 echo -e "${BLUE}[3/5]${RESET} Testing Rive Play compatibility..."
 IMPORT_LOG="$OUTPUT_DIR/${BASENAME}_import.log"
-if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" > "$IMPORT_LOG" 2>&1; then
+if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" "$EXPECTED_OBJECTS" > "$IMPORT_LOG" 2>&1; then
     echo -e "${RED}❌ FAILED: Import test failed (Rive Play will crash!)${RESET}"
     echo ""
     echo "Import test output:"
@@ -73,7 +109,11 @@ if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" > "$IMPORT_LOG" 2>&1; then
 fi
 
 # Check for NULL objects (now a hard failure thanks to import_test update)
-NULL_COUNT=$(grep -c "NULL!" "$IMPORT_LOG" || echo 0)
+if grep -q "NULL!" "$IMPORT_LOG"; then
+    NULL_COUNT=$(grep -c "NULL!" "$IMPORT_LOG")
+else
+    NULL_COUNT=0
+fi
 if [ $NULL_COUNT -gt 0 ]; then
     echo -e "${RED}❌ FAILED: Found $NULL_COUNT NULL objects${RESET}"
     echo "   Serialization defects detected - these will crash Rive Play!"
@@ -83,6 +123,25 @@ if [ $NULL_COUNT -gt 0 ]; then
     exit 1
 else
     echo -e "${GREEN}✅${RESET} Import test passed (no NULL objects)"
+fi
+
+# Validate object and keyed counts against original
+ROUNDTRIP_METRICS=$(get_riv_metrics "$ROUNDTRIP_RIV")
+ROUNDTRIP_OBJECTS=$(echo "$ROUNDTRIP_METRICS" | jq -r '.objects')
+ROUNDTRIP_KEYED=$(echo "$ROUNDTRIP_METRICS" | jq -r '.keyed')
+
+if [ "$ROUNDTRIP_OBJECTS" -ne "$EXPECTED_OBJECTS" ]; then
+    echo -e "${RED}❌ FAILED: Object count mismatch (expected $EXPECTED_OBJECTS, got $ROUNDTRIP_OBJECTS)${RESET}"
+    exit 1
+else
+    echo -e "${GREEN}✅${RESET} Object count matches source ($ROUNDTRIP_OBJECTS)"
+fi
+
+if [ "$ROUNDTRIP_KEYED" -ne "$EXPECTED_KEYED" ]; then
+    echo -e "${RED}❌ FAILED: Keyed object count mismatch (expected $EXPECTED_KEYED, got $ROUNDTRIP_KEYED)${RESET}"
+    exit 1
+else
+    echo -e "${GREEN}✅${RESET} Keyed object count matches source ($ROUNDTRIP_KEYED)"
 fi
 
 # Step 4: Compare

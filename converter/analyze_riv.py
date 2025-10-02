@@ -131,7 +131,13 @@ class ObjectEntry:
 
 # -- Parser ------------------------------------------------------------------
 
-def parse_objects(data: bytes, pos: int, header_keys: List[int], strict: bool = False) -> Tuple[int, List[ObjectEntry], List[int]]:
+def parse_objects(
+    data: bytes,
+    pos: int,
+    header_keys: List[int],
+    strict: bool = False,
+    emit_logs: bool = True,
+) -> Tuple[int, List[ObjectEntry], List[int]]:
     """PR4: Enhanced parser with catalog support and robust EOF handling."""
     bitmap_count = (len(header_keys) + 3) // 4
     bitmap_bytes = data[pos - bitmap_count * 4 : pos]
@@ -145,25 +151,29 @@ def parse_objects(data: bytes, pos: int, header_keys: List[int], strict: bool = 
     while True:
         # PR4: Graceful EOF at object boundary
         if pos >= len(data):
-            print(f"  [info] Clean EOF at object boundary (parsed {obj_index} objects)")
+            if emit_logs:
+                print(f"  [info] Clean EOF at object boundary (parsed {obj_index} objects)")
             break
             
         try:
             type_key, pos = read_varuint(data, pos)
         except (EOFError, struct.error) as e:
             if pos >= len(data) - 8:  # Near end, likely clean termination
-                print(f"  [info] EOF near end of file (parsed {obj_index} objects)")
+                if emit_logs:
+                    print(f"  [info] EOF near end of file (parsed {obj_index} objects)")
                 break
             else:
                 msg = f"EOF while reading object #{obj_index} typeKey at pos {pos}"
                 if strict:
                     raise ValueError(msg) from e
-                print(f"  [warning] {msg}")
+                if emit_logs:
+                    print(f"  [warning] {msg}")
                 break
                 
         if type_key == 0:
             # Object stream terminator
-            print(f"  [info] Object stream ended with 0 terminator (parsed {obj_index} objects)")
+            if emit_logs:
+                print(f"  [info] Object stream ended with 0 terminator (parsed {obj_index} objects)")
             # PR4: May have catalog chunks after this
             continue
             
@@ -215,7 +225,8 @@ def parse_objects(data: bytes, pos: int, header_keys: List[int], strict: bool = 
             msg = f"EOF in object #{obj_index} ({type_name}) after keys {prop_keys} at pos {pos}"
             if strict:
                 raise ValueError(msg) from e
-            print(f"  [warning] {msg}")
+            if emit_logs:
+                print(f"  [warning] {msg}")
             if props:  # Save partial object if we got any properties
                 objects.append(ObjectEntry(type_key, props))
             break
@@ -246,7 +257,13 @@ def analyze(path: Path, return_data: bool = False, strict: bool = False, dump_ca
 
     bitmap_count = (len(header_keys) + 3) // 4
     pos_bitmap_end = pos + bitmap_count * 4
-    pos, objects, artboard_ids = parse_objects(data, pos_bitmap_end, header_keys, strict=strict)
+    pos, objects, artboard_ids = parse_objects(
+        data,
+        pos_bitmap_end,
+        header_keys,
+        strict=strict,
+        emit_logs=not return_data,
+    )
     
     # PR4: Dump catalog if requested
     if dump_catalog and artboard_ids:

@@ -101,11 +101,31 @@ static bool isVertexType(uint16_t typeKey) {
 static bool isAnimGraphType(uint16_t typeKey) {
     return typeKey == 25 ||  // KeyedObject
            typeKey == 26 ||  // KeyedProperty
+           typeKey == 28 ||  // CubicEaseInterpolator
+           typeKey == 30 ||  // KeyFrameDouble
+           typeKey == 31 ||  // LinearAnimation - CRITICAL: Animation system manages these
+           typeKey == 37 ||  // KeyFrameColor
+           typeKey == 50 ||  // KeyFrameId
+           typeKey == 84 ||  // KeyFrameBool
+           typeKey == 138 || // CubicValueInterpolator
+           typeKey == 142 || // KeyFrameString
+           typeKey == 450;   // KeyFrameUint
+}
+
+static bool isKeyedSerializationType(uint16_t typeKey) {
+    return typeKey == 25 ||  // KeyedObject
+           typeKey == 26 ||  // KeyedProperty
+           typeKey == 28 ||  // CubicEaseInterpolator
            typeKey == 30 ||  // KeyFrameDouble
            typeKey == 37 ||  // KeyFrameColor
            typeKey == 50 ||  // KeyFrameId
            typeKey == 84 ||  // KeyFrameBool
+           typeKey == 138 || // CubicValueInterpolator
+           typeKey == 139 || // CubicInterpolatorBase
            typeKey == 142 || // KeyFrameString
+           typeKey == 171 || // KeyFrameCallback
+           typeKey == 174 || // ElasticInterpolatorBase
+           typeKey == 175 || // KeyFrameInterpolator (abstract placeholder)
            typeKey == 450;   // KeyFrameUint
 }
 
@@ -781,9 +801,23 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             
             for (const auto& objJson : sortedObjects) {
                 uint32_t parentId = objJson.contains("parentId") ? objJson["parentId"].get<uint32_t>() : 0;
-                
-                // Emit if parent exists or this is artboard (typeKey 1)
-                if (objJson["typeKey"].get<uint16_t>() == 1 || emittedLocalIds.count(parentId) > 0) {
+                uint16_t typeKeyCandidate = objJson["typeKey"].get<uint16_t>();
+
+                bool parentReady = (typeKeyCandidate == 1) || (emittedLocalIds.count(parentId) > 0);
+
+                // Additional dependency: KeyedObject must wait for its animation target to be emitted
+                if (parentReady && typeKeyCandidate == 25 && objJson.contains("properties")) {
+                    const auto& props = objJson["properties"];
+                    if (props.contains("objectId")) {
+                        uint32_t targetLocalId = props["objectId"].get<uint32_t>();
+                        if (emittedLocalIds.count(targetLocalId) == 0) {
+                            parentReady = false;
+                        }
+                    }
+                }
+
+                // Emit if dependencies satisfied
+                if (parentReady) {
                     orderedObjects.push_back(objJson);
                     if (objJson.contains("localId")) {
                         emittedLocalIds.insert(objJson["localId"].get<uint32_t>());
@@ -929,13 +963,11 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     uint32_t targetLocalId = objJson["properties"]["objectId"].get<uint32_t>();
                     auto it = localIdToBuilderObjectId.find(targetLocalId);
                     if (it == localIdToBuilderObjectId.end()) {
-                        std::cerr << "Cascade skip: KeyedObject targets missing localId=" << targetLocalId 
-                                  << " (filtered object - prevents runtime hang)" << std::endl;
-                        skipKeyframeData = true; // Flag to skip following KeyedProperty/KeyFrame children
-                        if (objJson.contains("localId")) {
-                            skippedLocalIds.insert(objJson["localId"].get<uint32_t>());
-                        }
-                        continue; // MUST skip - objectId=0 causes importer hang
+                        // Topological sort + TrimPath retention should guarantee this exists.
+                        // Emit diagnostic so we can track unexpected misses but do NOT skip –
+                        // dropping here resurrects the original 230 NULL-object regression.
+                        std::cerr << "⚠️  WARNING: KeyedObject targets missing localId=" << targetLocalId
+                                  << " (please investigate extractor ordering)" << std::endl;
                     }
                 }
             }
