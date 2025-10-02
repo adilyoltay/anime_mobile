@@ -240,12 +240,13 @@ inline void checkParentSanity(std::vector<json>& objects, DiagnosticCounters& di
         uint16_t typeKey = obj["typeKey"];
         bool shouldDrop = false;
         
-        // PR-TrimPath-Compat: Attempted end=1.0 but still MALFORMED
-        // Keeping TrimPath skip until deeper investigation
+        // PR1: Keep TrimPath skip - causes KeyedObject import failures
+        // TrimPath (typeKey 47) at localId=189 breaks all KeyedObject deserialization
+        // Skipping 1 object is better than breaking 40 animations
         if (typeKey == 47) { // TrimPath
             diag.skippedTrimPath++;
             diag.droppedObjects++;
-            continue; // Skip - needs deeper runtime investigation
+            continue; // Skip - causes import failures
         }
         
         // Ensure ClippingShape objects are preserved. Previous debug-only logic
