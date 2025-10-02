@@ -1,0 +1,84 @@
+{
+  "artboards": [
+    {
+      "name": "Test Gradient Hierarchy",
+      "width": 500,
+      "height": 500,
+      "objects": [
+        {
+          "typeKey": 1,
+          "typeName": "Artboard",
+          "localId": 0,
+          "properties": {
+            "name": "Test Gradient Hierarchy",
+            "width": 500,
+            "height": 500
+          }
+        },
+        {
+          "typeKey": 3,
+          "typeName": "Shape",
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "GradientShape",
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 7,
+          "typeName": "Rectangle",
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "width": 200,
+            "height": 100
+          }
+        },
+        {
+          "typeKey": 20,
+          "typeName": "Fill",
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 22,
+          "typeName": "LinearGradient",
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "startX": 0,
+            "startY": 0,
+            "endX": 100,
+            "endY": 100,
+            "opacity": 1.0
+          }
+        },
+        {
+          "typeKey": 19,
+          "typeName": "GradientStop",
+          "localId": 5,
+          "parentId": 4,
+          "properties": {
+            "position": 0.0,
+            "color": "#FF0000"
+          }
+        },
+        {
+          "typeKey": 19,
+          "typeName": "GradientStop",
+          "localId": 6,
+          "parentId": 4,
+          "properties": {
+            "position": 1.0,
+            "color": "#0000FF"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "artboards": [
+    {
+      "name": "Test Shape Reuse",
+      "width": 500,
+      "height": 500,
+      "objects": [
+        {
+          "typeKey": 1,
+          "typeName": "Artboard",
+          "localId": 0,
+          "properties": {
+            "name": "Test Shape Reuse",
+            "width": 500,
+            "height": 500
+          }
+        },
+        {
+          "typeKey": 2,
+          "typeName": "Node",
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "NodeWithPathAndFill",
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 16,
+          "typeName": "PointsPath",
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "name": "Path"
+          }
+        },
+        {
+          "typeKey": 5,
+          "typeName": "StraightVertex",
+          "localId": 3,
+          "parentId": 2,
+          "properties": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "typeName": "StraightVertex",
+          "localId": 4,
+          "parentId": 2,
+          "properties": {
+            "x": 100,
+            "y": 0
+          }
+        },
+        {
+          "typeKey": 5,
+          "typeName": "StraightVertex",
+          "localId": 5,
+          "parentId": 2,
+          "properties": {
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "typeKey": 20,
+          "typeName": "Fill",
+          "localId": 6,
+          "parentId": 1,
+          "properties": {
+            "isVisible": true
+          }
+        },
+        {
+          "typeKey": 18,
+          "typeName": "SolidColor",
+          "localId": 7,
+          "parentId": 6,
+          "properties": {
+            "color": "#FF5733"
+          }
+        }
+      ]
+    }
+  ]
+}

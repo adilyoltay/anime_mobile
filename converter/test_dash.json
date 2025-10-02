@@ -1,0 +1,80 @@
+{
+  "artboards": [
+    {
+      "name": "Test Dash Effects",
+      "width": 500,
+      "height": 500,
+      "objects": [
+        {
+          "typeKey": 1,
+          "typeName": "Artboard",
+          "localId": 0,
+          "properties": {
+            "name": "Test Dash Effects",
+            "width": 500,
+            "height": 500
+          }
+        },
+        {
+          "typeKey": 3,
+          "typeName": "Shape",
+          "localId": 1,
+          "parentId": 0,
+          "properties": {
+            "name": "DashedShape",
+            "x": 250,
+            "y": 250
+          }
+        },
+        {
+          "typeKey": 7,
+          "typeName": "Rectangle",
+          "localId": 2,
+          "parentId": 1,
+          "properties": {
+            "width": 200,
+            "height": 100
+          }
+        },
+        {
+          "typeKey": 24,
+          "typeName": "Stroke",
+          "localId": 3,
+          "parentId": 1,
+          "properties": {
+            "thickness": 5.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "typeName": "SolidColor",
+          "localId": 4,
+          "parentId": 3,
+          "properties": {
+            "color": "#000000"
+          }
+        },
+        {
+          "typeKey": 506,
+          "typeName": "DashPath",
+          "localId": 5,
+          "parentId": 3,
+          "properties": {
+            "offset": 0.0,
+            "offsetIsPercentage": false
+          }
+        },
+        {
+          "typeKey": 507,
+          "typeName": "Dash",
+          "localId": 6,
+          "parentId": 5,
+          "properties": {
+            "length": 10.0,
+            "lengthIsPercentage": false
+          }
+        }
+      ]
+    }
+  ]
+}

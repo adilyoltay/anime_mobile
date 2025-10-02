@@ -24,6 +24,8 @@
 #include "rive/shapes/paint/radial_gradient.hpp"
 #include "rive/shapes/paint/gradient_stop.hpp"
 #include "rive/shapes/paint/feather.hpp"
+#include "rive/shapes/paint/dash.hpp"
+#include "rive/shapes/paint/dash_path.hpp"
 #include "rive/shapes/clipping_shape.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
@@ -73,12 +75,21 @@ static bool isPaintOrDecorator(uint16_t typeKey) {
     return typeKey == 20 ||  // Fill
            typeKey == 24 ||  // Stroke
            typeKey == 47 ||  // TrimPath
+           typeKey == 506 || // DashPath (DashPathBase::typeKey)
+           typeKey == 507 || // Dash (DashBase::typeKey)
            typeKey == 533 || // Feather
-           typeKey == 506 || // DashPath
-           typeKey == 692 || // Dash
            typeKey == 22 ||  // LinearGradient
            typeKey == 17 ||  // RadialGradient
-           typeKey == 19;    // GradientStop
+           typeKey == 19 ||  // GradientStop
+           typeKey == 18;    // SolidColor
+}
+
+// PR-ORPHAN-FIX: Top-level paints only (Fill/Stroke that attach to Shapes)
+// Excludes gradient components (LinearGradient, RadialGradient, GradientStop, SolidColor)
+// which are valid children of Fill/Stroke
+static bool isTopLevelPaint(uint16_t typeKey) {
+    return typeKey == 20 ||  // Fill
+           typeKey == 24;    // Stroke
 }
 
 static bool isVertexType(uint16_t typeKey) {
@@ -168,6 +179,8 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 165: return new rive::FollowPathConstraint();
         // case 420: return new rive::LayoutComponentStyle(); // Requires WITH_RIVE_LAYOUT - skipped for now
         case 533: return new rive::Feather();
+        case 507: return new rive::Dash();      // Dash (DashBase::typeKey)
+        case 506: return new rive::DashPath();  // DashPath (DashPathBase::typeKey)
         // DrawTarget/DrawRules (PR-DRAWTARGET)
         case 48: return new rive::DrawTarget();
         case 49: return new rive::DrawRules();
@@ -240,12 +253,22 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
             if (value.is_number()) {
                 builder.set(obj, 116, static_cast<float>(value.get<double>()));
             }
+        } else if (typeKey == 506) { // DashPath (DashPathBase::offsetPropertyKey)
+            if (value.is_number()) {
+                builder.set(obj, 690, static_cast<float>(value.get<double>()));
+            }
         } else if (typeKey == 165) { // FollowPathConstraint
             if (value.is_boolean()) {
                 builder.set(obj, 365, value.get<bool>());
             } else if (value.is_number()) {
                 builder.set(obj, 365, value.get<double>() != 0.0);
             }
+        }
+    }
+    else if (key == "offsetIsPercentage") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 506) { // DashPath (DashPathBase::offsetIsPercentagePropertyKey)
+            builder.set(obj, 691, value.get<bool>());
         }
     }
     
@@ -287,8 +310,21 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "offsetY") builder.set(obj, 751, value.get<float>());
     else if (key == "inner") builder.set(obj, 752, value.get<bool>());
     
-    // Bone
-    else if (key == "length") builder.set(obj, 89, value.get<float>());
+    // Bone / Dash
+    else if (key == "length") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 507) { // Dash (DashBase::lengthPropertyKey)
+            builder.set(obj, 692, value.get<float>());
+        } else { // Bone (default)
+            builder.set(obj, 89, value.get<float>());
+        }
+    }
+    else if (key == "lengthIsPercentage") {
+        uint16_t typeKey = obj.core->coreType();
+        if (typeKey == 507) { // Dash (DashBase::lengthIsPercentagePropertyKey)
+            builder.set(obj, 693, value.get<bool>());
+        }
+    }
     
     // Cubic Interpolator (animation)
     else if (key == "x1") builder.set(obj, 63, value.get<float>());
@@ -442,6 +478,14 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[750] = rive::CoreDoubleType::id; // offsetX
     typeMap[751] = rive::CoreDoubleType::id; // offsetY
     typeMap[752] = rive::CoreBoolType::id; // inner
+    
+    // DashPath (typeKey 506)
+    typeMap[690] = rive::CoreDoubleType::id; // offset (DashPathBase::offsetPropertyKey)
+    typeMap[691] = rive::CoreBoolType::id;   // offsetIsPercentage (DashPathBase::offsetIsPercentagePropertyKey)
+    
+    // Dash (typeKey 507)
+    typeMap[692] = rive::CoreDoubleType::id; // length (DashBase::lengthPropertyKey)
+    typeMap[693] = rive::CoreBoolType::id;   // lengthIsPercentage (DashBase::lengthIsPercentagePropertyKey)
     
     // Bone
     typeMap[89] = rive::CoreDoubleType::id; // length
@@ -638,6 +682,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<PendingObject> pendingObjects; // Stored in creation order
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
         std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
+        std::unordered_map<uint32_t, uint32_t> parentToSyntheticShape; // PR-ORPHAN-FIX: parent localId -> synthetic Shape localId
         
         // Deferred targetId remapping (PASS3)
         struct DeferredTargetId {
@@ -899,6 +944,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
                 localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
                 localIdToType[shapeLocalId] = 3;
+                
+                // PR-ORPHAN-FIX: Track that this parent got a synthetic Shape
+                parentToSyntheticShape[parentLocalId] = shapeLocalId;
 
                 for (const auto& [key, value] : properties) {
                     if (key == "x") {
@@ -1244,6 +1292,73 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             std::cout << "  Avg keyed objects per animation: " << avgPerAnim << std::endl;
         }
         std::cout << "  =================================\n" << std::endl;
+        
+        // PASS 1.5: Auto-fix orphan Fill/Stroke (PR-ORPHAN-FIX)
+        std::cout << "  PASS 1.5: Fixing orphan paints..." << std::endl;
+        
+        int orphanFixed = 0;
+        std::vector<PendingObject> newShapes;
+        
+        for (auto& pending : pendingObjects) {
+            // Check if this is a TOP-LEVEL Paint (Fill/Stroke only) with a valid parent
+            // DO NOT process gradient components (LinearGradient, GradientStop, etc.)
+            // which are valid children of Fill/Stroke
+            if (isTopLevelPaint(pending.typeKey) && 
+                pending.parentLocalId != invalidParent)
+            {
+                uint16_t parentType = parentTypeFor(pending.parentLocalId);
+                
+                // If parent is NOT a Shape (typeKey 3) or Artboard (typeKey 1/0)
+                if (parentType != 0 && parentType != 1 && parentType != 3) {
+                    uint32_t originalParent = pending.parentLocalId;
+                    uint32_t shapeLocalId;
+                    
+                    // PR-ORPHAN-FIX: Check if this parent already got a synthetic Shape in PASS 1
+                    auto existingShape = parentToSyntheticShape.find(originalParent);
+                    if (existingShape != parentToSyntheticShape.end()) {
+                        // Reuse existing synthetic Shape (e.g., created for parametric path)
+                        shapeLocalId = existingShape->second;
+                        pending.parentLocalId = shapeLocalId;
+                        orphanFixed++;
+                        
+                        std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
+                                  << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
+                                  << ") → REUSING synthetic Shape " << shapeLocalId 
+                                  << " (original parent typeKey=" << parentType << ")" << std::endl;
+                    } else {
+                        // Create NEW synthetic Shape
+                        shapeLocalId = nextSyntheticLocalId++;
+                        auto& shapeObj = builder.addCore(new rive::Shape());
+                        
+                        // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                        builder.set(shapeObj, 23, static_cast<uint32_t>(3));   // blendModeValue = SrcOver
+                        builder.set(shapeObj, 129, static_cast<uint32_t>(4));  // drawableFlags = visible (4)
+                        
+                        localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                        localIdToType[shapeLocalId] = 3;
+                        parentToSyntheticShape[originalParent] = shapeLocalId;
+                        
+                        newShapes.push_back({&shapeObj, 3, shapeLocalId, originalParent});
+                        
+                        // Reparent the orphan paint to the synthetic Shape
+                        pending.parentLocalId = shapeLocalId;
+                        orphanFixed++;
+                        
+                        std::cerr << "  ⚠️  AUTO-FIX: Orphan paint (typeKey " << pending.typeKey 
+                                  << " localId=" << (pending.localId.has_value() ? *pending.localId : 0)
+                                  << ") → NEW synthetic Shape " << shapeLocalId 
+                                  << " (original parent typeKey=" << parentType << ")" << std::endl;
+                    }
+                }
+            }
+        }
+        
+        // Add synthetic Shapes to pendingObjects
+        for (auto& newShape : newShapes) {
+            pendingObjects.push_back(newShape);
+        }
+        
+        std::cout << "  ✅ Fixed " << orphanFixed << " orphan paints" << std::endl;
         
         // PASS 2: Set all parent relationships (now with complete type mapping and synthetic shapes)
         std::cout << "  PASS 2: Setting parent relationships for " << pendingObjects.size() << " objects..." << std::endl;
