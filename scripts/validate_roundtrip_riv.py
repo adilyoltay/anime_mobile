@@ -316,10 +316,16 @@ def print_report(result: Dict[str, Any], comparison: Dict[str, Any] = None):
     print(f"  Version: {result['header'].get('version', 'N/A')}")
     print(f"  File ID: {result['header'].get('fileId', 'N/A')}")
     
-    # Chunks
+    # Chunks with visualization
     print(f"\n{c.BLUE}Chunk Structure:{c.RESET}")
+    total_size = result['size']
     for name, offset, size in result['chunks']:
-        print(f"  {name:20s} @ {offset:6d}  ({size:8,} bytes)")
+        # Calculate percentage
+        pct = (size / total_size * 100) if total_size > 0 else 0
+        # Create visual bar (50 chars max)
+        bar_length = int(pct / 2)
+        bar = '█' * bar_length
+        print(f"  {name:20s} @ {offset:6d}  ({size:8,} bytes, {pct:5.1f}%) {c.GREEN}{bar}{c.RESET}")
     
     # Objects
     obj_count = len(result['objects'])

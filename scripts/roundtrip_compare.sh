@@ -1,0 +1,69 @@
+#!/bin/bash
+# Round-trip RIV comparison workflow
+# Extract original RIV → Convert back → Compare
+
+set -e
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <original.riv>"
+    echo ""
+    echo "Performs a complete round-trip comparison:"
+    echo "  1. Extract original RIV to JSON"
+    echo "  2. Convert JSON back to RIV"
+    echo "  3. Compare original vs round-trip"
+    echo ""
+    exit 1
+fi
+
+ORIGINAL_RIV="$1"
+BASENAME=$(basename "$ORIGINAL_RIV" .riv)
+OUTPUT_DIR="output/roundtrip"
+EXTRACTOR="build_converter/converter/universal_extractor"
+CONVERTER="build_converter/converter/rive_convert_cli"
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RESET='\033[0m'
+
+echo "======================================"
+echo "Round-trip RIV Comparison"
+echo "======================================"
+echo ""
+echo "Original: $ORIGINAL_RIV"
+echo ""
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+# Step 1: Extract to JSON
+echo -e "${BLUE}[1/3]${RESET} Extracting RIV to JSON..."
+EXTRACTED_JSON="$OUTPUT_DIR/${BASENAME}_extracted.json"
+if ! "$EXTRACTOR" "$ORIGINAL_RIV" "$EXTRACTED_JSON" > /dev/null 2>&1; then
+    echo "❌ FAILED: Extraction failed"
+    "$EXTRACTOR" "$ORIGINAL_RIV" "$EXTRACTED_JSON"
+    exit 1
+fi
+echo -e "${GREEN}✅${RESET} Extracted to: $EXTRACTED_JSON"
+
+# Step 2: Convert back to RIV
+echo -e "${BLUE}[2/3]${RESET} Converting JSON back to RIV..."
+ROUNDTRIP_RIV="$OUTPUT_DIR/${BASENAME}_roundtrip.riv"
+if ! "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV" > /dev/null 2>&1; then
+    echo "❌ FAILED: Conversion failed"
+    "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV"
+    exit 1
+fi
+echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
+
+# Step 3: Compare
+echo -e "${BLUE}[3/3]${RESET} Comparing original vs round-trip..."
+echo ""
+python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV"
+
+# Save JSON report
+REPORT_JSON="$OUTPUT_DIR/${BASENAME}_comparison.json"
+python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" --json > "$REPORT_JSON"
+echo -e "${YELLOW}📄${RESET} Comparison report saved: $REPORT_JSON"
+echo ""
