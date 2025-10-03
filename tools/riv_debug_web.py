@@ -471,11 +471,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         #riveCanvas {
             width: 100%;
             max-width: 100%;
-            height: 500px;
+            height: 600px;
             background: #f0f0f0;
             border-radius: 8px;
             display: block;
             border: 1px solid #d2d2d7;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         .player-controls {
             display: flex;
@@ -802,10 +804,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         // Clean up temp instance
                         tempInstance.cleanup();
                         
+                        // Setup high-DPI canvas
+                        const canvas = document.getElementById('riveCanvas');
+                        const ctx = canvas.getContext('2d');
+                        const devicePixelRatio = window.devicePixelRatio || 1;
+                        
+                        // Set actual size in memory (scaled up for high DPI)
+                        canvas.width = canvas.offsetWidth * devicePixelRatio;
+                        canvas.height = canvas.offsetHeight * devicePixelRatio;
+                        
+                        // Scale the canvas back down using CSS
+                        canvas.style.width = canvas.offsetWidth + 'px';
+                        canvas.style.height = canvas.offsetHeight + 'px';
+                        
+                        // Scale the drawing context so everything draws at the correct size
+                        ctx.scale(devicePixelRatio, devicePixelRatio);
+                        
                         // Now load with proper defaults
                         const config = {
                             src: rivUrl,
-                            canvas: document.getElementById('riveCanvas'),
+                            canvas: canvas,
                             autoplay: true,
                             layout: new rive.Layout({
                                 fit: rive.Fit.Contain,
