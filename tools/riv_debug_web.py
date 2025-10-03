@@ -470,10 +470,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         #riveCanvas {
             width: 100%;
+            max-width: 100%;
             height: 500px;
             background: #f0f0f0;
             border-radius: 8px;
             display: block;
+            border: 1px solid #d2d2d7;
         }
         .player-controls {
             display: flex;
@@ -784,47 +786,80 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             try {
                 log('🎬 Loading Rive file: ' + rivName, 'info');
                 
-                riveInstance = new rive.Rive({
+                // First, load to inspect available content
+                const tempInstance = new rive.Rive({
                     src: rivUrl,
                     canvas: document.getElementById('riveCanvas'),
-                    autoplay: true,
+                    autoplay: false,
                     layout: new rive.Layout({
                         fit: rive.Fit.Contain,
                         alignment: rive.Alignment.Center
                     }),
                     onLoad: () => {
-                        isPlaying = true;
-                        document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
-                        currentFile = riveInstance;
+                        const stateMachineNames = tempInstance.stateMachineNames || [];
+                        const animationNames = tempInstance.animationNames || [];
                         
-                        // Get state machine and animation names
-                        const smSelect = document.getElementById('stateMachineSelect');
-                        smSelect.innerHTML = '<option value="">Default playback</option>';
+                        // Clean up temp instance
+                        tempInstance.cleanup();
                         
-                        const stateMachineNames = riveInstance.stateMachineNames || [];
-                        const animationNames = riveInstance.animationNames || [];
+                        // Now load with proper defaults
+                        const config = {
+                            src: rivUrl,
+                            canvas: document.getElementById('riveCanvas'),
+                            autoplay: true,
+                            layout: new rive.Layout({
+                                fit: rive.Fit.Contain,
+                                alignment: rive.Alignment.Center
+                            }),
+                            onLoad: () => {
+                                isPlaying = true;
+                                document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+                                currentFile = riveInstance;
+                                
+                                // Populate dropdown
+                                const smSelect = document.getElementById('stateMachineSelect');
+                                smSelect.innerHTML = '<option value="">Current: ' + 
+                                    (stateMachineNames.length > 0 ? stateMachineNames[0] : 
+                                     animationNames.length > 0 ? animationNames[0] : 'Default') + 
+                                    '</option>';
+                                
+                                stateMachineNames.forEach(name => {
+                                    const option = document.createElement('option');
+                                    option.value = 'sm:' + name;
+                                    option.textContent = '🎮 ' + name;
+                                    smSelect.appendChild(option);
+                                });
+                                
+                                animationNames.forEach(name => {
+                                    const option = document.createElement('option');
+                                    option.value = 'anim:' + name;
+                                    option.textContent = '🎬 ' + name;
+                                    smSelect.appendChild(option);
+                                });
+                                
+                                log('✅ Rive file loaded and playing', 'success');
+                                if (stateMachineNames.length > 0) {
+                                    log('State Machines: ' + stateMachineNames.join(', '), 'info');
+                                }
+                                if (animationNames.length > 0) {
+                                    log('Animations: ' + animationNames.join(', '), 'info');
+                                }
+                            },
+                            onLoadError: (err) => {
+                                log('❌ Failed to load Rive file: ' + err, 'error');
+                            }
+                        };
                         
-                        stateMachineNames.forEach(name => {
-                            const option = document.createElement('option');
-                            option.value = 'sm:' + name;
-                            option.textContent = '🎮 ' + name;
-                            smSelect.appendChild(option);
-                        });
-                        
-                        animationNames.forEach(name => {
-                            const option = document.createElement('option');
-                            option.value = 'anim:' + name;
-                            option.textContent = '🎬 ' + name;
-                            smSelect.appendChild(option);
-                        });
-                        
-                        log('✅ Rive file loaded successfully', 'success');
+                        // Load first state machine or first animation by default
                         if (stateMachineNames.length > 0) {
-                            log('State Machines: ' + stateMachineNames.join(', '), 'info');
+                            config.stateMachines = [stateMachineNames[0]];
+                            log('▶️ Auto-loading state machine: ' + stateMachineNames[0], 'info');
+                        } else if (animationNames.length > 0) {
+                            config.animations = [animationNames[0]];
+                            log('▶️ Auto-loading animation: ' + animationNames[0], 'info');
                         }
-                        if (animationNames.length > 0) {
-                            log('Animations: ' + animationNames.join(', '), 'info');
-                        }
+                        
+                        riveInstance = new rive.Rive(config);
                     },
                     onLoadError: (err) => {
                         log('❌ Failed to load Rive file: ' + err, 'error');
