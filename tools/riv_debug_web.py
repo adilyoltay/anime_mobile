@@ -527,11 +527,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="player-controls">
                 <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
                 <button class="btn-secondary" onclick="resetAnimation()">🔄 Reset</button>
-                <select id="artboardSelect" class="artboard-select" onchange="changeArtboard()">
-                    <option value="">Select artboard...</option>
-                </select>
                 <select id="stateMachineSelect" class="artboard-select" onchange="changeStateMachine()">
-                    <option value="">Select state machine...</option>
+                    <option value="">Select animation/state machine...</option>
                 </select>
             </div>
         </div>
@@ -765,10 +762,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         
         // Rive Player Variables
         let riveInstance = null;
-        let currentRive = null;
         let isPlaying = false;
+        let currentFile = null;
         
-        async function loadRivePlayer() {
+        function loadRivePlayer() {
             const select = document.getElementById('inputRiv');
             const filename = select.value;
             
@@ -787,42 +784,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             try {
                 log('🎬 Loading Rive file: ' + rivName, 'info');
                 
-                const riveModule = await rive.Rive({
+                riveInstance = new rive.Rive({
                     src: rivUrl,
                     canvas: document.getElementById('riveCanvas'),
                     autoplay: true,
-                    stateMachines: [], // Don't auto-load state machines
+                    layout: new rive.Layout({
+                        fit: rive.Fit.Contain,
+                        alignment: rive.Alignment.Center
+                    }),
                     onLoad: () => {
-                        riveInstance = riveModule;
-                        currentRive = riveModule;
                         isPlaying = true;
                         document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+                        currentFile = riveInstance;
                         
-                        // Populate artboards
-                        const artboardSelect = document.getElementById('artboardSelect');
-                        artboardSelect.innerHTML = '<option value="">Select artboard...</option>';
-                        const artboards = riveModule.artboardNames;
-                        artboards.forEach(name => {
+                        // Get state machine and animation names
+                        const smSelect = document.getElementById('stateMachineSelect');
+                        smSelect.innerHTML = '<option value="">Default playback</option>';
+                        
+                        const stateMachineNames = riveInstance.stateMachineNames || [];
+                        const animationNames = riveInstance.animationNames || [];
+                        
+                        stateMachineNames.forEach(name => {
                             const option = document.createElement('option');
-                            option.value = name;
-                            option.textContent = name;
-                            artboardSelect.appendChild(option);
+                            option.value = 'sm:' + name;
+                            option.textContent = '🎮 ' + name;
+                            smSelect.appendChild(option);
                         });
                         
-                        // Populate state machines
-                        const smSelect = document.getElementById('stateMachineSelect');
-                        smSelect.innerHTML = '<option value="">Select state machine...</option>';
-                        const stateMachines = riveModule.stateMachineNames;
-                        stateMachines.forEach(name => {
+                        animationNames.forEach(name => {
                             const option = document.createElement('option');
-                            option.value = name;
-                            option.textContent = name;
+                            option.value = 'anim:' + name;
+                            option.textContent = '🎬 ' + name;
                             smSelect.appendChild(option);
                         });
                         
                         log('✅ Rive file loaded successfully', 'success');
-                        log('Artboards: ' + artboards.join(', '), 'info');
-                        log('State Machines: ' + stateMachines.join(', '), 'info');
+                        if (stateMachineNames.length > 0) {
+                            log('State Machines: ' + stateMachineNames.join(', '), 'info');
+                        }
+                        if (animationNames.length > 0) {
+                            log('Animations: ' + animationNames.join(', '), 'info');
+                        }
                     },
                     onLoadError: (err) => {
                         log('❌ Failed to load Rive file: ' + err, 'error');
@@ -840,10 +842,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 riveInstance.pause();
                 document.getElementById('playPauseBtn').textContent = '▶️ Play';
                 isPlaying = false;
+                log('⏸️ Paused', 'info');
             } else {
                 riveInstance.play();
                 document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
                 isPlaying = true;
+                log('▶️ Playing', 'info');
             }
         }
         
@@ -853,31 +857,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             log('🔄 Animation reset', 'info');
         }
         
-        function changeArtboard() {
-            const select = document.getElementById('artboardSelect');
-            const artboardName = select.value;
-            
-            if (!artboardName || !riveInstance) return;
-            
-            try {
-                riveInstance.artboard = artboardName;
-                log('🎨 Changed to artboard: ' + artboardName, 'info');
-            } catch (err) {
-                log('❌ Failed to change artboard: ' + err.message, 'error');
-            }
-        }
-        
         function changeStateMachine() {
             const select = document.getElementById('stateMachineSelect');
-            const smName = select.value;
+            const value = select.value;
             
-            if (!smName || !riveInstance) return;
+            if (!value || !riveInstance) return;
+            
+            const [type, name] = value.split(':');
+            
+            if (!name) {
+                // Reset to default
+                loadRivePlayer();
+                return;
+            }
             
             try {
-                riveInstance.stateMachineNames = [smName];
-                log('🎮 Changed to state machine: ' + smName, 'info');
+                // Cleanup and reload with specific state machine or animation
+                const filename = document.getElementById('inputRiv').value;
+                const rivName = filename.split('/').pop();
+                const rivUrl = '/riv/' + rivName;
+                
+                if (riveInstance) {
+                    riveInstance.cleanup();
+                }
+                
+                const config = {
+                    src: rivUrl,
+                    canvas: document.getElementById('riveCanvas'),
+                    autoplay: true,
+                    layout: new rive.Layout({
+                        fit: rive.Fit.Contain,
+                        alignment: rive.Alignment.Center
+                    }),
+                    onLoad: () => {
+                        isPlaying = true;
+                        document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+                        log('✅ Switched to: ' + name, 'success');
+                    }
+                };
+                
+                if (type === 'sm') {
+                    config.stateMachines = [name];
+                    log('🎮 Loading state machine: ' + name, 'info');
+                } else if (type === 'anim') {
+                    config.animations = [name];
+                    log('🎬 Loading animation: ' + name, 'info');
+                }
+                
+                riveInstance = new rive.Rive(config);
+                
             } catch (err) {
-                log('❌ Failed to change state machine: ' + err.message, 'error');
+                log('❌ Failed to change: ' + err.message, 'error');
             }
         }
         
