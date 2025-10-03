@@ -61,6 +61,9 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif self.path == '/api/stability':
             result = self.run_stability(data)
             self.send_json(result)
+        elif self.path == '/api/json-to-riv':
+            result = self.run_json_to_riv(data)
+            self.send_json(result)
         else:
             self.send_response(404)
             self.end_headers()
@@ -95,27 +98,35 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
     
     def list_riv_files(self):
         """List available RIV files"""
-        riv_dir = REPO_ROOT / "converter/exampleriv"
+        examples_dir = REPO_ROOT / "converter/exampleriv"
+        output_dir = REPO_ROOT / "output/web_tests"
         files = []
-        if riv_dir.exists():
-            for f in riv_dir.glob("*.riv"):
-                files.append({
-                    'name': f.name,
-                    'path': str(f),
-                    'size': f.stat().st_size
-                })
+        for source, d in [("output", output_dir), ("examples", examples_dir)]:
+            if d.exists():
+                for f in d.glob("*.riv"):
+                    files.append({
+                        'name': f.name,
+                        'path': str(f),
+                        'size': f.stat().st_size,
+                        'source': source
+                    })
         return {'files': files}
     
     def serve_riv_file(self):
         """Serve RIV file for player"""
-        filename = self.path[5:]  # Remove '/riv/' prefix
-        riv_path = REPO_ROOT / "converter/exampleriv" / filename
-        
-        if not riv_path.exists():
+        # Remove '/riv/' prefix and decode URL
+        name = urllib.parse.unquote(self.path[5:])
+        search_dirs = [REPO_ROOT / "output/web_tests", REPO_ROOT / "converter/exampleriv"]
+        riv_path = None
+        for d in search_dirs:
+            candidate = d / name
+            if candidate.exists():
+                riv_path = candidate
+                break
+        if riv_path is None:
             self.send_response(404)
             self.end_headers()
             return
-        
         try:
             self.send_response(200)
             self.send_header('Content-type', 'application/octet-stream')
@@ -123,7 +134,7 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             with open(riv_path, 'rb') as f:
                 self.wfile.write(f.read())
-        except Exception as e:
+        except Exception:
             self.send_response(500)
             self.end_headers()
     
@@ -318,6 +329,45 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
         
         cmd = [str(script), str(input_riv)]
         return self.run_command(cmd)
+    
+    def run_json_to_riv(self, data):
+        """Convert JSON to RIV"""
+        json_content = data.get('json_content', '')
+        output_name = data.get('output_name', 'custom')
+        exact_mode = data.get('exact_mode', False)
+        
+        if not json_content:
+            return {'success': False, 'error': 'No JSON content provided'}
+        
+        # Save JSON to temp file
+        output_dir = REPO_ROOT / "output/web_tests"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        json_file = output_dir / f"{output_name}.json"
+        riv_file = output_dir / f"{output_name}.riv"
+        
+        try:
+            with open(json_file, 'w') as f:
+                f.write(json_content)
+        except Exception as e:
+            return {'success': False, 'error': f'Failed to save JSON: {str(e)}'}
+        
+        # Convert to RIV
+        converter = REPO_ROOT / "build_converter/converter/rive_convert_cli"
+        if not converter.exists():
+            return {'success': False, 'error': 'Converter not built'}
+        
+        cmd = [str(converter)]
+        if exact_mode:
+            cmd.append('--exact')
+        cmd.extend([str(json_file), str(riv_file)])
+        
+        result = self.run_command(cmd)
+        result['json_file'] = str(json_file)
+        result['riv_file'] = str(riv_file)
+        result['riv_name'] = riv_file.name
+        
+        return result
 
 # HTML Template
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -491,6 +541,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border: 1px solid #d2d2d7;
             border-radius: 6px;
         }
+        /* JSON Editor */
+        .json-editor {
+            width: 100%;
+            min-height: 220px;
+            background: #0f0f12;
+            color: #eaeaea;
+            border: 1px solid #2a2a2e;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px;
+            outline: none;
+            resize: vertical;
+            line-height: 1.4;
+        }
+        .inline-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -525,6 +596,35 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
         
+
+        <div class="card">
+            <div class="card-title">🧾 JSON → RIV</div>
+            <div class="form-group inline-row">
+                <div>
+                    <label>Output Name</label>
+                    <input type="text" id="jsonOutputName" value="custom_bpm" placeholder="custom_bpm">
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button class="btn-primary" onclick="runJsonToRiv()">📥 Convert JSON → RIV</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Select JSON File</label>
+                <input type="file" id="jsonFile" accept=".json">
+            </div>
+            <div class="form-group">
+                <label>JSON Content</label>
+                <textarea id="jsonEditor" class="json-editor" placeholder='{"format":"universal","version":"1.0","artboards":[...]}'></textarea>
+            </div>
+            <div class="button-grid">
+                <button class="btn-secondary" onclick="loadSampleJson()">📄 Load Sample</button>
+                <button class="btn-secondary" onclick="beautifyJson()">🧹 Format JSON</button>
+                <button class="btn-warning" onclick="clearJsonEditor()">♻️ Clear</button>
+            </div>
+        </div>
+
+        
         <div class="card">
             <div class="card-title">🎬 Rive Viewer</div>
             <canvas id="riveCanvas"></canvas>
@@ -536,7 +636,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </select>
             </div>
         </div>
-        
+
         <div class="card">
             <div class="card-title">⚡ Actions</div>
             <div class="button-grid">
@@ -763,6 +863,119 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (result.stderr) log(result.stderr, 'error');
             setStatus(result.success ? '✅ Stability test complete' : '❌ Stability test failed');
         }
+
+        // JSON → RIV
+        function loadSampleJson() {
+            const sample = {
+                format: 'universal',
+                version: '1.0',
+                artboards: [{
+                    name: 'Sample', width: 200, height: 200,
+                    objects: [
+                        { typeKey: 1, localId: 0, properties: { name: 'Sample', width: 200, height: 200 } },
+                        { typeKey: 7, localId: 1, parentId: 0, properties: { x: 50, y: 50, width: 100, height: 100 } },
+                        { typeKey: 20, localId: 2, parentId: 1, properties: {} },
+                        { typeKey: 18, localId: 3, parentId: 2, properties: { color: '#00A8E8' } }
+                    ]
+                }]
+            };
+            document.getElementById('jsonEditor').value = JSON.stringify(sample, null, 2);
+            setStatus('Sample JSON loaded');
+        }
+
+        function beautifyJson() {
+            const el = document.getElementById('jsonEditor');
+            try {
+                const parsed = JSON.parse(el.value);
+                el.value = JSON.stringify(parsed, null, 2);
+                setStatus('JSON formatted');
+            } catch (e) {
+                setStatus('❌ Invalid JSON: ' + e.message);
+                log('Invalid JSON: ' + e.message, 'error');
+            }
+        }
+
+        function clearJsonEditor() {
+            document.getElementById('jsonEditor').value = '';
+            setStatus('Editor cleared');
+        }
+
+        async function runJsonToRiv() {
+            logHeader('JSON → RIV Conversion');
+            setStatus('Converting JSON...', true);
+
+            const fileInput = document.getElementById('jsonFile');
+            let jsonText = '';
+            let outputName = document.getElementById('jsonOutputName').value.trim();
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                try {
+                    jsonText = await file.text();
+                    log('📄 Using file: ' + file.name, 'info');
+                    if (!outputName) {
+                        outputName = file.name.replace(/\.json$/i, '') || 'custom';
+                        document.getElementById('jsonOutputName').value = outputName;
+                    }
+                } catch (e) {
+                    setStatus('❌ Failed to read file');
+                    log('Failed to read selected file: ' + e.message, 'error');
+                    return;
+                }
+            } else {
+                jsonText = document.getElementById('jsonEditor').value;
+                if (!jsonText.trim()) {
+                    setStatus('❌ No JSON content');
+                    log('Select a JSON file or paste JSON first.', 'error');
+                    return;
+                }
+                if (!outputName) outputName = 'custom';
+            }
+
+            // Parse and auto-detect exact mode
+            let parsed = null;
+            let isExactJson = false;
+            try {
+                parsed = JSON.parse(jsonText);
+                isExactJson = parsed.__riv_exact__ === true;
+            } catch (e) {
+                log('JSON parse warning (converter will also validate): ' + e.message, 'warning');
+            }
+            const userExactPref = document.getElementById('exactMode').checked;
+            const exact = userExactPref && isExactJson; // Only enable --exact if JSON declares __riv_exact__
+            if (userExactPref && !isExactJson) {
+                log('⚠️ --exact requested but JSON is not exact. Running in normal mode.', 'warning');
+            }
+
+            const result = await apiCall('/api/json-to-riv', {
+                json_content: jsonText,
+                output_name: outputName,
+                exact_mode: exact
+            });
+
+            if (result.success) {
+                log(result.stdout || '', 'success');
+                log('✅ JSON converted to RIV', 'success');
+                log('Output: ' + result.riv_file, 'info');
+                setStatus('✅ JSON converted');
+                // Refresh file list and auto-load viewer
+                await loadRivFiles();
+                const select = document.getElementById('inputRiv');
+                // Prefer absolute path match
+                select.value = result.riv_file;
+                if (select.value !== result.riv_file) {
+                    // Fallback: select by filename suffix
+                    const name = result.riv_name;
+                    for (const opt of select.options) {
+                        if (opt.value.endsWith('/' + name)) { select.value = opt.value; break; }
+                    }
+                }
+                loadRivePlayer();
+            } else {
+                log(result.stderr || result.error || 'Conversion failed', 'error');
+                setStatus('❌ JSON → RIV failed');
+            }
+        }
         
         // Rive Player Variables
         let riveInstance = null;
@@ -968,7 +1181,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         checkDependencies();
         loadRivFiles();
         log('🚀 RIV Debug Tool loaded', 'success');
-        log('Select a RIV file to preview in the viewer', 'info');
+        log('Select a RIV file to preview in the viewer, or paste JSON and convert.', 'info');
     </script>
 </body>
 </html>
