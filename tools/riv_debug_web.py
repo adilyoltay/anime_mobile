@@ -29,6 +29,8 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(self.check_dependencies())
         elif self.path.startswith('/api/list-rivs'):
             self.send_json(self.list_riv_files())
+        elif self.path.startswith('/riv/'):
+            self.serve_riv_file()
         else:
             super().do_GET()
     
@@ -103,6 +105,27 @@ class DebugRequestHandler(http.server.SimpleHTTPRequestHandler):
                     'size': f.stat().st_size
                 })
         return {'files': files}
+    
+    def serve_riv_file(self):
+        """Serve RIV file for player"""
+        filename = self.path[5:]  # Remove '/riv/' prefix
+        riv_path = REPO_ROOT / "converter/exampleriv" / filename
+        
+        if not riv_path.exists():
+            self.send_response(404)
+            self.end_headers()
+            return
+        
+        try:
+            self.send_response(200)
+            self.send_header('Content-type', 'application/octet-stream')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            with open(riv_path, 'rb') as f:
+                self.wfile.write(f.read())
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
     
     def run_command(self, cmd, cwd=None):
         """Run command and capture output"""
@@ -303,6 +326,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RIV Debug Tool</title>
+    <script src="https://unpkg.com/@rive-app/canvas@2.7.0"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -444,6 +468,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        #riveCanvas {
+            width: 100%;
+            height: 500px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: block;
+        }
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+        .artboard-select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -462,7 +505,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="card-title">📁 File Selection</div>
             <div class="form-group">
                 <label>Input RIV File</label>
-                <select id="inputRiv">
+                <select id="inputRiv" onchange="loadRivePlayer()">
                     <option value="">Loading...</option>
                 </select>
             </div>
@@ -475,6 +518,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <input type="checkbox" id="exactMode" checked>
                     Use --exact mode (byte-perfect reconstruction)
                 </label>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">🎬 Rive Viewer</div>
+            <canvas id="riveCanvas"></canvas>
+            <div class="player-controls">
+                <button class="btn-primary" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
+                <button class="btn-secondary" onclick="resetAnimation()">🔄 Reset</button>
+                <select id="artboardSelect" class="artboard-select" onchange="changeArtboard()">
+                    <option value="">Select artboard...</option>
+                </select>
+                <select id="stateMachineSelect" class="artboard-select" onchange="changeStateMachine()">
+                    <option value="">Select state machine...</option>
+                </select>
             </div>
         </div>
         
@@ -705,11 +763,129 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             setStatus(result.success ? '✅ Stability test complete' : '❌ Stability test failed');
         }
         
+        // Rive Player Variables
+        let riveInstance = null;
+        let currentRive = null;
+        let isPlaying = false;
+        
+        async function loadRivePlayer() {
+            const select = document.getElementById('inputRiv');
+            const filename = select.value;
+            
+            if (!filename) return;
+            
+            // Extract filename from path
+            const rivName = filename.split('/').pop();
+            const rivUrl = '/riv/' + rivName;
+            
+            // Clean up previous instance
+            if (riveInstance) {
+                riveInstance.cleanup();
+                riveInstance = null;
+            }
+            
+            try {
+                log('🎬 Loading Rive file: ' + rivName, 'info');
+                
+                const riveModule = await rive.Rive({
+                    src: rivUrl,
+                    canvas: document.getElementById('riveCanvas'),
+                    autoplay: true,
+                    stateMachines: [], // Don't auto-load state machines
+                    onLoad: () => {
+                        riveInstance = riveModule;
+                        currentRive = riveModule;
+                        isPlaying = true;
+                        document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+                        
+                        // Populate artboards
+                        const artboardSelect = document.getElementById('artboardSelect');
+                        artboardSelect.innerHTML = '<option value="">Select artboard...</option>';
+                        const artboards = riveModule.artboardNames;
+                        artboards.forEach(name => {
+                            const option = document.createElement('option');
+                            option.value = name;
+                            option.textContent = name;
+                            artboardSelect.appendChild(option);
+                        });
+                        
+                        // Populate state machines
+                        const smSelect = document.getElementById('stateMachineSelect');
+                        smSelect.innerHTML = '<option value="">Select state machine...</option>';
+                        const stateMachines = riveModule.stateMachineNames;
+                        stateMachines.forEach(name => {
+                            const option = document.createElement('option');
+                            option.value = name;
+                            option.textContent = name;
+                            smSelect.appendChild(option);
+                        });
+                        
+                        log('✅ Rive file loaded successfully', 'success');
+                        log('Artboards: ' + artboards.join(', '), 'info');
+                        log('State Machines: ' + stateMachines.join(', '), 'info');
+                    },
+                    onLoadError: (err) => {
+                        log('❌ Failed to load Rive file: ' + err, 'error');
+                    }
+                });
+            } catch (err) {
+                log('❌ Error loading Rive: ' + err.message, 'error');
+            }
+        }
+        
+        function togglePlayPause() {
+            if (!riveInstance) return;
+            
+            if (isPlaying) {
+                riveInstance.pause();
+                document.getElementById('playPauseBtn').textContent = '▶️ Play';
+                isPlaying = false;
+            } else {
+                riveInstance.play();
+                document.getElementById('playPauseBtn').textContent = '⏸️ Pause';
+                isPlaying = true;
+            }
+        }
+        
+        function resetAnimation() {
+            if (!riveInstance) return;
+            riveInstance.reset();
+            log('🔄 Animation reset', 'info');
+        }
+        
+        function changeArtboard() {
+            const select = document.getElementById('artboardSelect');
+            const artboardName = select.value;
+            
+            if (!artboardName || !riveInstance) return;
+            
+            try {
+                riveInstance.artboard = artboardName;
+                log('🎨 Changed to artboard: ' + artboardName, 'info');
+            } catch (err) {
+                log('❌ Failed to change artboard: ' + err.message, 'error');
+            }
+        }
+        
+        function changeStateMachine() {
+            const select = document.getElementById('stateMachineSelect');
+            const smName = select.value;
+            
+            if (!smName || !riveInstance) return;
+            
+            try {
+                riveInstance.stateMachineNames = [smName];
+                log('🎮 Changed to state machine: ' + smName, 'info');
+            } catch (err) {
+                log('❌ Failed to change state machine: ' + err.message, 'error');
+            }
+        }
+        
         // Initialize
         checkDependencies();
         loadRivFiles();
         log('🚀 RIV Debug Tool loaded', 'success');
-        log('Select a RIV file and choose an operation', 'info');
+        log('Select a RIV file to preview in the viewer', 'info');
     </script>
 </body>
 </html>
