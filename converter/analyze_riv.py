@@ -7,6 +7,7 @@ Rive runtime metadata (generated headers).
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import re
 import struct
@@ -24,7 +25,7 @@ GENERATED_DIR = RIVE_ROOT / "include" / "rive" / "generated"
 def build_property_key_maps() -> Tuple[Dict[str, int], DefaultDict[int, List[str]]]:
     name_to_value: Dict[str, int] = {}
     value_to_names: DefaultDict[int, List[str]] = defaultdict(list)
-    pattern = re.compile(r"static const uint16_t\\s+([\\w:]+)\\s*=\\s*(\\d+);")
+    pattern = re.compile(r"static const uint16_t\s+([\w:]+)\s*=\s*(\d+);")
     for header in GENERATED_DIR.rglob("*.hpp"):
         text = header.read_text(encoding="utf-8")
         for name, value in pattern.findall(text):
@@ -33,6 +34,7 @@ def build_property_key_maps() -> Tuple[Dict[str, int], DefaultDict[int, List[str
                 continue
             numeric = int(value)
             name_to_value[name] = numeric
+            name_to_value[base_name] = numeric
             value_to_names[numeric].append(base_name)
     return name_to_value, value_to_names
 
@@ -40,17 +42,28 @@ def build_property_key_maps() -> Tuple[Dict[str, int], DefaultDict[int, List[str
 def build_property_type_map(key_map: Dict[str, int]) -> Dict[int, str]:
     result: Dict[int, str] = {}
     case_pattern = re.compile(
-        r"case\\s+(\\w+)\\s*:\\s*(.*?)return\\s+true;",
+        r"case\s+(\w+)\s*:\s*(.*?)return\s+true;",
         re.DOTALL,
     )
+    key_pattern = re.compile(r"static const uint16_t\s+(\w+)\s*=\s*(\d+);")
     for header in GENERATED_DIR.rglob("*.hpp"):
         text = header.read_text(encoding="utf-8")
+        class_match = re.search(r"class\s+(\w+)Base\s*:\s*public", text)
+        class_name = class_match.group(1) if class_match else None
+        local_keys: Dict[str, int] = {
+            name: int(value)
+            for name, value in key_pattern.findall(text)
+        }
         for prop_name, body in case_pattern.findall(text):
-            match = re.search(r"Core(\\w+)Type::deserialize", body)
+            match = re.search(r"Core(\w+)Type::deserialize", body)
             if not match:
                 continue
             core_type = match.group(1)
-            key_value = key_map.get(prop_name)
+            key_value: Optional[int] = local_keys.get(prop_name)
+            if key_value is None and class_name is not None:
+                key_value = key_map.get(f"{class_name}::{prop_name}")
+            if key_value is None:
+                key_value = key_map.get(prop_name)
             if key_value is not None:
                 result[key_value] = core_type
     return result
@@ -137,7 +150,7 @@ def parse_objects(
     header_keys: List[int],
     strict: bool = False,
     emit_logs: bool = True,
-) -> Tuple[int, List[ObjectEntry], List[int]]:
+) -> Tuple[int, List[ObjectEntry], List[int], bytes]:
     """PR4: Enhanced parser with catalog support and robust EOF handling."""
     bitmap_count = (len(header_keys) + 3) // 4
     bitmap_bytes = data[pos - bitmap_count * 4 : pos]
@@ -147,6 +160,7 @@ def parse_objects(
     objects: List[ObjectEntry] = []
     artboard_ids: List[int] = []  # PR4: Track artboard IDs from catalog
     obj_index = 0
+    terminator_bytes = b""
     
     while True:
         # PR4: Graceful EOF at object boundary
@@ -156,6 +170,7 @@ def parse_objects(
             break
             
         try:
+            type_pos = pos
             type_key, pos = read_varuint(data, pos)
         except (EOFError, struct.error) as e:
             if pos >= len(data) - 8:  # Near end, likely clean termination
@@ -172,6 +187,8 @@ def parse_objects(
                 
         if type_key == 0:
             # Object stream terminator
+            if not terminator_bytes:
+                terminator_bytes = data[type_pos:pos]
             if emit_logs:
                 print(f"  [info] Object stream ended with 0 terminator (parsed {obj_index} objects)")
             # PR4: May have catalog chunks after this
@@ -205,7 +222,8 @@ def parse_objects(
                     byte_len, pos = read_varuint(data, pos)
                     if pos + byte_len > len(data):
                         raise ValueError(f"bytes property length {byte_len} exceeds file size")
-                    value = f"<{byte_len} bytes>"
+                    raw_bytes = data[pos:pos + byte_len]
+                    value = base64.b64encode(raw_bytes).decode("ascii")
                     pos += byte_len
                     category = "bytes"
                 else:
@@ -234,7 +252,7 @@ def parse_objects(
         objects.append(ObjectEntry(type_key, props))
         obj_index += 1
         
-    return pos, objects, artboard_ids
+    return pos, objects, artboard_ids, terminator_bytes
 
 # -- Main --------------------------------------------------------------------
 
@@ -256,8 +274,11 @@ def analyze(path: Path, return_data: bool = False, strict: bool = False, dump_ca
         header_keys.append(key)
 
     bitmap_count = (len(header_keys) + 3) // 4
+    bitmap_values: List[int] = []
+    for i in range(bitmap_count):
+        bitmap_values.append(struct.unpack_from("<I", data, pos + i * 4)[0])
     pos_bitmap_end = pos + bitmap_count * 4
-    pos, objects, artboard_ids = parse_objects(
+    pos, objects, artboard_ids, terminator_bytes = parse_objects(
         data,
         pos_bitmap_end,
         header_keys,
@@ -281,7 +302,7 @@ def analyze(path: Path, return_data: bool = False, strict: bool = False, dump_ca
             for key in header_keys
         ]
         object_list = []
-        for obj in objects:
+        for index, obj in enumerate(objects):
             entries = []
             for prop in obj.properties:
                 entries.append(
@@ -294,18 +315,27 @@ def analyze(path: Path, return_data: bool = False, strict: bool = False, dump_ca
                 )
             object_list.append(
                 {
+                    "componentIndex": index,
                     "typeKey": obj.type_key,
                     "typeName": TYPE_KEY_NAME.get(obj.type_key, f"type_{obj.type_key}"),
                     "properties": entries,
                 }
             )
+        tail_bytes = data[pos:]
         return {
             "file": str(path),
             "version": f"{major}.{minor}",
+            "majorVersion": major,
+            "minorVersion": minor,
             "fileId": file_id,
             "headerKeys": header_named,
+            "bitmaps": bitmap_values,
             "objects": object_list,
-            "remainingBytes": len(data) - pos,
+            "remainingBytes": len(tail_bytes),
+            "tail": base64.b64encode(tail_bytes).decode("ascii") if tail_bytes else "",
+            "objectTerminator": base64.b64encode(terminator_bytes).decode("ascii")
+            if terminator_bytes
+            else "",
         }
 
     print(f"File: {path}")

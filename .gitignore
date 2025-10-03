@@ -1,7 +1,9 @@
 # Build directories
 build_*/
+build_converter/
 _deps/
 out/
+output/
 
 # IDE files
 .vscode/

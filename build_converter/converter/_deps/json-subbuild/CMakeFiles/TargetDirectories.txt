@@ -1,3 +1,0 @@
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/_deps/json-subbuild/CMakeFiles/json-populate.dir
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/_deps/json-subbuild/CMakeFiles/edit_cache.dir
-/Users/adilyoltay/Desktop/rive-runtime/build_converter/converter/_deps/json-subbuild/CMakeFiles/rebuild_cache.dir
