@@ -2,6 +2,10 @@
 #include "core_builder.hpp"
 #include "serializer_diagnostics.hpp"
 #include <iostream>
+#include <cctype>
+#include <cstring>
+#include <nlohmann/json.hpp>
+#include <stdexcept>
 
 #include "rive/component.hpp"
 #include "rive/core/vector_binary_writer.hpp"
@@ -30,6 +34,46 @@ namespace rive_converter
 {
 namespace
 {
+std::vector<uint8_t> raw_decode_base64(const std::string& input)
+{
+    auto decode_char = [](char c) -> int {
+        if (c >= 'A' && c <= 'Z') return c - 'A';
+        if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+        if (c >= '0' && c <= '9') return c - '0' + 52;
+        if (c == '+') return 62;
+        if (c == '/') return 63;
+        return -1;
+    };
+
+    std::vector<uint8_t> out;
+    int val = 0;
+    int bits = -8;
+    for (unsigned char ch : input)
+    {
+        if (std::isspace(ch))
+        {
+            continue;
+        }
+        if (ch == '=')
+        {
+            break;
+        }
+        int decoded = decode_char(static_cast<char>(ch));
+        if (decoded < 0)
+        {
+            continue;
+        }
+        val = (val << 6) | decoded;
+        bits += 6;
+        if (bits >= 0)
+        {
+            out.push_back(static_cast<uint8_t>((val >> bits) & 0xFF));
+            bits -= 8;
+        }
+    }
+    return out;
+}
+
 constexpr uint16_t kParentIdKey = rive::ComponentBase::parentIdPropertyKey;
 constexpr uint16_t kComponentIdKey = 3;
 constexpr uint16_t kFileAssetIdKey = 204;
@@ -803,6 +847,158 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     
     std::cout << "  ✅ Artboard Catalog written (" << artboardIds.size() << " artboards)" << std::endl;
     
+    return buffer;
+}
+std::vector<uint8_t> serialize_exact_riv_json(const nlohmann::json& data)
+{
+    std::vector<uint8_t> buffer;
+    buffer.reserve(4096);
+    rive::VectorBinaryWriter writer(&buffer);
+
+    writer.write(reinterpret_cast<const uint8_t*>("RIVE"), 4);
+
+    const uint64_t major = data.value("majorVersion", 7);
+    const uint64_t minor = data.value("minorVersion", 0);
+    const uint64_t fileId = data.value("fileId", static_cast<uint64_t>(0));
+
+    writer.writeVarUint(major);
+    writer.writeVarUint(minor);
+    writer.writeVarUint(fileId);
+
+    const auto& headerKeys = data.at("headerKeys");
+    if (!headerKeys.is_array())
+    {
+        throw std::runtime_error("headerKeys must be an array in exact RIV JSON payload");
+    }
+    for (const auto& entry : headerKeys)
+    {
+        const uint64_t key = entry.is_object() ? entry.at("key").get<uint64_t>() : entry.get<uint64_t>();
+        writer.writeVarUint(key);
+    }
+    writer.writeVarUint(uint32_t{0});
+
+    const auto& bitmaps = data.at("bitmaps");
+    if (!bitmaps.is_array())
+    {
+        throw std::runtime_error("bitmaps must be an array in exact RIV JSON payload");
+    }
+    const auto expectedBitmapWords = (headerKeys.size() + 3) / 4;
+    if (bitmaps.size() != expectedBitmapWords)
+    {
+        throw std::runtime_error("bitmaps array length does not match header key count");
+    }
+    for (const auto& value : bitmaps)
+    {
+        writer.write(static_cast<uint32_t>(value.get<uint64_t>()));
+    }
+
+    const auto& objects = data.at("objects");
+    if (!objects.is_array())
+    {
+        throw std::runtime_error("objects must be an array in exact RIV JSON payload");
+    }
+    for (const auto& obj : objects)
+    {
+        const uint64_t typeKey = obj.at("typeKey").get<uint64_t>();
+        writer.writeVarUint(typeKey);
+
+        const auto& properties = obj.at("properties");
+        for (const auto& prop : properties)
+        {
+            const uint64_t key = prop.at("key").get<uint64_t>();
+            writer.writeVarUint(key);
+
+            const std::string category = prop.value("category", std::string("uint"));
+            const auto& value = prop.at("value");
+
+            if (category == "string")
+            {
+                writer.write(value.get<std::string>());
+            }
+            else if (category == "double")
+            {
+                float f = static_cast<float>(value.get<double>());
+                writer.writeFloat(f);
+            }
+            else if (category == "color")
+            {
+                writer.write(static_cast<uint32_t>(value.get<uint64_t>()));
+            }
+            else if (category == "bytes")
+            {
+                std::string encoded = value.get<std::string>();
+                std::vector<uint8_t> bytes = raw_decode_base64(encoded);
+                writer.writeVarUint(static_cast<uint64_t>(bytes.size()));
+                if (!bytes.empty())
+                {
+                    writer.write(bytes.data(), bytes.size());
+                }
+            }
+            else if (category == "bool")
+            {
+                uint64_t v = value.is_boolean() ? (value.get<bool>() ? 1u : 0u)
+                                                : value.get<uint64_t>();
+                writer.writeVarUint(v ? uint64_t{1} : uint64_t{0});
+            }
+            else
+            {
+                if (value.is_number_unsigned())
+                {
+                    writer.writeVarUint(value.get<uint64_t>());
+                }
+                else if (value.is_number_integer())
+                {
+                    int64_t v = value.get<int64_t>();
+                    writer.writeVarUint(static_cast<uint64_t>(v));
+                }
+                else if (value.is_boolean())
+                {
+                    writer.writeVarUint(value.get<bool>() ? uint64_t{1} : uint64_t{0});
+                }
+                else if (value.is_string())
+                {
+                    writer.write(value.get<std::string>());
+                }
+                else
+                {
+                    writer.writeVarUint(uint32_t{0});
+                }
+            }
+        }
+
+        writer.writeVarUint(uint32_t{0});
+    }
+
+    if (data.contains("objectTerminator"))
+    {
+        const auto& terminatorJson = data.at("objectTerminator");
+        const std::string terminatorEncoded = terminatorJson.is_string() ? terminatorJson.get<std::string>()
+                                                                        : std::string();
+        if (!terminatorEncoded.empty())
+        {
+            std::vector<uint8_t> terminatorBytes = raw_decode_base64(terminatorEncoded);
+            if (terminatorBytes.empty())
+            {
+                throw std::runtime_error("objectTerminator must decode to at least one byte");
+            }
+            writer.write(terminatorBytes.data(), terminatorBytes.size());
+        }
+    }
+    else
+    {
+        writer.writeVarUint(uint32_t{0});
+    }
+
+    std::string tailEncoded = data.value("tail", std::string());
+    if (!tailEncoded.empty())
+    {
+        std::vector<uint8_t> tailBytes = raw_decode_base64(tailEncoded);
+        if (!tailBytes.empty())
+        {
+            writer.write(tailBytes.data(), tailBytes.size());
+        }
+    }
+
     return buffer;
 }
 

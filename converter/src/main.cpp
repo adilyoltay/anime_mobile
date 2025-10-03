@@ -118,12 +118,24 @@ int main(int argc, char** argv)
 {
     if (argc < 3)
     {
-        std::cerr << "Usage: rive_convert <input.json> <output.riv>" << std::endl;
+        std::cerr << "Usage: rive_convert [--exact] <input.json> <output.riv>" << std::endl;
+        std::cerr << "Options:" << std::endl;
+        std::cerr << "  --exact    Enable exact round-trip mode (requires __riv_exact__ in JSON)" << std::endl;
         return 1;
     }
 
-    const std::string inputPath = argv[1];
-    const std::string outputPath = argv[2];
+    bool exactModeRequested = false;
+    int argOffset = 1;
+    
+    // Check for --exact flag
+    if (argc >= 4 && std::string(argv[1]) == "--exact")
+    {
+        exactModeRequested = true;
+        argOffset = 2;
+    }
+
+    const std::string inputPath = argv[argOffset];
+    const std::string outputPath = argv[argOffset + 1];
 
     std::ifstream inputFile(inputPath);
     if (!inputFile.is_open())
@@ -141,15 +153,33 @@ int main(int argc, char** argv)
         
         // Detect JSON format
         auto jsonParsed = nlohmann::json::parse(jsonContent);
+
+        bool isExactUniversal = jsonParsed.contains("__riv_exact__") &&
+                                 jsonParsed["__riv_exact__"].is_boolean() &&
+                                 jsonParsed["__riv_exact__"].get<bool>();
+        
+        // Validate --exact flag usage
+        if (exactModeRequested && !isExactUniversal)
+        {
+            std::cerr << "❌ Error: --exact flag requires JSON with __riv_exact__ = true" << std::endl;
+            return 1;
+        }
+        
+        // Warn if exact JSON used without --exact flag
+        if (isExactUniversal && !exactModeRequested)
+        {
+            std::cerr << "⚠️  Warning: Exact mode JSON detected. Consider using --exact flag for clarity." << std::endl;
+        }
         
         // Check for universal format (objects array with typeKey)
-        bool isUniversal = jsonParsed.contains("artboards") && 
-                          jsonParsed["artboards"].is_array() &&
-                          !jsonParsed["artboards"].empty() &&
-                          jsonParsed["artboards"][0].contains("objects") &&
-                          jsonParsed["artboards"][0]["objects"].is_array() &&
-                          !jsonParsed["artboards"][0]["objects"].empty() &&
-                          jsonParsed["artboards"][0]["objects"][0].contains("typeKey");
+        bool isUniversal = isExactUniversal || (
+            jsonParsed.contains("artboards") && 
+            jsonParsed["artboards"].is_array() &&
+            !jsonParsed["artboards"].empty() &&
+            jsonParsed["artboards"][0].contains("objects") &&
+            jsonParsed["artboards"][0]["objects"].is_array() &&
+            !jsonParsed["artboards"][0]["objects"].empty() &&
+            jsonParsed["artboards"][0]["objects"][0].contains("typeKey"));
         
         // Check for hierarchical format
         bool isHierarchical = jsonParsed.contains("hierarchicalShapes") || 
@@ -162,10 +192,18 @@ int main(int argc, char** argv)
         
         if (isUniversal)
         {
-            std::cout << "🌟 Detected UNIVERSAL format - using universal builder!" << std::endl;
-            rive_converter::PropertyTypeMap typeMap;
-            auto coreDoc = rive_converter::build_from_universal_json(jsonParsed, typeMap);
-            bytes = rive_converter::serialize_core_document(coreDoc, typeMap);
+            if (isExactUniversal)
+            {
+                std::cout << "🌟 Detected UNIVERSAL exact stream - performing raw serialization" << std::endl;
+                bytes = rive_converter::serialize_exact_riv_json(jsonParsed);
+            }
+            else
+            {
+                std::cout << "🌟 Detected UNIVERSAL format - using universal builder!" << std::endl;
+                rive_converter::PropertyTypeMap typeMap;
+                auto coreDoc = rive_converter::build_from_universal_json(jsonParsed, typeMap);
+                bytes = rive_converter::serialize_core_document(coreDoc, typeMap);
+            }
         }
         else if (isHierarchical)
         {
@@ -195,4 +233,3 @@ int main(int argc, char** argv)
 
     return 0;
 }
-

@@ -5,6 +5,7 @@
 - **Amac**: Sinirli bir JSON sahnesini (artboard + temel sekiller) resmi Rive runtime'in okuyabilecegi tek parca `.riv` dosyasina donusturmek.
 - **Ana kaynak**: `converter/` klasoru (parser, builder, serializer).
 - **Durum**: Minimal sahneler (Backboard + tek artboard + sekiller + asset placeholder) dogru sekilde uretiliyor ve Rive Play importunda calisiyor.
+- **Yeni Yetenek**: Exact round-trip mode - RIV → JSON → RIV byte-perfect reconstruction (__riv_exact__ format)
 
 ## 2. Referans Belgeler
 - **📚 `docs/`**: Detayli dokumanlar klasoru
@@ -36,7 +37,7 @@ python3 converter/analyze_riv.py <out.riv>
 ### 3.1 Test Dosyalari
 ```bash
 # Minimal test (basit geometri)
-converter/exampleriv/rectangle.riv (230 bytes)
+converter/exampleriv/test.riv (230 bytes)
 
 # Production test (animasyon + state machine)
 converter/exampleriv/bee_baby.riv (9.7KB)
@@ -53,8 +54,8 @@ python3 converter/analyze_chunks.py <file.riv>     # Chunk-level detay
 python3 converter/validate_riv.py <file.riv>       # Format dogrulama
 
 # Round-trip karsilastirma
-scripts/roundtrip_compare.sh <original.riv>        # Full pipeline test
-scripts/simple_stability_test.sh                   # Quick stability check
+scripts/roundtrip_compare.sh <original.riv>        # Full pipeline test (auto-detects exact mode)
+scripts/simple_stability_test.sh <original.riv>    # 3-cycle stability test (auto-detects exact mode)
 ```
 
 ## 4. Calisma Akisi (JSON -> RIV)
@@ -64,10 +65,23 @@ scripts/simple_stability_test.sh                   # Quick stability check
 RIV → JSON (Export):
   converter/universal_extractor.cpp      # Runtime objects → JSON export
   converter/extractor_postprocess.hpp    # Topological sort + validation
+  converter/analyze_riv.py:62-320        # Exact mode: Property types from headers + objectTerminator
 
 JSON → RIV (Import):
   converter/src/universal_builder.cpp    # JSON → Core objects + property wiring
-  converter/src/serializer.cpp           # Core objects → .riv binary
+  converter/src/serializer.cpp:880-999   # Exact mode: ToC/bitmap validation + category-based serialization
+
+Exact Round-Trip Mode:
+  universal_extractor.cpp → __riv_exact__ JSON with:
+    - componentIndex (diagnostic)
+    - Property types from generated headers
+    - objectTerminator (raw terminator bytes)
+    - tail (post-stream bytes: catalog chunks)
+  serializer.cpp → Byte-perfect reconstruction:
+    - ToC/bitmap validation against JSON
+    - 64-bit varuint fixes
+    - Category-based value serialization (uint/double/string/bytes/bool)
+    - Exact terminator/tail byte replication
 
 Yeni TypeKey eklerken:
   1. universal_builder.cpp: createObjectByTypeKey() + property mapping
@@ -125,6 +139,43 @@ Round-trip instability:
 
 ## 7. Common Workflows
 
+### Exact Round-Trip Test
+```bash
+# Byte-perfect round-trip validation (minimal test)
+./build_converter/converter/universal_extractor converter/exampleriv/test.riv output/tests/test_exact.json
+./build_converter/converter/rive_convert_cli --exact output/tests/test_exact.json output/tests/test_exact_roundtrip.riv
+cmp converter/exampleriv/test.riv output/tests/test_exact_roundtrip.riv  # Should be identical
+./build_converter/converter/import_test output/tests/test_exact_roundtrip.riv  # Should show SUCCESS
+
+# Production file validation (catalog-heavy: animations + state machines)
+./build_converter/converter/universal_extractor converter/exampleriv/bee_baby.riv output/tests/bee_exact.json
+./build_converter/converter/rive_convert_cli --exact output/tests/bee_exact.json output/tests/bee_exact_roundtrip.riv
+cmp converter/exampleriv/bee_baby.riv output/tests/bee_exact_roundtrip.riv  # ✅ VERIFIED byte-perfect
+```
+
+**CLI Usage:**
+```bash
+# Exact mode (requires __riv_exact__ = true in JSON)
+rive_convert --exact <exact.json> <output.riv>
+
+# Auto-detect mode (works with all formats)
+rive_convert <input.json> <output.riv>
+
+# Without --exact flag, exact JSON will show warning:
+# ⚠️  Warning: Exact mode JSON detected. Consider using --exact flag for clarity.
+
+# With --exact flag on non-exact JSON, will error:
+# ❌ Error: --exact flag requires JSON with __riv_exact__ = true
+```
+
+**Critical Requirements:**
+- Extractor must output `__riv_exact__ = true` for exact mode
+- JSON must include `headerKeys`, `bitmaps`, `objectTerminator`, `tail` fields
+- Serializer validates ToC/bitmap against JSON before writing
+- objectTerminator field preserves exact stream termination (empty = EOF, non-empty = explicit terminators)
+- Category field drives serialization: uint→varuint, double→float64, color→color32, string→string, bytes→raw
+- Use `--exact` flag to enforce exact mode and prevent accidental universal JSON processing
+
 ### Yeni Ozellik Ekleme
 ```
 1. SDK basliklari kontrol et:
@@ -143,7 +194,7 @@ Round-trip instability:
    - Field-type bitmapi guncelle (2-bit: 00/01/10/11)
 
 4. Test:
-   - rectangle.riv ile minimal test
+   - test.riv ile minimal test
    - bee_baby.riv ile production test
    - roundtrip_compare.sh ile stability test
 

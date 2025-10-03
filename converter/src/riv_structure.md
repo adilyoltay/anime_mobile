@@ -158,14 +158,19 @@ Aşağıdaki tablo hem builder’ın `PropertyTypeMap`’ini hem de serializer�
 | 280 | `KeyFrameString.value`
 | 285/286 | `Text.width` / `height`
 | 363-365 | `FollowPathConstraint` özel alanları
-| 364 | `FollowPathConstraint.orient` (bool)
-| 365 | `FollowPathConstraint.offset` (bool flag)
-| 363 | `FollowPathConstraint.distance`
-| 364/365 default injection PASS1’de yapılır
-| 690/691 | `DashPath.offset` / `offsetIsPercentage`
-| 692/693 | `Dash.length` / `lengthIsPercentage`
-| 749-752 | `Feather` alanları
-| 631 | `KeyFrameUint.value`
+
+## 5. UNIVERSAL exact stream JSON formatı
+- Extractor `__riv_exact__ = true` içeren JSON üreterek `.riv` akışını **bire bir** yeniden kurar.
+- Üst düzey alanlar:
+  - `headerKeys`: ToC sırası; her girdide `key` (uint) ve `names` (diagnostic amaçlı).
+  - `bitmaps`: 32‑bit field-type paketleri; `(len(headerKeys)+3)/4` adet olmalı.
+  - `objects`: Sıralı nesne listesi. Her nesne `componentIndex` (diagnostik), `typeKey` ve `properties` içerir.
+    - `properties[*].category` değer türünü belirtir (`uint`, `double`, `color`, `string`, `bytes`, `bool`).
+    - Değer `category`ye göre ham varuint/float/bytes olarak yeniden yazılır; bilinmeyen kategoriler `uint` varsayımıyla varuint olarak dökülür.
+  - `objectTerminator`: Obje akışını sonlandıran raw varuint baytları (base64). Bazı üretim dosyaları bu alanı boş bırakarak akışı dosya sonu ile bitirir; serializer yalnızca alan verilmişse bayt yazar, aksi halde eski JSON formatları için varsayılan `0` terminatörünü üretir.
+  - `tail`: Obje akışından sonra kalan ham baytlar (örn. katalog chunk’ları) base64 olarak saklanır ve aynen tekrar yazılır.
+- JSON ek alanları (ör. `source`, `inputPath`) serializer tarafından görmezden gelinir.
+- Bu formatı kullanan CLI kodu `converter/src/main.cpp` içinde `serialize_exact_riv_json` yoluna delegasyon yapar.
 
 (Not: Tablo sadece converter’ın bugün yazdığı property’leri listeler. Yeni tip eklerken tabloyu genişletin.)
 

@@ -90,22 +90,50 @@ echo -e "${GREEN}✅${RESET} Extracted to: $EXTRACTED_JSON"
 # Step 2: Convert back to RIV
 echo -e "${BLUE}[2/5]${RESET} Converting JSON back to RIV..."
 ROUNDTRIP_RIV="$OUTPUT_DIR/${BASENAME}_roundtrip.riv"
-if ! "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV" > /dev/null 2>&1; then
-    echo "❌ FAILED: Conversion failed"
-    "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV"
-    exit 1
+
+# Check if JSON is in exact mode
+IS_EXACT=$(grep -q '"__riv_exact__".*true' "$EXTRACTED_JSON" && echo "yes" || echo "no")
+
+if [ "$IS_EXACT" = "yes" ]; then
+    # Use --exact flag for exact mode JSON
+    if ! "$CONVERTER" --exact "$EXTRACTED_JSON" "$ROUNDTRIP_RIV" > /dev/null 2>&1; then
+        echo "❌ FAILED: Exact conversion failed"
+        "$CONVERTER" --exact "$EXTRACTED_JSON" "$ROUNDTRIP_RIV"
+        exit 1
+    fi
+    echo -e "${GREEN}✅${RESET} Converted with --exact flag to: $ROUNDTRIP_RIV"
+else
+    # Use auto-detect mode for universal JSON
+    if ! "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV" > /dev/null 2>&1; then
+        echo "❌ FAILED: Conversion failed"
+        "$CONVERTER" "$EXTRACTED_JSON" "$ROUNDTRIP_RIV"
+        exit 1
+    fi
+    echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
 fi
-echo -e "${GREEN}✅${RESET} Converted to: $ROUNDTRIP_RIV"
 
 # Step 3: Import test (Rive Play compatibility)
 echo -e "${BLUE}[3/5]${RESET} Testing Rive Play compatibility..."
 IMPORT_LOG="$OUTPUT_DIR/${BASENAME}_import.log"
-if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" "$EXPECTED_OBJECTS" > "$IMPORT_LOG" 2>&1; then
-    echo -e "${RED}❌ FAILED: Import test failed (Rive Play will crash!)${RESET}"
-    echo ""
-    echo "Import test output:"
-    cat "$IMPORT_LOG"
-    exit 1
+
+# For exact mode, skip object count validation (byte-perfect reconstruction is the goal)
+# For universal mode, validate object counts
+if [ "$IS_EXACT" = "yes" ]; then
+    if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" > "$IMPORT_LOG" 2>&1; then
+        echo -e "${RED}❌ FAILED: Import test failed (Rive Play will crash!)${RESET}"
+        echo ""
+        echo "Import test output:"
+        cat "$IMPORT_LOG"
+        exit 1
+    fi
+else
+    if ! "$IMPORT_TEST" "$ROUNDTRIP_RIV" "$EXPECTED_OBJECTS" > "$IMPORT_LOG" 2>&1; then
+        echo -e "${RED}❌ FAILED: Import test failed (Rive Play will crash!)${RESET}"
+        echo ""
+        echo "Import test output:"
+        cat "$IMPORT_LOG"
+        exit 1
+    fi
 fi
 
 # Check for NULL objects (now a hard failure thanks to import_test update)
@@ -125,28 +153,45 @@ else
     echo -e "${GREEN}✅${RESET} Import test passed (no NULL objects)"
 fi
 
-# Validate object and keyed counts against original
-ROUNDTRIP_METRICS=$(get_riv_metrics "$ROUNDTRIP_RIV")
-ROUNDTRIP_OBJECTS=$(echo "$ROUNDTRIP_METRICS" | jq -r '.objects')
-ROUNDTRIP_KEYED=$(echo "$ROUNDTRIP_METRICS" | jq -r '.keyed')
+# For universal mode, validate object counts; for exact mode, rely on byte comparison
+if [ "$IS_EXACT" = "no" ]; then
+    ROUNDTRIP_METRICS=$(get_riv_metrics "$ROUNDTRIP_RIV")
+    ROUNDTRIP_OBJECTS=$(echo "$ROUNDTRIP_METRICS" | jq -r '.objects')
+    ROUNDTRIP_KEYED=$(echo "$ROUNDTRIP_METRICS" | jq -r '.keyed')
 
-if [ "$ROUNDTRIP_OBJECTS" -ne "$EXPECTED_OBJECTS" ]; then
-    echo -e "${RED}❌ FAILED: Object count mismatch (expected $EXPECTED_OBJECTS, got $ROUNDTRIP_OBJECTS)${RESET}"
-    exit 1
-else
-    echo -e "${GREEN}✅${RESET} Object count matches source ($ROUNDTRIP_OBJECTS)"
-fi
+    if [ "$ROUNDTRIP_OBJECTS" -ne "$EXPECTED_OBJECTS" ]; then
+        echo -e "${RED}❌ FAILED: Object count mismatch (expected $EXPECTED_OBJECTS, got $ROUNDTRIP_OBJECTS)${RESET}"
+        exit 1
+    else
+        echo -e "${GREEN}✅${RESET} Object count matches source ($ROUNDTRIP_OBJECTS)"
+    fi
 
-if [ "$ROUNDTRIP_KEYED" -ne "$EXPECTED_KEYED" ]; then
-    echo -e "${RED}❌ FAILED: Keyed object count mismatch (expected $EXPECTED_KEYED, got $ROUNDTRIP_KEYED)${RESET}"
-    exit 1
+    if [ "$ROUNDTRIP_KEYED" -ne "$EXPECTED_KEYED" ]; then
+        echo -e "${RED}❌ FAILED: Keyed object count mismatch (expected $EXPECTED_KEYED, got $ROUNDTRIP_KEYED)${RESET}"
+        exit 1
+    else
+        echo -e "${GREEN}✅${RESET} Keyed object count matches source ($ROUNDTRIP_KEYED)"
+    fi
 else
-    echo -e "${GREEN}✅${RESET} Keyed object count matches source ($ROUNDTRIP_KEYED)"
+    echo -e "${GREEN}✅${RESET} Exact mode: Skipping object count validation (byte-perfect comparison used instead)"
 fi
 
 # Step 4: Compare
 echo -e "${BLUE}[4/5]${RESET} Comparing original vs round-trip..."
 echo ""
+
+# For exact mode, perform byte-perfect comparison first
+if [ "$IS_EXACT" = "yes" ]; then
+    if cmp -s "$ORIGINAL_RIV" "$ROUNDTRIP_RIV"; then
+        echo -e "${GREEN}✅${RESET} Byte-perfect round-trip: Files are identical!"
+        BYTE_PERFECT=true
+    else
+        echo -e "${RED}❌${RESET} Byte-perfect round-trip FAILED: Files differ"
+        BYTE_PERFECT=false
+        COMPARISON_FAILED=1
+    fi
+    echo ""
+fi
 
 # Run visual comparison (don't exit on diff)
 python3 scripts/compare_riv_files.py "$ORIGINAL_RIV" "$ROUNDTRIP_RIV" || COMPARISON_FAILED=$?

@@ -19,7 +19,12 @@ echo "→ Cycle 1: Extract"
 ./build_converter/converter/universal_extractor "$RIV_FILE" "$OUT/${BASE}_c1.json" > /dev/null 2>&1
 
 echo "→ Cycle 1: Convert to RIV"
-./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c1.json" "$OUT/${BASE}_c2.riv" > /dev/null 2>&1
+IS_EXACT=$(grep -q '"__riv_exact__".*true' "$OUT/${BASE}_c1.json" && echo "yes" || echo "no")
+if [ "$IS_EXACT" = "yes" ]; then
+    ./build_converter/converter/rive_convert_cli --exact "$OUT/${BASE}_c1.json" "$OUT/${BASE}_c2.riv" > /dev/null 2>&1
+else
+    ./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c1.json" "$OUT/${BASE}_c2.riv" > /dev/null 2>&1
+fi
 
 echo "→ Cycle 1: Import test"
 ./build_converter/converter/import_test "$OUT/${BASE}_c2.riv" > "$OUT/${BASE}_c2_import.txt" 2>&1
@@ -30,7 +35,11 @@ echo "→ Cycle 2: Re-extract"
 ./build_converter/converter/universal_extractor "$OUT/${BASE}_c2.riv" "$OUT/${BASE}_c3.json" > /dev/null 2>&1
 
 echo "→ Cycle 2: Convert to RIV"
-./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c3.json" "$OUT/${BASE}_c4.riv" > /dev/null 2>&1
+if [ "$IS_EXACT" = "yes" ]; then
+    ./build_converter/converter/rive_convert_cli --exact "$OUT/${BASE}_c3.json" "$OUT/${BASE}_c4.riv" > /dev/null 2>&1
+else
+    ./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c3.json" "$OUT/${BASE}_c4.riv" > /dev/null 2>&1
+fi
 
 echo "→ Cycle 2: Import test"
 ./build_converter/converter/import_test "$OUT/${BASE}_c4.riv" > "$OUT/${BASE}_c4_import.txt" 2>&1
@@ -41,7 +50,11 @@ echo "→ Cycle 3: Final extraction"
 ./build_converter/converter/universal_extractor "$OUT/${BASE}_c4.riv" "$OUT/${BASE}_c5.json" > /dev/null 2>&1
 
 echo "→ Cycle 3: Final conversion"
-./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c5.json" "$OUT/${BASE}_c6.riv" > /dev/null 2>&1
+if [ "$IS_EXACT" = "yes" ]; then
+    ./build_converter/converter/rive_convert_cli --exact "$OUT/${BASE}_c5.json" "$OUT/${BASE}_c6.riv" > /dev/null 2>&1
+else
+    ./build_converter/converter/rive_convert_cli "$OUT/${BASE}_c5.json" "$OUT/${BASE}_c6.riv" > /dev/null 2>&1
+fi
 
 echo "→ Cycle 3: Final import"
 ./build_converter/converter/import_test "$OUT/${BASE}_c6.riv" > "$OUT/${BASE}_c6_import.txt" 2>&1
