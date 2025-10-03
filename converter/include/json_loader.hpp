@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 #include <nlohmann/json.hpp>
 #include "rive/core.hpp"
 #include "hierarchical_schema.hpp"
@@ -110,6 +111,66 @@ struct ShapeStroke
     float thickness = 1.0f;
     DashData dash;
     TrimPathData trimPath;
+};
+
+struct DataBindData
+{
+    uint16_t typeKey = 447; // DataBindContext by default (supports sourcePathIds)
+    std::optional<uint32_t> localId;
+    std::optional<uint32_t> targetLocalId;
+    std::optional<std::string> targetName;
+    std::vector<std::string> targetPathNames;
+    uint32_t propertyKey = 0;
+    uint32_t flags = 0;
+    int32_t converterId = -1;
+    std::optional<uint32_t> converterLocalId;
+    std::vector<uint16_t> sourcePathIds;
+    bool toSource = false;
+};
+
+struct DataConverterData
+{
+    uint16_t typeKey = 0;
+    std::optional<uint32_t> localId;
+    std::string name;
+    uint32_t interpolationType = 1;
+    int32_t interpolatorId = -1;
+    uint32_t flags = 0;
+    float minInput = 1.0f;
+    float maxInput = 1.0f;
+    float minOutput = 1.0f;
+    float maxOutput = 1.0f;
+    uint32_t decimals = 0;
+    std::string colorFormat;
+    std::vector<DataBindData> contexts;
+};
+
+struct StateMachineListenerActionData
+{
+    uint16_t typeKey = 0;
+    std::optional<uint32_t> localId;
+    std::optional<uint32_t> inputLocalId;
+    std::optional<std::string> inputName;
+    std::optional<uint32_t> nestedInputLocalId;
+    std::optional<std::string> nestedInputName;
+    float value = 0.0f;
+    std::vector<DataBindData> dataBinds;
+};
+
+struct StateMachineListenerData
+{
+    uint16_t typeKey = 114;
+    std::optional<uint32_t> localId;
+    std::string name;
+    std::optional<uint32_t> targetLocalId;
+    std::optional<std::string> targetName;
+    uint32_t listenerTypeValue = 0;
+    int32_t eventLocalId = -1;
+    std::optional<std::string> eventName;
+    std::vector<uint16_t> viewModelPathIds;
+    std::vector<std::string> viewModelPathNames;
+    std::vector<StateMachineListenerActionData> actions;
+    std::vector<DataBindData> dataBinds;
 };
 
 struct ShapeData
@@ -225,6 +286,8 @@ struct StateMachineData
     std::string name = "StateMachine";
     std::vector<StateMachineInputData> inputs;
     std::vector<LayerData> layers;
+    std::vector<StateMachineListenerData> listeners;
+    std::vector<DataBindData> dataBinds;
 };
 
 struct ConstraintData
@@ -272,6 +335,8 @@ struct ArtboardData
     std::vector<TextData> texts;
     std::vector<AnimationData> animations;
     std::vector<StateMachineData> stateMachines;
+    std::vector<DataConverterData> dataConverters;
+    std::vector<DataBindData> dataBinds;
     std::vector<ConstraintData> constraints;
     std::vector<EventData> events;  // NEW: Events and audio
     std::vector<BoneData> bones;    // NEW: Skeletal rigging
@@ -293,6 +358,8 @@ struct Document
     std::vector<TextData> texts;
     std::vector<AnimationData> animations;
     std::vector<StateMachineData> stateMachines;
+    std::vector<DataConverterData> dataConverters;
+    std::vector<DataBindData> dataBinds;
     std::vector<ConstraintData> constraints;
     std::vector<EventData> events;
     std::vector<BoneData> bones;

@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <stdexcept>
 
 namespace
@@ -74,6 +75,366 @@ rive_converter::ShapeType parse_shape_type(const std::string& type)
     }
     return rive_converter::ShapeType::rectangle;
 }
+
+std::vector<uint16_t> parse_uint16_list(const nlohmann::json& values)
+{
+    std::vector<uint16_t> out;
+    if (!values.is_array())
+    {
+        return out;
+    }
+    for (const auto& entry : values)
+    {
+        if (entry.is_number_integer() || entry.is_number_unsigned())
+        {
+            int64_t v = entry.get<int64_t>();
+            if (v < 0)
+            {
+                continue;
+            }
+            if (v > 0xFFFF)
+            {
+                v = 0xFFFF;
+            }
+            out.push_back(static_cast<uint16_t>(v));
+        }
+    }
+    return out;
+}
+
+std::vector<std::string> parse_string_list(const nlohmann::json& values)
+{
+    std::vector<std::string> out;
+    if (!values.is_array())
+    {
+        return out;
+    }
+    for (const auto& entry : values)
+    {
+        if (entry.is_string())
+        {
+            out.push_back(entry.get<std::string>());
+        }
+    }
+    return out;
+}
+
+rive_converter::DataBindData parse_data_bind_json(const nlohmann::json& json)
+{
+    rive_converter::DataBindData bind;
+
+    if (json.contains("typeKey"))
+    {
+        bind.typeKey = static_cast<uint16_t>(json.value("typeKey", static_cast<int>(bind.typeKey)));
+    }
+
+    if (json.contains("localId"))
+    {
+        const auto& value = json["localId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                bind.localId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    auto parse_target_local_id = [&](const char* key) {
+        if (json.contains(key))
+        {
+            const auto& value = json[key];
+            if (value.is_number_integer() || value.is_number_unsigned())
+            {
+                int64_t v = value.get<int64_t>();
+                if (v >= 0)
+                {
+                    bind.targetLocalId = static_cast<uint32_t>(v);
+                }
+            }
+        }
+    };
+
+    parse_target_local_id("targetLocalId");
+    parse_target_local_id("targetId");
+
+    if (json.contains("targetName") && json["targetName"].is_string())
+    {
+        bind.targetName = json["targetName"].get<std::string>();
+    }
+
+    if (json.contains("targetPathNames"))
+    {
+        bind.targetPathNames = parse_string_list(json["targetPathNames"]);
+    }
+    else if (json.contains("targetPath"))
+    {
+        bind.targetPathNames = parse_string_list(json["targetPath"]);
+    }
+
+    bind.propertyKey = json.value("propertyKey", bind.propertyKey);
+    bind.flags = json.value("flags", bind.flags);
+
+    if (json.contains("converterId"))
+    {
+        const auto& value = json["converterId"];
+        if (value.is_null())
+        {
+            bind.converterId = -1;
+        }
+        else if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            bind.converterId = static_cast<int32_t>(value.get<int64_t>());
+        }
+    }
+
+    if (json.contains("converterLocalId"))
+    {
+        const auto& value = json["converterLocalId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                bind.converterLocalId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("sourcePathIds"))
+    {
+        bind.sourcePathIds = parse_uint16_list(json["sourcePathIds"]);
+    }
+
+    bind.toSource = json.value("toSource", bind.toSource);
+
+    return bind;
+}
+
+rive_converter::DataConverterData parse_data_converter_json(const nlohmann::json& json)
+{
+    rive_converter::DataConverterData converter;
+
+    converter.typeKey = static_cast<uint16_t>(json.value("typeKey", static_cast<int>(converter.typeKey)));
+
+    if (json.contains("localId"))
+    {
+        const auto& value = json["localId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                converter.localId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    converter.name = json.value("name", converter.name);
+    converter.interpolationType = json.value("interpolationType", converter.interpolationType);
+
+    if (json.contains("interpolatorId"))
+    {
+        const auto& value = json["interpolatorId"];
+        if (value.is_null())
+        {
+            converter.interpolatorId = -1;
+        }
+        else if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            converter.interpolatorId = static_cast<int32_t>(value.get<int64_t>());
+        }
+    }
+
+    converter.flags = json.value("flags", converter.flags);
+    converter.minInput = json.value("minInput", converter.minInput);
+    converter.maxInput = json.value("maxInput", converter.maxInput);
+    converter.minOutput = json.value("minOutput", converter.minOutput);
+    converter.maxOutput = json.value("maxOutput", converter.maxOutput);
+    converter.decimals = json.value("decimals", converter.decimals);
+    converter.colorFormat = json.value("colorFormat", converter.colorFormat);
+
+    if (json.contains("contexts") && json["contexts"].is_array())
+    {
+        for (const auto& ctx : json["contexts"])
+        {
+            converter.contexts.push_back(parse_data_bind_json(ctx));
+        }
+    }
+
+    return converter;
+}
+
+rive_converter::StateMachineListenerActionData parse_listener_action_json(
+    const nlohmann::json& json)
+{
+    rive_converter::StateMachineListenerActionData action;
+
+    action.typeKey = static_cast<uint16_t>(json.value("typeKey", static_cast<int>(action.typeKey)));
+
+    if (json.contains("localId"))
+    {
+        const auto& value = json["localId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                action.localId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("inputId"))
+    {
+        const auto& value = json["inputId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                action.inputLocalId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("input") && json["input"].is_string())
+    {
+        action.inputName = json["input"].get<std::string>();
+    }
+
+    if (json.contains("nestedInputId"))
+    {
+        const auto& value = json["nestedInputId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                action.nestedInputLocalId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("nestedInput") && json["nestedInput"].is_string())
+    {
+        action.nestedInputName = json["nestedInput"].get<std::string>();
+    }
+
+    action.value = json.value("value", action.value);
+
+    if (json.contains("dataBinds") && json["dataBinds"].is_array())
+    {
+        for (const auto& bindJson : json["dataBinds"])
+        {
+            action.dataBinds.push_back(parse_data_bind_json(bindJson));
+        }
+    }
+
+    return action;
+}
+
+rive_converter::StateMachineListenerData parse_listener_json(const nlohmann::json& json)
+{
+    rive_converter::StateMachineListenerData listener;
+
+    listener.typeKey = static_cast<uint16_t>(json.value("typeKey", static_cast<int>(listener.typeKey)));
+
+    if (json.contains("localId"))
+    {
+        const auto& value = json["localId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                listener.localId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    listener.name = json.value("name", listener.name);
+
+    if (json.contains("targetId"))
+    {
+        const auto& value = json["targetId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                listener.targetLocalId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("targetLocalId"))
+    {
+        const auto& value = json["targetLocalId"];
+        if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            int64_t v = value.get<int64_t>();
+            if (v >= 0)
+            {
+                listener.targetLocalId = static_cast<uint32_t>(v);
+            }
+        }
+    }
+
+    if (json.contains("targetName") && json["targetName"].is_string())
+    {
+        listener.targetName = json["targetName"].get<std::string>();
+    }
+
+    listener.listenerTypeValue = json.value("listenerTypeValue", listener.listenerTypeValue);
+
+    if (json.contains("eventId"))
+    {
+        const auto& value = json["eventId"];
+        if (value.is_null())
+        {
+            listener.eventLocalId = -1;
+        }
+        else if (value.is_number_integer() || value.is_number_unsigned())
+        {
+            listener.eventLocalId = static_cast<int32_t>(value.get<int64_t>());
+        }
+    }
+
+    if (json.contains("eventName") && json["eventName"].is_string())
+    {
+        listener.eventName = json["eventName"].get<std::string>();
+    }
+
+    if (json.contains("viewModelPathIds"))
+    {
+        listener.viewModelPathIds = parse_uint16_list(json["viewModelPathIds"]);
+    }
+
+    if (json.contains("viewModelPathNames"))
+    {
+        listener.viewModelPathNames = parse_string_list(json["viewModelPathNames"]);
+    }
+
+    if (json.contains("actions") && json["actions"].is_array())
+    {
+        for (const auto& actionJson : json["actions"])
+        {
+            listener.actions.push_back(parse_listener_action_json(actionJson));
+        }
+    }
+
+    if (json.contains("dataBinds") && json["dataBinds"].is_array())
+    {
+        for (const auto& bindJson : json["dataBinds"])
+        {
+            listener.dataBinds.push_back(parse_data_bind_json(bindJson));
+        }
+    }
+
+    return listener;
+}
 } // namespace
 
 namespace rive_converter
@@ -134,8 +495,6 @@ Document parse_json(const std::string& json_content)
                                 std::string color = stop.value("color", std::string("#FFFFFF"));
                                 gs.color = parse_color_string(color, 0xFFFFFFFF);
                                 data.fill.gradient.stops.push_back(gs);
-                            }
-                        }
                     }
                     else if (shape.contains("fill"))
                     {
@@ -284,14 +643,67 @@ Document parse_json(const std::string& json_content)
                                     
                                     layerData.transitions.push_back(transData);
                                 }
-                            }
-                            
-                            smData.layers.push_back(layerData);
-                        }
                     }
+                    
+                    smData.layers.push_back(layerData);
+                }
+            }
+
+            if (sm.contains("listeners") && sm["listeners"].is_array())
+            {
+                for (const auto& listenerJson : sm["listeners"])
+                {
+                    smData.listeners.push_back(parse_listener_json(listenerJson));
+                }
+            }
+
+            if (sm.contains("dataBinds") && sm["dataBinds"].is_array())
+            {
+                for (const auto& bindJson : sm["dataBinds"])
+                {
+                    smData.dataBinds.push_back(parse_data_bind_json(bindJson));
+                }
+            }
+
+            if (sm.contains("dataBindings") && sm["dataBindings"].is_array())
+            {
+                for (const auto& bindJson : sm["dataBindings"])
+                {
+                    smData.dataBinds.push_back(parse_data_bind_json(bindJson));
+                }
+            }
                     
                     artboardData.stateMachines.push_back(smData);
                 }
+            }
+
+            if (artboardJson.contains("dataConverters") &&
+                artboardJson["dataConverters"].is_array())
+            {
+                for (const auto& converterJson : artboardJson["dataConverters"])
+                {
+                    artboardData.dataConverters.push_back(
+                        parse_data_converter_json(converterJson));
+                }
+            }
+
+            auto append_data_binds = [&](const nlohmann::json& array) {
+                for (const auto& bindJson : array)
+                {
+                    artboardData.dataBinds.push_back(parse_data_bind_json(bindJson));
+                }
+            };
+
+            if (artboardJson.contains("dataBinds") &&
+                artboardJson["dataBinds"].is_array())
+            {
+                append_data_binds(artboardJson["dataBinds"]);
+            }
+
+            if (artboardJson.contains("dataBindings") &&
+                artboardJson["dataBindings"].is_array())
+            {
+                append_data_binds(artboardJson["dataBindings"]);
             }
             
             // Parse additional content that may be inside artboard in new format
@@ -664,6 +1076,31 @@ Document parse_json(const std::string& json_content)
         }
     }
     
+    if (json.contains("dataConverters") && json["dataConverters"].is_array())
+    {
+        for (const auto& converterJson : json["dataConverters"])
+        {
+            doc.dataConverters.push_back(parse_data_converter_json(converterJson));
+        }
+    }
+
+    auto parse_data_bind_array = [&](const nlohmann::json& array) {
+        for (const auto& bindJson : array)
+        {
+            doc.dataBinds.push_back(parse_data_bind_json(bindJson));
+        }
+    };
+
+    if (json.contains("dataBinds") && json["dataBinds"].is_array())
+    {
+        parse_data_bind_array(json["dataBinds"]);
+    }
+
+    if (json.contains("dataBindings") && json["dataBindings"].is_array())
+    {
+        parse_data_bind_array(json["dataBindings"]);
+    }
+
     // Parse constraints
     if (json.contains("constraints"))
     {
@@ -743,6 +1180,8 @@ Document parse_json(const std::string& json_content)
         legacyArtboard.texts = std::move(doc.texts);
         legacyArtboard.animations = std::move(doc.animations);
         legacyArtboard.stateMachines = std::move(doc.stateMachines);
+        legacyArtboard.dataConverters = std::move(doc.dataConverters);
+        legacyArtboard.dataBinds = std::move(doc.dataBinds);
         legacyArtboard.constraints = std::move(doc.constraints);
         legacyArtboard.events = std::move(doc.events);
         legacyArtboard.bones = std::move(doc.bones);
@@ -768,6 +1207,12 @@ Document parse_json(const std::string& json_content)
             firstArtboard.texts.insert(firstArtboard.texts.end(),
                 std::make_move_iterator(doc.texts.begin()),
                 std::make_move_iterator(doc.texts.end()));
+            firstArtboard.dataConverters.insert(firstArtboard.dataConverters.end(),
+                std::make_move_iterator(doc.dataConverters.begin()),
+                std::make_move_iterator(doc.dataConverters.end()));
+            firstArtboard.dataBinds.insert(firstArtboard.dataBinds.end(),
+                std::make_move_iterator(doc.dataBinds.begin()),
+                std::make_move_iterator(doc.dataBinds.end()));
             firstArtboard.constraints.insert(firstArtboard.constraints.end(),
                 std::make_move_iterator(doc.constraints.begin()),
                 std::make_move_iterator(doc.constraints.end()));
@@ -785,6 +1230,8 @@ Document parse_json(const std::string& json_content)
             doc.shapes.clear();
             doc.customPaths.clear();
             doc.texts.clear();
+            doc.dataConverters.clear();
+            doc.dataBinds.clear();
             doc.constraints.clear();
             doc.events.clear();
             doc.bones.clear();
