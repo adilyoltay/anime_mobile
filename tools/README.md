@@ -1,9 +1,24 @@
-# RIV Debug GUI
+# RIV Debug Tools
 
-Simple test and debug interface for RIV converter with CLI integration.
+Simple test and debug interfaces for RIV converter with CLI integration.
 
-![RIV Debug GUI](https://img.shields.io/badge/Platform-macOS-blue)
+![Platform](https://img.shields.io/badge/Platform-macOS-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
+
+## Available Tools
+
+### 🌐 Web UI (Recommended)
+**`riv_debug_web.py`** - Web-based interface that works on all macOS versions
+- ✅ No Tkinter dependency issues
+- 🚀 Runs in your browser
+- 📱 Works on any macOS version
+
+### 🖥️ Desktop UI (Legacy)
+**`riv_debug_gui.py`** - Tkinter-based desktop app
+- ⚠️ Requires macOS 13+ (Tkinter compatibility)
+- May crash on older macOS versions
+
+---
 
 ## Features
 
@@ -43,6 +58,29 @@ Simple test and debug interface for RIV converter with CLI integration.
   - `build_converter/converter/rive_convert_cli`
   - `build_converter/converter/import_test`
 
+## Quick Start
+
+### 🌐 Web UI (Recommended)
+
+```bash
+# 1. Build converter tools (if not already built)
+cmake -S . -B build_converter
+cmake --build build_converter --target rive_convert_cli import_test
+
+# 2. Start web server
+python3 tools/riv_debug_web.py
+
+# 3. Open in browser
+# Navigate to: http://localhost:8765
+```
+
+### 🖥️ Desktop UI (Legacy - may crash on older macOS)
+
+```bash
+# Only use if you have macOS 13+
+python3 tools/riv_debug_gui.py
+```
+
 ## Installation
 
 ### 1. Build the Converter Tools
@@ -53,15 +91,17 @@ cmake -S . -B build_converter
 cmake --build build_converter --target rive_convert_cli import_test
 ```
 
-### 2. Launch the GUI
+### 2. Launch Your Preferred Interface
 
+#### Web UI (Recommended)
 ```bash
-# From repo root
-python3 tools/riv_debug_gui.py
+python3 tools/riv_debug_web.py
+# Open http://localhost:8765 in your browser
+```
 
-# Or make it executable and run directly
-chmod +x tools/riv_debug_gui.py
-./tools/riv_debug_gui.py
+#### Desktop UI (Legacy)
+```bash
+python3 tools/riv_debug_gui.py
 ```
 
 ## Usage
