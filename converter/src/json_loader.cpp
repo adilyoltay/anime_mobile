@@ -324,13 +324,18 @@ rive_converter::StateMachineListenerActionData parse_listener_action_json(
 
     action.value = json.value("value", action.value);
 
-    if (json.contains("dataBinds") && json["dataBinds"].is_array())
-    {
-        for (const auto& bindJson : json["dataBinds"])
+    auto append_action_binds = [&](const char* key) {
+        if (json.contains(key) && json[key].is_array())
         {
-            action.dataBinds.push_back(parse_data_bind_json(bindJson));
+            for (const auto& bindJson : json[key])
+            {
+                action.dataBinds.push_back(parse_data_bind_json(bindJson));
+            }
         }
-    }
+    };
+
+    append_action_binds("dataBinds");
+    append_action_binds("dataBindings");
 
     return action;
 }
@@ -425,13 +430,18 @@ rive_converter::StateMachineListenerData parse_listener_json(const nlohmann::jso
         }
     }
 
-    if (json.contains("dataBinds") && json["dataBinds"].is_array())
-    {
-        for (const auto& bindJson : json["dataBinds"])
+    auto append_listener_binds = [&](const char* key) {
+        if (json.contains(key) && json[key].is_array())
         {
-            listener.dataBinds.push_back(parse_data_bind_json(bindJson));
+            for (const auto& bindJson : json[key])
+            {
+                listener.dataBinds.push_back(parse_data_bind_json(bindJson));
+            }
         }
-    }
+    };
+
+    append_listener_binds("dataBinds");
+    append_listener_binds("dataBindings");
 
     return listener;
 }
