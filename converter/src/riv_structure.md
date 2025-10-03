@@ -175,6 +175,30 @@ Aşağıdaki tablo hem builder’ın `PropertyTypeMap`’ini hem de serializer�
 (Not: Tablo sadece converter’ın bugün yazdığı property’leri listeler. Yeni tip eklerken tabloyu genişletin.)
 
 
+### 4.1. Data binding / data converter property anahtarları
+- `DataBind (typeKey 446)` → `propertyKey (586)`, `flags (587)`, `converterId (660)`
+- `DataBindContext (typeKey 447)` → `sourcePathIds (588)` (bytes; JSON `uint16` listesi LE olarak paketlenir)
+- `DataConverterBase (typeKey 488)` → `name (662)`
+- `DataConverterRangeMapper (typeKey 519)` → `interpolationType (713)`, `interpolatorId (714)`, `flags (715)`, `minInput (716)`, `maxInput (717)`, `minOutput (718)`, `maxOutput (719)`
+- `DataConverterToString (typeKey 490)` → `flags (764)`, `decimals (765)`, `colorFormat (766)`
+- `DataConverterGroupItem (typeKey 498)` → `converterId (679)`
+- `StateMachineListener (typeKey 114)` → `viewModelPathIds (868)` (bytes; extractor JSON destekli)
+- `ListenerNumberChange (typeKey 118)` → `value (229)`
+
+Serializer field-type bitmap eşlemesi:
+- 586/587/660/713/714/715/719/764/765/679 → `CoreUintType`
+- 716/717/718/229 → `CoreDoubleType`
+- 662/766 → `CoreStringType`
+- 588/868 → `CoreBytesType`
+
+### 4.2. Data binding nesne sırası
+- Backboard, JSON’daki `dataConverters` listesini `DataConverter` türevleri olarak ekler; `converterId` değerleri PASS3 sırasında artboard/backboard lokal indekslere remap edilir.
+- Her converter’ın altındaki `contexts` dizisi `DataBindContext` objeleri üretir. `sourcePathIds` JSON’da `uint16` listesi olarak gelir; parser bunu depolar ve serializer varuint uzunluk + ham byte sekansı olarak yazar.
+- Artboard içindeki `dataBinds`, hedef `Component` üretiminden sonra builder tarafından eklenir. `propertyKey` değerleri SDK header’larından (`*_base.hpp`) doğrulanır.
+- State machine listener’ları ve listener action’ları hem `dataBinds` hem `dataBindings` anahtarlarıyla gelen binding listelerini destekler; parser iki adı da kabul eder ve tüm binding’ler artboard’a eklenir.
+- PASS3 remap aşaması `converterId`, `targetId`, `inputId`, `viewModelPathIds` gibi referansları importer’ın beklediği artboard-lokal indekslere dönüştürür.
+
+
 ## 5. ID remap kuralları
 - Artboard başlarken `localComponentIndex` map’i sıfırlanır; component id 0 artboard’a aittir.
 - Writer component için `id (3)` ve gerekiyorsa `parentId (5)` yazar.
