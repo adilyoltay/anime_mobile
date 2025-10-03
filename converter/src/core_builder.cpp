@@ -3,6 +3,8 @@
 #include "font_utils.hpp"
 #include <iostream>
 #include "rive/artboard.hpp"
+#include "rive/component.hpp"
+#include "rive/drawable.hpp"
 #include "rive/backboard.hpp"
 #include "rive/shapes/rectangle.hpp"
 #include "rive/shapes/shape.hpp"
@@ -106,6 +108,14 @@
 #include "rive/core/field_types/core_string_type.hpp"
 #include "rive/core/field_types/core_bool_type.hpp"
 #include "rive/core/field_types/core_color_type.hpp"
+#include "rive/generated/data_bind/data_bind_base.hpp"
+#include "rive/generated/data_bind/data_bind_context_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_range_mapper_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_to_string_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_group_item_base.hpp"
+#include "rive/generated/animation/listener_number_change_base.hpp"
+#include "rive/generated/animation/state_machine_listener_base.hpp"
 
 namespace rive_converter
 {
@@ -328,7 +338,17 @@ CoreObject& CoreBuilder::addCore(rive::Core* core)
 {
     CoreObject object;
     object.core.reset(core);
+    object.typeKey = static_cast<uint16_t>(core->coreType());
+    object.isComponent = core->is<rive::Component>();
+    object.isArtboard = core->is<rive::Artboard>();
+    object.isDrawable = core->is<rive::Drawable>();
     object.id = m_nextId++;
+    if (object.typeKey == rive::Text::typeKey ||
+        object.typeKey == rive::TextValueRun::typeKey ||
+        object.typeKey == rive::TextStylePaint::typeKey)
+    {
+        (void)object.core.release();
+    }
     m_objects.push_back(std::move(object));
     return m_objects.back();
 }
@@ -366,14 +386,9 @@ void CoreBuilder::set(CoreObject& object, uint16_t key, const std::vector<uint8_
 CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
 {
     CoreDocument doc;
-    doc.artboard = nullptr;
 
     for (auto& object : m_objects)
     {
-        if (object.core && object.core->is<rive::Artboard>())
-        {
-            doc.artboard = object.core.get()->as<rive::Artboard>();
-        }
 
         for (const auto& prop : object.properties)
         {
@@ -453,10 +468,32 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
                 case 268: // TextValueRun::text
                 case 138: // StateMachineComponent::name
                 case 55: // Animation::name (also StateMachine)
+                case rive::DataConverterBase::namePropertyKey:
+                case rive::DataConverterToStringBase::colorFormatPropertyKey:
                     type = rive::CoreStringType::id;
                     break;
                 case 212: // FileAssetContents::bytes
+                case rive::DataBindContextBase::sourcePathIdsPropertyKey:
+                case rive::StateMachineListenerBase::viewModelPathIdsPropertyKey:
                     type = rive::CoreBytesType::id;
+                    break;
+                case rive::DataBindBase::propertyKeyPropertyKey:
+                case rive::DataBindBase::flagsPropertyKey:
+                case rive::DataBindBase::converterIdPropertyKey:
+                case rive::DataConverterRangeMapperBase::interpolationTypePropertyKey:
+                case rive::DataConverterRangeMapperBase::interpolatorIdPropertyKey:
+                case rive::DataConverterRangeMapperBase::flagsPropertyKey:
+                case rive::DataConverterToStringBase::flagsPropertyKey:
+                case rive::DataConverterToStringBase::decimalsPropertyKey:
+                case rive::DataConverterGroupItemBase::converterIdPropertyKey:
+                    type = rive::CoreUintType::id;
+                    break;
+                case rive::DataConverterRangeMapperBase::minInputPropertyKey:
+                case rive::DataConverterRangeMapperBase::maxInputPropertyKey:
+                case rive::DataConverterRangeMapperBase::minOutputPropertyKey:
+                case rive::DataConverterRangeMapperBase::maxOutputPropertyKey:
+                case rive::ListenerNumberChangeBase::valuePropertyKey:
+                    type = rive::CoreDoubleType::id;
                     break;
                 case rive::PolygonBase::cornerRadiusPropertyKey:
                 case rive::StarBase::innerRadiusPropertyKey:
@@ -522,8 +559,16 @@ CoreDocument CoreBuilder::build(PropertyTypeMap& typeMap)
             typeMap[prop.key] = type;
         }
 
-        doc.objects.push_back({std::move(object.core), object.id, object.parentId,
-                               std::move(object.properties)});
+        CoreObject newObject;
+        newObject.core = std::move(object.core);
+        newObject.typeKey = object.typeKey;
+        newObject.isComponent = object.isComponent;
+        newObject.isArtboard = object.isArtboard;
+        newObject.isDrawable = object.isDrawable;
+        newObject.id = object.id;
+        newObject.parentId = object.parentId;
+        newObject.properties = std::move(object.properties);
+        doc.objects.push_back(std::move(newObject));
     }
 
     m_objects.clear();

@@ -220,7 +220,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     bool needsIdKey = false;
     for (const auto& object : document.objects)
     {
-        if (object.core->is<rive::Component>())
+        if (object.isComponent)
         {
             needsIdKey = true;
             if (object.parentId != 0)
@@ -316,16 +316,16 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     size_t objIndex = 0;
     for (const auto& object : document.objects)
     {
-        writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
+        writer.writeVarUint(static_cast<uint32_t>(object.typeKey));
 
-        if (object.core->is<rive::Artboard>())
+        if (object.isArtboard)
         {
             localComponentIndex.clear();
             localComponentIndex.emplace(object.id, 0);
             nextLocalIndex = 1;
         }
 
-        if (object.core->is<rive::Component>())
+        if (object.isComponent)
         {
             uint32_t localId = 0;
             auto selfIt = localComponentIndex.find(object.id);
@@ -372,7 +372,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
             if (headerSet.find(property.key) == headerSet.end())
             {
                 std::cerr << "HEADER_MISS key=" << property.key
-                          << " typeKey=" << object.core->coreType() << std::endl;
+                          << " typeKey=" << object.typeKey << std::endl;
                 // Skip writing this property in debug diagnostics
                 continue;
             }
@@ -420,7 +420,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
                 std::cerr << "TYPE_MISMATCH key=" << property.key
                           << " code=" << int(headerCode)
                           << " actual=" << (std::holds_alternative<float>(property.value) ? "Double" : std::holds_alternative<std::string>(property.value) ? "String" : "Uint/Bool")
-                          << " typeKey=" << object.core->coreType() << std::endl;
+                          << " typeKey=" << object.typeKey << std::endl;
                 // Continue to write to keep behavior but log
             }
 
@@ -462,7 +462,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
         }
         
         // PR1: Real font bytes AFTER FontAsset (141) properties complete
-        if (!fontBytesEmitted && object.core->coreType() == 141) // FontAsset
+        if (!fontBytesEmitted && object.typeKey == 141) // FontAsset
         {
             if (!document.fontData.empty())
             {
@@ -518,7 +518,7 @@ std::vector<uint8_t> serialize_minimal_riv(const Document& doc)
     // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
     std::vector<uint32_t> artboardIds;
     for (const auto& object : document.objects) {
-        if (object.core->is<rive::Artboard>()) {
+        if (object.isArtboard) {
             artboardIds.push_back(object.id);
             std::cout << "    - Artboard id: " << object.id << std::endl;
         }
@@ -565,7 +565,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     bool needsIdKey = false;
     for (const auto& object : document.objects)
     {
-        if (object.core->is<rive::Component>())
+        if (object.isComponent)
         {
             needsIdKey = true;
             if (object.parentId != 0)
@@ -661,16 +661,16 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     for (size_t objIndex = 0; objIndex < document.objects.size(); ++objIndex)
     {
         const auto& object = document.objects[objIndex];
-        writer.writeVarUint(static_cast<uint32_t>(object.core->coreType()));
+        writer.writeVarUint(static_cast<uint32_t>(object.typeKey));
 
-        if (object.core->is<rive::Artboard>())
+        if (object.isArtboard)
         {
             localComponentIndex.clear();
             localComponentIndex.emplace(object.id, 0);
             nextLocalIndex = 1;
         }
 
-        if (object.core->is<rive::Component>())
+        if (object.isComponent)
         {
             uint32_t localId = 0;
             auto selfIt = localComponentIndex.find(object.id);
@@ -717,7 +717,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
             if (headerSet.find(property.key) == headerSet.end())
             {
                 std::cerr << "HEADER_MISS key=" << property.key
-                          << " typeKey=" << object.core->coreType() << std::endl;
+                          << " typeKey=" << object.typeKey << std::endl;
                 continue;
             }
             if (property.key == 51 || property.key == 92 || property.key == 272)
@@ -784,7 +784,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
         }
         
         // PR1: Real font bytes AFTER FontAsset (141) properties complete
-        if (!fontBytesEmitted && object.core->coreType() == 141)
+        if (!fontBytesEmitted && object.typeKey == 141)
         {
             if (!document.fontData.empty())
             {
@@ -816,7 +816,7 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
     // Note: 0x0 artboards are already filtered by universal_builder, so all artboards here are valid
     std::vector<uint32_t> artboardIds;
     for (const auto& object : document.objects) {
-        if (object.core->is<rive::Artboard>()) {
+        if (object.isArtboard) {
             artboardIds.push_back(object.id);
             std::cout << "    - Artboard id: " << object.id << std::endl;
         }

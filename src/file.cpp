@@ -101,9 +101,21 @@ size_t File::debugTotalFileCount = 0;
 // Import a single Rive runtime object.
 // Used by the file importer.
 static Core* readRuntimeObject(BinaryReader& reader,
-                               const RuntimeHeader& header)
+                               const RuntimeHeader& header,
+                               bool& hitTerminator)
 {
+    hitTerminator = false;
     auto coreObjectKey = reader.readVarUintAs<int>();
+    if (reader.hasError())
+    {
+        return nullptr;
+    }
+
+    if (coreObjectKey == 0)
+    {
+        hitTerminator = true;
+        return nullptr;
+    }
     auto object = CoreRegistry::makeCoreInstance(coreObjectKey);
     
     // Verbose logging for debugging NULL objects
@@ -322,9 +334,18 @@ ImportResult File::read(BinaryReader& reader, const RuntimeHeader& header)
     Core* lastBindableObject = nullptr;
     while (!reader.reachedEnd())
     {
-        auto object = readRuntimeObject(reader, header);
+        bool hitTerminator = false;
+        auto object = readRuntimeObject(reader, header, hitTerminator);
+        if (hitTerminator)
+        {
+            break;
+        }
         if (object == nullptr)
         {
+            if (reader.hasError())
+            {
+                break;
+            }
             importStack.readNullObject();
             continue;
         }
@@ -586,7 +607,16 @@ ImportResult File::read(BinaryReader& reader, const RuntimeHeader& header)
         }
     }
 
-    return !reader.hasError() && importStack.resolve() == StatusCode::Ok
+    StatusCode resolveResult = importStack.resolve();
+    static bool verbose = std::getenv("RIVE_IMPORT_VERBOSE") != nullptr;
+    if (verbose)
+    {
+        fprintf(stderr,
+                "[VERBOSE] File::read resolveResult=%d, reader.hasError=%d\n",
+                (int)resolveResult,
+                reader.hasError() ? 1 : 0);
+    }
+    return !reader.hasError() && resolveResult == StatusCode::Ok
                ? ImportResult::success
                : ImportResult::malformed;
 }
@@ -1059,9 +1089,19 @@ const std::vector<uint8_t> File::stripAssets(Span<const uint8_t> bytes,
         uint16_t lastAssetType = 0;
         while (!reader.reachedEnd())
         {
-            auto object = readRuntimeObject(reader, header);
+            bool hitTerminator = false;
+            auto object = readRuntimeObject(reader, header, hitTerminator);
+            if (hitTerminator)
+            {
+                to = reader.position();
+                break;
+            }
             if (object == nullptr)
             {
+                if (reader.hasError())
+                {
+                    break;
+                }
                 continue;
             }
             if (object->is<FileAssetBase>())
@@ -1080,9 +1120,14 @@ const std::vector<uint8_t> File::stripAssets(Span<const uint8_t> bytes,
             delete object;
             to = reader.position();
         }
+        const uint8_t* tailStart = reader.position();
         if (from != to)
         {
             strippedData.insert(strippedData.end(), from, to);
+        }
+        if (tailStart < bytes.data() + bytes.size())
+        {
+            strippedData.insert(strippedData.end(), tailStart, bytes.data() + bytes.size());
         }
         *result = ImportResult::success;
     }

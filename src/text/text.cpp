@@ -15,9 +15,9 @@ using namespace rive;
 #include <limits>
 
 Vec2D Text::measureLayout(float width,
-                          LayoutMeasureMode widthMode,
-                          float height,
-                          LayoutMeasureMode heightMode)
+                         LayoutMeasureMode widthMode,
+                         float height,
+                         LayoutMeasureMode heightMode)
 {
     return measure(Vec2D(widthMode == LayoutMeasureMode::undefined
                              ? std::numeric_limits<float>::max()

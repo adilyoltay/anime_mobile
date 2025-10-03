@@ -23,6 +23,20 @@
 - SDK basvurulari (TEK DOGRULUK KAYNAGI): `include/rive/generated/**/*_base.hpp` ve `include/rive/generated/core_registry.hpp`. Tum `typeKey`/`propertyKey`/field tipi/varsayilan degerler bu basliklardan teyit edilmelidir.
 - Belge uyumu: `converter/src/riv_structure.md` ve `docs/ID_MAPPING_HIERARCHY_ANALYSIS.md` belgeleri SDK basliklariyla celisirse, SDK basliklari ESASTIR. Belgeler derhal guncellenmelidir.
 
+## 2.2 Zorunlu Dokuman Guncellemesi
+- Asagidaki degisikliklerin HERHANGISINDE asagidaki dokumanlar GUNCELLENMEK ZORUNDADIR:
+  - `docs/STATE_MACHINE_BPM_BINDING_ANALYSIS.md` (State Machine BPM binding, DataBind/DataConverter/Listener kapsamı)
+  - `docs/RIVE_RUNTIME_JSON_URETIM_KURAL_SETI.md` (JSON uretim kurallari; NL→JSON icin tek referans)
+  - `converter/src/riv_structure.md`
+  - `docs/ID_MAPPING_HIERARCHY_ANALYSIS.md`
+- Tetikleyiciler (zorunlu guncelleme durumlari):
+  - `include/rive/generated/**/*_base.hpp` altinda DataBind/DataBindContext, DataConverter* (RangeMapper/ToString/GroupItem), StateMachine*, Listener* icin `typeKey`/`propertyKey`/field tipi degisikligi
+  - `converter/src/universal_builder.cpp`, `converter/src/core_builder.cpp`, `converter/src/serializer.cpp`, `converter/src/json_loader.cpp` dosyalarinda ilgili mapping/varsayilan/ID remap degisiklikleri
+  - Yeni binding/Listener tipi eklenmesi veya mevcutlarin davranissal degisimi
+- Proses:
+  - Degisiklik PR'inda “Docs: STATE_MACHINE_BPM_BINDING_ANALYSIS.md updated” kutucugunu isaretleyin ve degisiklikleri PR aciklamasinda ozetleyin.
+  - Basliklarla (SDK) bu dokumanlar celisir ise SDK esastir; dokumanlar derhal guncellenir.
+
 ## 3. Build ve Test Rutini
 ```bash
 cmake -S . -B build_converter
@@ -128,14 +142,13 @@ Round-trip instability:
   2. objectId remap calisiyor mu?
   3. Shared interpolator dedup'i var mi?
 ```
-
 ## 6. Kontrol Listesi (Yeni Ozellik Eklerken)
 - [ ] Yeni property anahtarini `PropertyTypeMap` ve ToC'ye eklediniz mi?
 - [ ] Field-type bitmap icin dogru 2-bit kodu kullandiniz mi?
 - [ ] `parentId` artboard icindeki indexe isaret ediyor mu?
 - [ ] Analyzer'da `toc` ve `streamProps` listeleri birebir mi?
-- [ ] `import_test` ve Rive Play importu sorunsuz mu?
-- [ ] `converter/src/riv_structure.md` ve `docs/ID_MAPPING_HIERARCHY_ANALYSIS.md` belgelerini guncel tuttunuz mu?
+- [ ] `import_test` ve RivHer degisiklikten sonra hem bu dosyayi hem de `converter/src/riv_structure.md`, `docs/ID_MAPPING_HIERARCHY_ANALYSIS.md`, `docs/STATE_MACHINE_BPM_BINDING_ANALYSIS.md` ve `docs/RIVE_RUNTIME_JSON_URETIM_KURAL_SETI.md` belgelerini guncel tutun.
+uz mu?
 
 ## 7. Common Workflows
 
@@ -209,13 +222,3 @@ rive_convert <input.json> <output.riv>
    analyze_riv.py ile ToC kontrol
 
 2. NULL objects:
-   ID mapping kontrol et (extractor + postprocess)
-
-3. Grey screen:
-   Clip/blend/drawable flags kontrol et
-
-4. Round-trip instability:
-   interpolatorId + objectId remap kontrol et
-```
-
-Her degisiklikten sonra hem bu dosyayi hem de `converter/src/riv_structure.md` ile `docs/ID_MAPPING_HIERARCHY_ANALYSIS.md` belgelerini guncel tutun.

@@ -1,0 +1,20 @@
+{
+  "format": "universal",
+  "artboards": [
+    {
+      "name": "BindTest",
+      "width": 200,
+      "height": 200,
+      "objects": [
+        { "typeKey": 1, "localId": 0, "properties": {"name": "BindTest", "width": 200, "height": 200} },
+        { "typeKey": 4, "localId": 2, "parentId": 0, "properties": {"name": "Circle", "x": 100, "y": 100, "width": 120, "height": 120} },
+        { "typeKey": 24, "localId": 3, "parentId": 2, "properties": {"thickness": 8.0, "cap": 1, "join": 1} },
+        { "typeKey": 18, "localId": 4, "parentId": 3, "properties": {"color": "#FF5A8A"} },
+        { "typeKey": 47, "localId": 5, "parentId": 3, "properties": {"start": 0.0, "end": 0.25, "offset": 0.0, "mode": 0} },
+        { "typeKey": 519, "localId": 10, "parentId": 0, "properties": {"name": "Range", "minInput": 40.0, "maxInput": 180.0, "minOutput": 0.0, "maxOutput": 1.0} },
+        { "typeKey": 446, "localId": 11, "parentId": 3, "properties": {"propertyKey": 115, "converterId": 0} },
+        { "typeKey": 447, "localId": 12, "parentId": 11, "properties": {"sourcePathIds": [0, 1]} }
+      ]
+    }
+  ]
+}

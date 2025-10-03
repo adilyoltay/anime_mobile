@@ -17,6 +17,49 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 
+# Text rendering dependencies (HarfBuzz + SheenBidi)
+FetchContent_Declare(
+    harfbuzz
+    GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git
+    GIT_TAG 10.1.0
+)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(HB_BUILD_UTILS OFF CACHE BOOL "" FORCE)
+set(HB_BUILD_SUBSET OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_CAIRO OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_FREETYPE OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_GRAPHITE2 OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_GLIB OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_ICU OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_GOBJECT OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_INTROSPECTION OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_CORETEXT OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_UNISCRIBE OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_GDI OFF CACHE BOOL "" FORCE)
+set(HB_HAVE_DIRECTWRITE OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(harfbuzz)
+
+FetchContent_Declare(
+    sheenbidi
+    GIT_REPOSITORY https://github.com/Tehreer/SheenBidi.git
+    GIT_TAG v2.6
+)
+FetchContent_MakeAvailable(sheenbidi)
+
+add_library(rive_sheenbidi STATIC ${sheenbidi_SOURCE_DIR}/Source/SheenBidi.c)
+target_include_directories(rive_sheenbidi PUBLIC ${sheenbidi_SOURCE_DIR}/Headers)
+target_compile_definitions(rive_sheenbidi PRIVATE SB_CONFIG_UNITY)
+set_target_properties(rive_sheenbidi PROPERTIES C_STANDARD 99)
+
+if(TARGET harfbuzz)
+    set(RIVE_HARFBUZZ_TARGET harfbuzz)
+elseif(TARGET harfbuzz::harfbuzz)
+    set(RIVE_HARFBUZZ_TARGET harfbuzz::harfbuzz)
+else()
+    message(FATAL_ERROR "HarfBuzz target not found after FetchContent")
+endif()
+
 # Rive runtime paths
 set(RIVE_RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(RIVE_INCLUDE_DIR ${RIVE_RUNTIME_DIR}/include)
@@ -48,6 +91,13 @@ target_include_directories(rive_runtime PUBLIC ${RIVE_INCLUDE_DIR})
 target_compile_definitions(rive_runtime PRIVATE
     _RIVE_INTERNAL_
     WITH_RIVE_TOOLS
+    WITH_RIVE_TEXT
+)
+
+target_link_libraries(rive_runtime
+    PRIVATE
+        ${RIVE_HARFBUZZ_TARGET}
+        rive_sheenbidi
 )
 
 # Platform-specific settings

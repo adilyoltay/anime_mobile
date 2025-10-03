@@ -23,6 +23,10 @@ struct Property
 struct CoreObject
 {
     std::unique_ptr<rive::Core> core;
+    uint16_t typeKey = 0;
+    bool isComponent = false;
+    bool isArtboard = false;
+    bool isDrawable = false;
     uint32_t id = 0;
     uint32_t parentId = 0;
     std::vector<Property> properties;
@@ -31,7 +35,6 @@ struct CoreObject
 struct CoreDocument
 {
     std::vector<CoreObject> objects;
-    rive::Artboard* artboard = nullptr;
     std::vector<uint8_t> fontData; // Embedded font binary (TTF/OTF)
 };
 
@@ -60,4 +63,3 @@ private:
 CoreDocument build_core_document(const Document& document,
                                 PropertyTypeMap& typeMap);
 }
-

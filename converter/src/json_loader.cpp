@@ -505,6 +505,8 @@ Document parse_json(const std::string& json_content)
                                 std::string color = stop.value("color", std::string("#FFFFFF"));
                                 gs.color = parse_color_string(color, 0xFFFFFFFF);
                                 data.fill.gradient.stops.push_back(gs);
+                            }
+                        }
                     }
                     else if (shape.contains("fill"))
                     {
@@ -756,20 +758,20 @@ Document parse_json(const std::string& json_content)
                 data.fill.enabled = true;
                 data.fill.gradient.type = grad.value("type", std::string("radial"));
                 
-                if (grad.contains("stops"))
-                {
-                    for (const auto& stop : grad["stops"])
-                    {
-                        GradientStop gs;
-                        gs.position = stop.value("position", 0.0f);
-                        std::string color = stop.value("color", std::string("#FFFFFF"));
-                        gs.color = parse_color_string(color, 0xFFFFFFFF);
-                        data.fill.gradient.stops.push_back(gs);
+                        if (grad.contains("stops"))
+                        {
+                            for (const auto& stop : grad["stops"])
+                            {
+                                GradientStop gs;
+                                gs.position = stop.value("position", 0.0f);
+                                std::string color = stop.value("color", std::string("#FFFFFF"));
+                                gs.color = parse_color_string(color, 0xFFFFFFFF);
+                                data.fill.gradient.stops.push_back(gs);
+                            }
+                        }
                     }
-                }
-            }
-            else if (shape.contains("fill"))
-            {
+                    else if (shape.contains("fill"))
+                    {
                 const auto& fill = shape["fill"];
                 std::string color = fill.value("color", std::string());
                 if (!color.empty())

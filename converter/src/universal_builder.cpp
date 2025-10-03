@@ -27,6 +27,7 @@
 #include "rive/shapes/paint/feather.hpp"
 #include "rive/shapes/paint/dash.hpp"
 #include "rive/shapes/paint/dash_path.hpp"
+#include "rive/shapes/paint/trim_path.hpp"
 #include "rive/shapes/clipping_shape.hpp"
 #include "rive/animation/linear_animation.hpp"
 #include "rive/animation/keyed_object.hpp"
@@ -38,6 +39,17 @@
 #include "rive/animation/keyframe_string.hpp"
 #include "rive/animation/keyframe_uint.hpp"
 #include "rive/animation/keyframe_callback.hpp"
+#include "rive/data_bind/data_bind.hpp"
+#include "rive/data_bind/data_bind_context.hpp"
+#include "rive/data_bind/converters/data_converter_range_mapper.hpp"
+#include "rive/data_bind/converters/data_converter_to_string.hpp"
+#include "rive/data_bind/converters/data_converter_group_item.hpp"
+#include "rive/generated/data_bind/data_bind_base.hpp"
+#include "rive/generated/data_bind/data_bind_context_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_range_mapper_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_to_string_base.hpp"
+#include "rive/generated/data_bind/converters/data_converter_group_item_base.hpp"
 #include "rive/animation/state_machine.hpp"
 #include "rive/animation/state_machine_layer.hpp"
 #include "rive/animation/animation_state.hpp"
@@ -249,6 +261,11 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 135: return new rive::TextValueRun();
         case 137: return new rive::TextStylePaint();
         case 141: return new rive::FontAsset();
+        case rive::DataBindBase::typeKey: return new rive::DataBind();
+        case rive::DataBindContextBase::typeKey: return new rive::DataBindContext();
+        case rive::DataConverterToStringBase::typeKey: return new rive::DataConverterToString();
+        case rive::DataConverterRangeMapperBase::typeKey: return new rive::DataConverterRangeMapper();
+        case rive::DataConverterGroupItemBase::typeKey: return new rive::DataConverterGroupItem();
         // case 420: return new rive::LayoutComponentStyle(); // Requires WITH_RIVE_LAYOUT - skipped for now
         case 533: return new rive::Feather();
         case 507: return new rive::Dash();      // Dash (DashBase::typeKey)
@@ -275,12 +292,17 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     
     // Name (Component) - PR2: Use correct property key based on typeKey
     else if (key == "name") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 31) { // LinearAnimation
             builder.set(obj, 55, value.get<std::string>()); // AnimationBase::namePropertyKey = 55
         } else if (typeKey == 53 || typeKey == 57 || typeKey == 61 || typeKey == 62 || 
                    typeKey == 63 || typeKey == 64 || typeKey == 65) { // SM + Layer + States + Transition
             builder.set(obj, 138, value.get<std::string>()); // StateMachineComponentBase::namePropertyKey = 138
+        } else if (typeKey == rive::DataConverterBase::typeKey ||
+                   typeKey == rive::DataConverterRangeMapperBase::typeKey ||
+                   typeKey == rive::DataConverterToStringBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterBase::namePropertyKey, value.get<std::string>());
         } else { // Component (Artboard, Shape, etc.)
             builder.set(obj, 4, value.get<std::string>()); // ComponentBase::namePropertyKey = 4
         }
@@ -301,7 +323,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "outDistance") builder.set(obj, 87, value.get<float>());
     // CubicMirrored
     else if (key == "distance") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 35) { // CubicMirroredVertex
             builder.set(obj, 80, value.get<float>());
         } else if (typeKey == 165) { // FollowPathConstraint
@@ -311,11 +333,12 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         }
     }
     else if (key == "orient") {
-        if (obj.core->coreType() == 165) { // FollowPathConstraint
+        if (obj.typeKey == 165) { // FollowPathConstraint
             if (value.is_boolean()) {
                 builder.set(obj, 364, value.get<bool>());
             } else if (value.is_number()) {
                 builder.set(obj, 364, value.get<double>() != 0.0);
+            }
         }
     }
     else if (key == "assetId") {
@@ -325,9 +348,8 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         std::vector<uint8_t> decoded = decode_base64(value.get<std::string>());
         builder.set(obj, 212, decoded);
     }
-}
     else if (key == "offset") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 47) { // TrimPath
             if (value.is_number()) {
                 builder.set(obj, 116, static_cast<float>(value.get<double>()));
@@ -345,7 +367,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         }
     }
     else if (key == "offsetIsPercentage") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 506) { // DashPath (DashPathBase::offsetIsPercentagePropertyKey)
             builder.set(obj, 691, value.get<bool>());
         }
@@ -415,7 +437,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     
     // Bone / Dash
     else if (key == "length") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 507) { // Dash (DashBase::lengthPropertyKey)
             builder.set(obj, 692, value.get<float>());
         } else { // Bone (default)
@@ -423,7 +445,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
         }
     }
     else if (key == "lengthIsPercentage") {
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 507) { // Dash (DashBase::lengthIsPercentagePropertyKey)
             builder.set(obj, 693, value.get<bool>());
         }
@@ -450,11 +472,131 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
                       << " (dangling reference!)" << std::endl;
         }
     }
-    else if (key == "propertyKey") builder.set(obj, 53, value.get<uint32_t>()); // KeyedProperty (not an ID)
+    else if (key == "propertyKey") {
+        uint16_t typeKey = obj.typeKey;
+        if (typeKey == 26) // KeyedProperty
+        {
+            builder.set(obj, 53, value.get<uint32_t>());
+        }
+        else if (typeKey == rive::DataBindBase::typeKey)
+        {
+            builder.set(obj, rive::DataBindBase::propertyKeyPropertyKey, value.get<uint32_t>());
+        }
+    }
+    else if (key == "flags")
+    {
+        uint16_t typeKey = obj.typeKey;
+        if (typeKey == rive::DataBindBase::typeKey)
+        {
+            builder.set(obj, rive::DataBindBase::flagsPropertyKey, value.get<uint32_t>());
+        }
+        else if (typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::flagsPropertyKey, value.get<uint32_t>());
+        }
+        else if (typeKey == rive::DataConverterToStringBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterToStringBase::flagsPropertyKey, value.get<uint32_t>());
+        }
+    }
+    else if (key == "converterId")
+    {
+        uint16_t typeKey = obj.typeKey;
+        if (typeKey == rive::DataBindBase::typeKey)
+        {
+            builder.set(obj, rive::DataBindBase::converterIdPropertyKey,
+                        value.get<uint32_t>());
+        }
+        else if (typeKey == rive::DataConverterGroupItemBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterGroupItemBase::converterIdPropertyKey,
+                        value.get<uint32_t>());
+        }
+    }
+    else if (key == "sourcePathIds")
+    {
+        if (value.is_array())
+        {
+            std::vector<uint8_t> bytes;
+            bytes.reserve(value.size() * 2);
+            for (const auto& entry : value)
+            {
+                uint16_t u16 = static_cast<uint16_t>(entry.get<int>() & 0xFFFF);
+                bytes.push_back(static_cast<uint8_t>(u16 & 0xFF));
+                bytes.push_back(static_cast<uint8_t>((u16 >> 8) & 0xFF));
+            }
+            builder.set(obj, rive::DataBindContextBase::sourcePathIdsPropertyKey, bytes);
+        }
+    }
+    else if (key == "interpolationType")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::interpolationTypePropertyKey,
+                        value.get<uint32_t>());
+        }
+    }
+    else if (key == "interpolatorId")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            int32_t signedId = value.get<int32_t>();
+            builder.set(obj, rive::DataConverterRangeMapperBase::interpolatorIdPropertyKey,
+                        static_cast<uint32_t>(signedId));
+        }
+    }
+    else if (key == "minInput")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::minInputPropertyKey,
+                        static_cast<float>(value.get<double>()));
+        }
+    }
+    else if (key == "maxInput")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::maxInputPropertyKey,
+                        static_cast<float>(value.get<double>()));
+        }
+    }
+    else if (key == "minOutput")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::minOutputPropertyKey,
+                        static_cast<float>(value.get<double>()));
+        }
+    }
+    else if (key == "maxOutput")
+    {
+        if (obj.typeKey == rive::DataConverterRangeMapperBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterRangeMapperBase::maxOutputPropertyKey,
+                        static_cast<float>(value.get<double>()));
+        }
+    }
+    else if (key == "decimals")
+    {
+        if (obj.typeKey == rive::DataConverterToStringBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterToStringBase::decimalsPropertyKey,
+                        value.get<uint32_t>());
+        }
+    }
+    else if (key == "colorFormat")
+    {
+        if (obj.typeKey == rive::DataConverterToStringBase::typeKey)
+        {
+            builder.set(obj, rive::DataConverterToStringBase::colorFormatPropertyKey,
+                        value.get<std::string>());
+        }
+    }
     else if (key == "frame") builder.set(obj, 67, value.get<uint32_t>()); // KeyFrame
     else if (key == "value") {
         // KeyFrame value - property key depends on KeyFrame subclass type
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         
         if (typeKey == 30) { // KeyFrameDouble
             builder.set(obj, 70, value.get<float>());
@@ -485,7 +627,7 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "fps") builder.set(obj, 56, value.get<uint32_t>());
     else if (key == "duration") {
         // Could be LinearAnimation (57) or StateTransition (158)
-        uint16_t typeKey = obj.core->coreType();
+        uint16_t typeKey = obj.typeKey;
         if (typeKey == 31) { // LinearAnimation
             builder.set(obj, 57, value.get<uint32_t>());
         } else if (typeKey == 65) { // StateTransition
@@ -808,7 +950,6 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<PendingObject> pendingObjects; // Stored in creation order
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
         std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
-        std::unordered_map<uint32_t, uint32_t> parentToSyntheticShape; // PR-ORPHAN-FIX: parent localId -> synthetic Shape localId
         // Deferred targetId remapping (PASS3)
         struct DeferredTargetId {
             CoreObject* obj;
@@ -1136,64 +1277,46 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
             std::unordered_set<std::string> consumedKeys;
             if (needsShapeContainer) {
-                uint32_t shapeLocalId;
-                bool reusingShape = false;
-                
-                // P0 FIX: Check if parent already has a synthetic Shape (reuse for geometry + paints)
-                auto existingShape = parentToSyntheticShape.find(parentLocalId);
-                if (existingShape != parentToSyntheticShape.end()) {
-                    // Reuse existing Shape to keep geometry and paints together
-                    shapeLocalId = existingShape->second;
-                    reusingShape = true;
-                    std::cout << "  [auto] Reusing synthetic Shape " << shapeLocalId 
-                              << " for " << (isTopLevelPaint(typeKey) ? "paint" : "path")
-                              << " typeKey=" << typeKey << std::endl;
-                } else {
-                    // Create new synthetic Shape
-                    shapeLocalId = nextSyntheticLocalId++;
-                    auto& shapeObj = builder.addCore(new rive::Shape());
-                    
-                    // CRITICAL: Set drawable properties so Rive Play renders the shape!
-                    builder.set(shapeObj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
-                    builder.set(shapeObj, 129, static_cast<uint32_t>(4)); // drawableFlags = visible (4)
-                    
-                    pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
-                    localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
-                    localIdToType[shapeLocalId] = 3;
-                    
-                    // PR-ORPHAN-FIX: Track that this parent got a synthetic Shape
-                    parentToSyntheticShape[parentLocalId] = shapeLocalId;
-                    
-                    // Set properties on new Shape (reused Shapes already have their properties)
-                    for (const auto& [key, value] : properties) {
-                        if (key == "x") {
-                            builder.set(shapeObj, 13, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "y") {
-                            builder.set(shapeObj, 14, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "rotation") {
-                            builder.set(shapeObj, 15, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "scaleX") {
-                            builder.set(shapeObj, 16, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "scaleY") {
-                            builder.set(shapeObj, 17, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "opacity") {
-                            builder.set(shapeObj, 18, value.get<float>());
-                            consumedKeys.insert(key);
-                        }
-                        else if (key == "name") {
-                            builder.set(shapeObj, 4, value.get<std::string>());
-                            consumedKeys.insert(key);
-                        }
+                uint32_t shapeLocalId = nextSyntheticLocalId++;
+                auto& shapeObj = builder.addCore(new rive::Shape());
+
+                // CRITICAL: Set drawable properties so Rive Play renders the shape!
+                builder.set(shapeObj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
+                builder.set(shapeObj, 129, static_cast<uint32_t>(4)); // drawableFlags = visible (4)
+
+                pendingObjects.push_back({&shapeObj, 3, shapeLocalId, parentLocalId});
+                localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
+                localIdToType[shapeLocalId] = 3;
+
+                // Set properties on new Shape to mirror the original path transform/name.
+                for (const auto& [key, value] : properties) {
+                    if (key == "x") {
+                        builder.set(shapeObj, 13, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "y") {
+                        builder.set(shapeObj, 14, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "rotation") {
+                        builder.set(shapeObj, 15, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "scaleX") {
+                        builder.set(shapeObj, 16, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "scaleY") {
+                        builder.set(shapeObj, 17, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "opacity") {
+                        builder.set(shapeObj, 18, value.get<float>());
+                        consumedKeys.insert(key);
+                    }
+                    else if (key == "name") {
+                        builder.set(shapeObj, 4, value.get<std::string>());
+                        consumedKeys.insert(key);
                     }
                 }
 
@@ -1253,7 +1376,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             auto& obj = builder.addCore(coreObj);
 
             // Ensure drawable objects are visible/renderable by default
-            if (coreObj->is<rive::Drawable>()) {
+            if (obj.isDrawable) {
                 builder.set(obj, 23, static_cast<uint32_t>(3));  // blendModeValue = SrcOver
                 builder.set(obj, 129, static_cast<uint32_t>(4)); // drawableFlags = Visible
             }
@@ -1340,14 +1463,20 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     if (key == "start") hasStart = true;
                     else if (key == "end") hasEnd = true;
                     else if (key == "offset") hasOffset = true;
-                    else if (key == "modeValue") hasModeValue = true;
+                    else if (key == "modeValue" || key == "mode") hasModeValue = true;
                 }
                 
                 if (!hasStart || !hasEnd || !hasOffset || !hasModeValue) {
                     if (!hasStart) builder.set(obj, 114, 0.0f);  // start
                     if (!hasEnd) builder.set(obj, 115, 0.0f);    // end
                     if (!hasOffset) builder.set(obj, 116, 0.0f); // offset
-                    if (!hasModeValue) builder.set(obj, 117, static_cast<uint32_t>(0)); // modeValue
+                    if (!hasModeValue)
+                    {
+                        builder.set(obj,
+                                     117,
+                                     static_cast<uint32_t>(
+                                         rive::TrimPathMode::sequential));
+                    }
                     
                     std::cout << "  ℹ️  TrimPath localId=" << (localId.has_value() ? *localId : 0)
                               << " → defaults injected (114,115,116,117)" << std::endl;
@@ -1469,6 +1598,25 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         deferredComponentRefs.push_back({&obj, 279, static_cast<uint32_t>(fontLocalId)});
                     }
                 }
+                else if ((key == "mode" || key == "modeValue") &&
+                         typeKey == rive::TrimPath::typeKey)
+                {
+                    uint32_t rawMode = value.get<uint32_t>();
+                    if (key == "mode")
+                    {
+                        rawMode = rawMode == 0
+                                      ? static_cast<uint32_t>(
+                                            rive::TrimPathMode::sequential)
+                                      : static_cast<uint32_t>(
+                                            rive::TrimPathMode::synchronized);
+                    }
+                    if (rawMode == 0)
+                    {
+                        rawMode = static_cast<uint32_t>(
+                            rive::TrimPathMode::sequential);
+                    }
+                    builder.set(obj, 117, rawMode);
+                }
                 // Defer targetId for PASS3 (needs complete object ID mapping)
                 else if (key == "targetId" && value.is_number()) {
                         // Use int64_t to preserve full uint32_t range while detecting -1 sentinel
@@ -1571,6 +1719,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         
         int orphanFixed = 0;
         std::vector<PendingObject> newShapes;
+        std::unordered_map<uint32_t, uint32_t> orphanShapeMap; // original parent localId -> synthetic Shape localId
         
         for (auto& pending : pendingObjects) {
             // Check if this is a TOP-LEVEL Paint (Fill/Stroke only) with a valid parent
@@ -1588,8 +1737,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     uint32_t shapeLocalId;
                     
                     // PR-ORPHAN-FIX: Check if this parent already got a synthetic Shape in PASS 1
-                    auto existingShape = parentToSyntheticShape.find(originalParent);
-                    if (existingShape != parentToSyntheticShape.end()) {
+                    auto existingShape = orphanShapeMap.find(originalParent);
+                    if (existingShape != orphanShapeMap.end()) {
                         // Reuse existing synthetic Shape (e.g., created for parametric path)
                         shapeLocalId = existingShape->second;
                         pending.parentLocalId = shapeLocalId;
@@ -1610,7 +1759,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         
                         localIdToBuilderObjectId[shapeLocalId] = shapeObj.id;
                         localIdToType[shapeLocalId] = 3;
-                        parentToSyntheticShape[originalParent] = shapeLocalId;
+                        orphanShapeMap[originalParent] = shapeLocalId;
                         
                         newShapes.push_back({&shapeObj, 3, shapeLocalId, originalParent});
                         

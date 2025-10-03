@@ -37,7 +37,7 @@ Amaç: Yeni tip eklerken veya bir regresyon araştırırken hangi kuralların ge
 Serializer, `CoreDocument` listesini aynı sırayla yazar. Kritik adımlar:
 
 1. **Backboard (typeKey 23)**
-   - `mainArtboardId (44)` → 0 (tek artboard varsayıyor).
+   - Şu anki SDK başlıklarında Backboard için serileşen bir property tanımı yok; yalnızca nesnenin varlığı akışta yer alır.
 
 2. **Asset placeholder veya font gövdesi**
    - Eğer JSON/font verisi sağlamıyorsa Backboard’dan hemen sonra:
@@ -66,12 +66,12 @@ Serializer, `CoreDocument` listesini aynı sırayla yazar. Kritik adımlar:
 
 7. **Paint & dekoratörler**
    - Fill (20): `isVisible (41)`; TrimPath (47), DashPath (506), Dash (507), Feather (533) vb. Fill/Stroke altında kalır.
-   - Stroke (24): `thickness (140)`, `cap (48)`, `join (49)`.
+   - Stroke (24): `thickness (47)`, `cap (48)`, `join (49)`.
    - SolidColor (18): `colorValue (37)` hex string -> uint.
    - GradientStop (19): `position (39)`, `colorValue (38)`.
    - Dash (507): `length (692)`, `lengthIsPercentage (693)`.
    - DashPath (506): `offset (690)`, `offsetIsPercentage (691)`.
-   - Feather (49/533): `strength (749)=12.0 default`, `offsetX (750)`, `offsetY (751)`, `inner (752)`.
+   - Feather (533): `strength (749)=12.0 default`, `offsetX (750)`, `offsetY (751)`, `inner (752)`.
    - PASS1.5 “orphan” düzeltmesi sadece Fill/Stroke için çalışır; gerçek path geometrisi zaten sentetik Shape’in altında tutulur (`isTopLevelPaint`).
 
 8. **Draw order grafiği**
@@ -122,7 +122,7 @@ Aşağıdaki tablo hem builder’ın `PropertyTypeMap`’ini hem de serializer�
 | 37 | `SolidColorBase::colorValue`
 | 38/39 | `GradientStop::colorValue` / `position`
 | 41 | `ShapePaintBase::isVisible`
-| 44 | `Backboard::mainArtboardId`
+| 47 | `Stroke.thickness`
 | 48/49 | `StrokeBase::cap` / `join`
 | 56/57/59 | `LinearAnimation` fps / duration / loopValue
 | 63-66 | `CubicInterpolator` kontrol noktaları
@@ -140,8 +140,8 @@ Aşağıdaki tablo hem builder’ın `PropertyTypeMap`’ini hem de serializer�
 | 128 | `PointsPath.pathFlags`
 | 129 | `DrawableBase::drawableFlags`
 | 138 | `StateMachineComponentBase::name`
-| 140 | `Stroke.thickness`
-| 141/142 | `StateMachineBool.value` / `StateMachineNumber.value`
+| 140 | `StateMachineNumber.value`
+| 141 | `StateMachineBool.value`
 | 149 | `AnimationState.animationId`
 | 151/152/158 | Transition `stateToId`, `flags`, `duration`
 | 164 | `Rectangle.linkCornerRadius`

@@ -170,6 +170,7 @@ bool Artboard::validateObjects()
 StatusCode Artboard::initialize()
 {
     StatusCode code;
+    static bool verbose = std::getenv("RIVE_IMPORT_VERBOSE") != nullptr;
 
     // these will be re-built in update() -- are they needed here?
     m_layout = Layout(0.0f, 0.0f, width(), height());
@@ -189,6 +190,13 @@ StatusCode Artboard::initialize()
         }
         if (!canContinue(code = object->onAddedDirty(this)))
         {
+            if (verbose)
+            {
+                fprintf(stderr,
+                        "[VERBOSE] onAddedDirty failed for typeKey=%u status=%d\n",
+                        object->coreType(),
+                        (int)code);
+            }
             return code;
         }
     }
@@ -205,6 +213,13 @@ StatusCode Artboard::initialize()
         {
             if (!canContinue(code = object->onAddedDirty(this)))
             {
+                if (verbose)
+                {
+                    fprintf(stderr,
+                            "[VERBOSE] Animation onAddedDirty failed for typeKey=%u status=%d\n",
+                            object->coreType(),
+                            (int)code);
+                }
                 return code;
             }
         }
@@ -213,6 +228,13 @@ StatusCode Artboard::initialize()
         {
             if (!canContinue(code = object->onAddedDirty(this)))
             {
+                if (verbose)
+                {
+                    fprintf(stderr,
+                            "[VERBOSE] StateMachine onAddedDirty failed for typeKey=%u status=%d\n",
+                            object->coreType(),
+                            (int)code);
+                }
                 return code;
             }
         }
@@ -241,6 +263,13 @@ StatusCode Artboard::initialize()
         }
         if (!canContinue(code = object->onAddedClean(this)))
         {
+            if (verbose)
+            {
+                fprintf(stderr,
+                        "[VERBOSE] onAddedClean failed for typeKey=%u status=%d\n",
+                        object->coreType(),
+                        (int)code);
+            }
             return code;
         }
         if (object->is<Component>())

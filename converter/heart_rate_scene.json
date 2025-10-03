@@ -1,0 +1,698 @@
+{
+  "format": "universal",
+  "version": "1.0",
+  "comment": "Heart rate dashboard with animated pulse and BPM binding",
+  "artboards": [
+    {
+      "name": "Heart Monitor",
+      "width": 360,
+      "height": 780,
+      "objects": [
+        {
+          "typeKey": 1,
+          "localId": 0,
+          "properties": {
+            "name": "Heart Monitor",
+            "width": 360,
+            "height": 780
+          }
+        },
+        {
+          "typeKey": 141,
+          "localId": 2,
+          "parentId": 0,
+          "properties": {
+            "name": "InterFont",
+            "assetId": 1
+          }
+        },
+        {
+          "typeKey": 106,
+          "localId": 3,
+          "parentId": 2,
+          "properties": {
+            "bytes": "AAEAAAAQAQAABAAAR0RFRmbWYNcAAAJYAAAD+kdQT1NdkPr/AAGvFAABcWJHU1VC1JiLbQAAa6wAAF+UT1MvMhdpZWgAAAH4AAAAYFNUQVRWq0H3AAABmAAAAF5jbWFwTY2d8QAAy0AAAGSKZ2FzcAAAABAAAAEUAAAACGdseWbWddjAAAMgeAACGh5oZWFkMrpasgAAAWAAAAA2aGhlYRZ2Hr0AAAE8AAAAJGhtdHgtwKQAAAAQOAAALbhsb2NhCzvs1gAAPfAAAC28bWF4cAuJAPYAAAEcAAAAIG5hbWV3bZ+aAAAGVAAACeJwb3N0z4pe+AABL8wAAH9IcHJlcGgGjIUAAAEMAAAAB7gB/4WwBI0AAAEAAf//AA8AAQAAC24AhAAMAHAABwABAAAAAAAAAAAAAAAAAAcAAQABAAAHwP4SAAAVZvoQ99cUowgAAAAAAAAAAAAAAAAAAAALbgABAAAABABC1NuhVV8PPPUAAwgAAAAAAOJ2h5AAAAAA4naHnfoQ/WoUowjgAAAAAwACAAEAAAAAAAEAAQAIAAMAAAAUAAMAAAAsAAJvcHN6ATgAAHdnaHQBAQABaXRhbAFAAAIAJgAWAAYAAwACAAIBQQAAAAAAAQAAAAMAAQACAAIBkAAAArwAAAABAAAAAAE8ABIAAAAAAAQFDwGQAAUAAAUzBM0AAACaBTMEzQAAAs0AjAKXAAACAAUDAAAAAgAE4AAC/xIAof8AAAAAAAAAAFJTTVMAwAAA//8HwP4SAAAI3QKUAAABnwAAAAAEUAXSAAAAIAAMAAEAAgAOAAAAAAAAA7oAAgCcAAIArQABAK8BFgABARgBigABAYwBmQABAZsB2AABAdoB+QABAfsCSAABAkoChQABAocCowABAqUCpQABAqgCxwABAssCzgABAtAC0QABAtYC5AABAuYC/AABAv4DSAABA0oDWAABA1sDZAABA2cDdQABA3gDeQABA3sDewABA30DlAABA5YD4gABA+QD+gABA/wD/QABBAAEBgABBAgECAABBAoECgABBBAEJAABBCYEKAABBCsELAABBC4EMQABBDQENwABBDkESgABBEwETAABBE4EUgABBFQEbQABBG8EbwABBHEEcgABBHQEdQABBHcEfgABBIAElwABBJkEqwABBK4EsQABBLUExgABBMoE4QABBOUE5wABBOkE7gABBPAE8AABBPIE/gABBQEFCAABBQsFCwABBQ4FDgABBRAFEQABBRMFFQABBRcFHAABBSUFJQABBSoFKgABBSwFLwABBTEFMQABBTYFNgABBTgFOwABBT0FPwABBUcFRwABBUkFSQABBU0FTQABBU8FUAABBVcFVwABBVkFWQABBWYFZwABBWwFbQABBZ0FoAABBaYFpwABBhYGFwABBiEGIQABBiUGQAABBkMGRQABBlEGUgABBlYGXgABBmAGcQABBnQGdgABBoIGgwABBogGiQABBowGjgABBqEGogABBqUGpwABBrsGvgABBsAGwAABBsIGwwABBskGyQABBs0GzQABBtEG1QABBtsG2wABBucG7gADBwAHBAABB1QHVAABB20HhwABB4kHigABB5EHkQABB5MHkwABB6oHxQABB8cHyAABB88HzwABB9EH0QABB+gH9gABB/cH9wADCAMIZAABCGcIyQABCNwI3AABCOAI5QADCOgI6gABCO8I7wABCP4JDAABCQ0JDQADCRcJGAABCRoJGwABCR4JIAABCSIJJQABCScJKAABCTEJMQABCTUJNgABCTsJOwABCT4JPgABCUAJQQABCUMJQwABCUcJRwABCUsJSwABCU0JTQABCU8JTwABCVEJUQABCVkJWQABCW0JcAABCXsJfwABCYEJhQABCYcJhwABCY8JqQABCbIJxgABCcoJzAABCc8J0gABCdcJ1wABCdsJ4wABCecKBgABCk8KcQADCnQKewADCosK3gADCvIK8gADCvgK+AABCwALAAABCxgLGAABCzYLNgADC0ILQwABC0YLRgACC0kLSQABC0oLSgADC1QLVAADC1ULVgABAAEAAgAAADoAAAAMAAEAFQboBukG6gbrBuwI4AjhCosKjAqNCo4KjwqQCpEKqwqyCrgK3gryC0oLVAABAAEG7QAAAAAAPALWAAMAAQQJAAAAkAZ8AAMAAQQJAAEAFAZoAAMAAQQJAAIADgZaAAMAAQQJAAMAOAYiAAMAAQQJAAQAJAX+AAMAAQQJAAUANgXIAAMAAQQJAAYAIgWmAAMAAQQJAAcAVAVSAAMAAQQJAAgACAVKAAMAAQQJAAkAIAUqAAMAAQQJAAsAIAUKAAMAAQQJAAwAIAUKAAMAAQQJAA0BIgPoAAMAAQQJAA4ANgOyAAMAAQQJABAAFAZoAAMAAQQJABEADgZaAAMAAQQJABkACgOoAAMAAQQJAQAAGAOQAAMAAQQJAQEADAOEAAMAAQQJARQAFgNuAAMAAQQJARUAHANSAAMAAQQJARYAKgMoAAMAAQQJARcAQALoAAMAAQQJARgAJALEAAMAAQQJARkAJAKgAAMAAQQJARoAJAJ8AAMAAQQJARsAGgJiAAMAAQQJARwAGgJIAAMAAQQJAR0AEgI2AAMAAQQJAR4AEAImAAMAAQQJAR8AEgIUAAMAAQQJASAALAHoAAMAAQQJASEAGAHQAAMAAQQJASIAIgGuAAMAAQQJASMALgGAAAMAAQQJASQAHAFkAAMAAQQJASUAJgE+AAMAAQQJASYAHAEiAAMAAQQJAScAEgEQAAMAAQQJASgAEgD+AAMAAQQJASkAMgDMAAMAAQQJAS8ACADEAAMAAQQJATAAFACwAAMAAQQJATEACgCmAAMAAQQJATIADgZaAAMAAQQJATMADACaAAMAAQQJATQAEACKAAMAAQQJATUACACCAAMAAQQJATYAEgBwAAMAAQQJATcACgBmAAMAAQQJATgAGABOAAMAAQQJATkACABGAAMAAQQJAToACAA+AAMAAQQJATsACAA2AAMAAQQJATwACAAuAAMAAQQJAT0ACAAmAAMAAQQJAT4ACAAeAAMAAQQJAT8ACAAWAAMAAQQJAUAADAAKAAMAAQQJAUEACgAAAFIAbwBtAGEAbgBJAHQAYQBsAGkAYwAyADgAcAB0ADIANABwAHQAMgAwAHAAdAAxADgAcAB0ADEANwBwAHQAMQA2AHAAdAAxADQAcAB0AE8AcAB0AGkAYwBhAGwAIABTAGkAegBlAEIAbABhAGMAawBFAHgAdAByAGEAQgBvAGwAZABCAG8AbABkAFMAZQBtAGkAQgBvAGwAZABNAGUAZABpAHUAbQBMAGkAZwBoAHQARQB4AHQAcgBhAEwAaQBnAGgAdABUAGgAaQBuAEEAbAB0AGUAcgBuAGEAdABlACAAYwBhAHAAaQB0AGEAbAAgAHMAaABhAHIAcAAgAFMAQwBvAG0AcABhAGMAdAAgAHQAQwBvAG0AcABhAGMAdAAgAGYAUwBpAG4AZwBsAGUALQBzAHQAbwByAHkAIABhAEMAYQBwAGkAdABhAGwAIABHACAAdwBpAHQAaAAgAHMAcAB1AHIARgBsAGEAdAAtAHQAbwBwACAAdABoAHIAZQBlAFUAcABwAGUAcgAtAGMAYQBzAGUAIABpACAAdwBpAHQAaAAgAHMAZQByAGkAZgBBAGwAdABlAHIAbgBhAHQAZQAgAHMAaABhAHIAcAAgAHMAUwBpAG0AcABsAGkAZgBpAGUAZAAgAHUATABvAHcAZQByAC0AYwBhAHMAZQAgAEwAIAB3AGkAdABoACAAdABhAGkAbABPAHAAZQBuACAAbgBpAG4AZQBPAHAAZQBuACAAcwBpAHgATwBwAGUAbgAgAGYAbwB1AHIAQQBsAHQAZQByAG4AYQB0AGUAIABvAG4AZQBTAHEAdQBhAHIAZQAgAHEAdQBvAHQAZQBzAFMAcQB1AGEAcgBlACAAcAB1AG4AYwB0AHUAYQB0AGkAbwBuAFMAcQB1AGEAcgBlAGQAIABjAGgAYQByAGEAYwB0AGUAcgBzAEMAaQByAGMAbABlAGQAIABjAGgAYQByAGEAYwB0AGUAcgBzAEQAaQBzAGEAbQBiAGkAZwB1AGEAdABpAG8AbgAgACgAbgBvACAAcwBsAGEAcwBoAGUAZAAgAHoAZQByAG8AKQBSAG8AdQBuAGQAIABxAHUAbwB0AGUAcwAgACYAIABjAG8AbQBtAGEAcwBEAGkAcwBhAG0AYgBpAGcAdQBhAHQAaQBvAG4ATwBwAGUAbgAgAGQAaQBnAGkAdABzAFcAZQBpAGcAaAB0AE8AcAB0AGkAYwBhAGw\n" 
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 4,
+          "parentId": 0,
+          "properties": {
+            "name": "Backdrop",
+            "x": 180,
+            "y": 390,
+            "width": 340,
+            "height": 720,
+            "cornerRadius": 36.0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 5,
+          "parentId": 4,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 6,
+          "parentId": 5,
+          "properties": {
+            "color": "#050508"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 7,
+          "parentId": 0,
+          "properties": {
+            "name": "Outer Aura",
+            "x": 180,
+            "y": 310,
+            "width": 260,
+            "height": 260
+          }
+        },
+        {
+          "typeKey": 24,
+          "localId": 8,
+          "parentId": 7,
+          "properties": {
+            "thickness": 22.0,
+            "cap": 1,
+            "join": 1,
+            "opacity": 0.6
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 9,
+          "parentId": 8,
+          "properties": {
+            "color": "#401022"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 10,
+          "parentId": 0,
+          "properties": {
+            "name": "Inner Glow",
+            "x": 180,
+            "y": 310,
+            "width": 220,
+            "height": 220
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 11,
+          "parentId": 10,
+          "properties": {
+            "opacity": 0.85
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 12,
+          "parentId": 11,
+          "properties": {
+            "color": "#A10F3C"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 13,
+          "parentId": 0,
+          "properties": {
+            "name": "Highlight",
+            "x": 180,
+            "y": 310,
+            "width": 190,
+            "height": 190,
+            "opacity": 0.5
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 14,
+          "parentId": 13,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 15,
+          "parentId": 14,
+          "properties": {
+            "color": "#FF6A9C"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 20,
+          "parentId": 0,
+          "properties": {
+            "name": "Heart Left",
+            "x": 155,
+            "y": 320,
+            "width": 90,
+            "height": 90
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 21,
+          "parentId": 20,
+          "properties": {
+            "opacity": 0.95
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 22,
+          "parentId": 21,
+          "properties": {
+            "color": "#FF2E4F"
+          }
+        },
+        {
+          "typeKey": 4,
+          "localId": 23,
+          "parentId": 0,
+          "properties": {
+            "name": "Heart Right",
+            "x": 205,
+            "y": 320,
+            "width": 90,
+            "height": 90
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 24,
+          "parentId": 23,
+          "properties": {
+            "opacity": 0.95
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 25,
+          "parentId": 24,
+          "properties": {
+            "color": "#FF2E4F"
+          }
+        },
+        {
+          "typeKey": 7,
+          "localId": 26,
+          "parentId": 0,
+          "properties": {
+            "name": "Heart Base",
+            "x": 180,
+            "y": 375,
+            "width": 96,
+            "height": 110,
+            "rotation": 45.0,
+            "cornerRadius": 20.0
+          }
+        },
+        {
+          "typeKey": 20,
+          "localId": 27,
+          "parentId": 26,
+          "properties": {}
+        },
+        {
+          "typeKey": 18,
+          "localId": 28,
+          "parentId": 27,
+          "properties": {
+            "color": "#F21D46"
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 40,
+          "parentId": 0,
+          "properties": {
+            "name": "Title",
+            "x": 180,
+            "y": 90,
+            "width": 280,
+            "height": 60,
+            "align": 1,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 41,
+          "parentId": 40,
+          "properties": {
+            "fontSize": 42.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 42,
+          "parentId": 41,
+          "properties": {
+            "color": "#FFFFFF"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 43,
+          "parentId": 40,
+          "properties": {
+            "text": "Heart Rate",
+            "styleId": 41
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 44,
+          "parentId": 0,
+          "properties": {
+            "name": "Subtitle",
+            "x": 180,
+            "y": 132,
+            "width": 220,
+            "height": 40,
+            "align": 1,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 45,
+          "parentId": 44,
+          "properties": {
+            "fontSize": 20.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 46,
+          "parentId": 45,
+          "properties": {
+            "color": "#D9D9DD"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 47,
+          "parentId": 44,
+          "properties": {
+            "text": "Measuring",
+            "styleId": 45
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 48,
+          "parentId": 0,
+          "properties": {
+            "name": "Pulse Label",
+            "x": 180,
+            "y": 470,
+            "width": 200,
+            "height": 40,
+            "align": 1,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 49,
+          "parentId": 48,
+          "properties": {
+            "fontSize": 18.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 50,
+          "parentId": 49,
+          "properties": {
+            "color": "#FFFFFF"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 51,
+          "parentId": 48,
+          "properties": {
+            "text": "PULSE RATE",
+            "styleId": 49
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 52,
+          "parentId": 0,
+          "properties": {
+            "name": "BPM Value",
+            "x": 180,
+            "y": 540,
+            "width": 280,
+            "height": 120,
+            "align": 1,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 53,
+          "parentId": 52,
+          "properties": {
+            "fontSize": 96.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 54,
+          "parentId": 53,
+          "properties": {
+            "color": "#C21E4F"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 55,
+          "parentId": 52,
+          "properties": {
+            "text": "76",
+            "styleId": 53
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 56,
+          "parentId": 0,
+          "properties": {
+            "name": "BPM Suffix",
+            "x": 255,
+            "y": 585,
+            "width": 120,
+            "height": 50,
+            "align": 0,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 57,
+          "parentId": 56,
+          "properties": {
+            "fontSize": 28.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 58,
+          "parentId": 57,
+          "properties": {
+            "color": "#7A2A3C"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 59,
+          "parentId": 56,
+          "properties": {
+            "text": "mbp",
+            "styleId": 57
+          }
+        },
+        {
+          "typeKey": 134,
+          "localId": 60,
+          "parentId": 0,
+          "properties": {
+            "name": "Status",
+            "x": 180,
+            "y": 680,
+            "width": 260,
+            "height": 40,
+            "align": 1,
+            "sizing": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "typeKey": 137,
+          "localId": 61,
+          "parentId": 60,
+          "properties": {
+            "fontSize": 22.0,
+            "fontAssetId": 2,
+            "lineHeight": -1.0
+          }
+        },
+        {
+          "typeKey": 18,
+          "localId": 62,
+          "parentId": 61,
+          "properties": {
+            "color": "#FFFFFF"
+          }
+        },
+        {
+          "typeKey": 135,
+          "localId": 63,
+          "parentId": 60,
+          "properties": {
+            "text": "Your heart is good",
+            "styleId": 61
+          }
+        },
+        {
+          "typeKey": 490,
+          "localId": 80,
+          "parentId": 0,
+          "properties": {
+            "name": "BPM_to_Text",
+            "decimals": 0
+          }
+        },
+        {
+          "typeKey": 447,
+          "localId": 81,
+          "parentId": 80,
+          "properties": {
+            "sourcePathIds": [0, 1]
+          }
+        },
+        {
+          "typeKey": 519,
+          "localId": 82,
+          "parentId": 0,
+          "properties": {
+            "name": "BPM_to_Arc",
+            "minInput": 40.0,
+            "maxInput": 180.0,
+            "minOutput": 0.18,
+            "maxOutput": 1.0,
+            "interpolationType": 1
+          }
+        },
+        {
+          "typeKey": 446,
+          "localId": 83,
+          "parentId": 55,
+          "properties": {
+            "propertyKey": 268,
+            "converterId": 0
+          }
+        },
+        {
+          "typeKey": 447,
+          "localId": 84,
+          "parentId": 83,
+          "properties": {
+            "sourcePathIds": [0, 1]
+          }
+        },
+        {
+          "typeKey": 446,
+          "localId": 85,
+          "parentId": 11,
+          "properties": {
+            "propertyKey": 115,
+            "converterId": 1
+          }
+        },
+        {
+          "typeKey": 447,
+          "localId": 86,
+          "parentId": 85,
+          "properties": {
+            "sourcePathIds": [0, 1]
+          }
+        }
+      ],
+      "animations": [
+        {
+          "name": "HeartBeat",
+          "fps": 60,
+          "duration": 60,
+          "loop": 1,
+          "keyedObjects": [
+            {
+              "objectId": 20,
+              "keyedProperties": [
+                {
+                  "propertyKey": 15,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                },
+                {
+                  "propertyKey": 16,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                }
+              ]
+            },
+            {
+              "objectId": 23,
+              "keyedProperties": [
+                {
+                  "propertyKey": 15,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                },
+                {
+                  "propertyKey": 16,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.18, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                }
+              ]
+            },
+            {
+              "objectId": 26,
+              "keyedProperties": [
+                {
+                  "propertyKey": 15,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.12, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.12, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                },
+                {
+                  "propertyKey": 16,
+                  "keyframes": [
+                    { "frame": 0, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 15, "value": 1.12, "interpolationType": 1 },
+                    { "frame": 30, "value": 1.0, "interpolationType": 1 },
+                    { "frame": 45, "value": 1.12, "interpolationType": 1 },
+                    { "frame": 60, "value": 1.0, "interpolationType": 1 }
+                  ]
+                }
+              ]
+            },
+            {
+              "objectId": 13,
+              "keyedProperties": [
+                {
+                  "propertyKey": 18,
+                  "keyframes": [
+                    { "frame": 0, "value": 0.5, "interpolationType": 1 },
+                    { "frame": 15, "value": 0.9, "interpolationType": 1 },
+                    { "frame": 30, "value": 0.45, "interpolationType": 1 },
+                    { "frame": 45, "value": 0.9, "interpolationType": 1 },
+                    { "frame": 60, "value": 0.5, "interpolationType": 1 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ambient",
+          "fps": 60,
+          "duration": 120,
+          "loop": 1,
+          "keyedObjects": [
+            {
+              "objectId": 7,
+              "keyedProperties": [
+                {
+                  "propertyKey": 18,
+                  "keyframes": [
+                    { "frame": 0, "value": 0.6, "interpolationType": 1 },
+                    { "frame": 60, "value": 0.3, "interpolationType": 1 },
+                    { "frame": 120, "value": 0.6, "interpolationType": 1 }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stateMachines": [
+        {
+          "name": "HeartState",
+          "inputs": [
+            {
+              "name": "BPM",
+              "type": "number",
+              "value": 76.0
+            }
+          ],
+          "layers": [
+            {
+              "name": "Main",
+              "states": [
+                { "type": "entry", "name": "Entry" },
+                { "type": "any", "name": "Any" },
+                { "type": "animation", "name": "Beat", "animationName": "HeartBeat" },
+                { "type": "animation", "name": "Glow", "animationName": "Ambient" }
+              ],
+              "transitions": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
