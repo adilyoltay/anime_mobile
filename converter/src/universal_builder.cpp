@@ -1,6 +1,7 @@
 #include "core_builder.hpp"
 #include <nlohmann/json.hpp>
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -60,6 +61,12 @@
 // Layout system requires WITH_RIVE_LAYOUT (yoga dependency)
 // #include "rive/layout/layout_component_style.hpp"
 #include "rive/generated/backboard_base.hpp"
+#include "rive/text/text.hpp"
+#include "rive/text/text_value_run.hpp"
+#include "rive/text/text_style_paint.hpp"
+#include "rive/assets/font_asset.hpp"
+#include "rive/assets/file_asset_contents.hpp"
+#include "rive/core/field_types/core_bytes_type.hpp"
 
 namespace rive_converter
 {
@@ -148,6 +155,46 @@ static uint32_t parse_color(const std::string& colorStr) {
     return value;
 }
 
+static std::vector<uint8_t> decode_base64(const std::string& input)
+{
+    auto decode_char = [](char c) -> int {
+        if (c >= 'A' && c <= 'Z') return c - 'A';
+        if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+        if (c >= '0' && c <= '9') return c - '0' + 52;
+        if (c == '+') return 62;
+        if (c == '/') return 63;
+        return -1;
+    };
+
+    std::vector<uint8_t> out;
+    int val = 0;
+    int bits = -8;
+    for (unsigned char ch : input)
+    {
+        if (std::isspace(ch))
+        {
+            continue;
+        }
+        if (ch == '=')
+        {
+            break;
+        }
+        int decoded = decode_char(static_cast<char>(ch));
+        if (decoded < 0)
+        {
+            continue;
+        }
+        val = (val << 6) | decoded;
+        bits += 6;
+        if (bits >= 0)
+        {
+            out.push_back(static_cast<uint8_t>((val >> bits) & 0xFF));
+            bits -= 8;
+        }
+    }
+    return out;
+}
+
 // Create Core object based on typeKey
 static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
     switch (typeKey) {
@@ -165,6 +212,7 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 20: return new rive::Fill();
         case 22: return new rive::LinearGradient();
         case 24: return new rive::Stroke();
+        case 106: return new rive::FileAssetContents();
         // Animation keyframe types
         case 25: return new rive::KeyedObject();
         case 26: return new rive::KeyedProperty();
@@ -197,6 +245,10 @@ static rive::Core* createObjectByTypeKey(uint16_t typeKey) {
         case 87: return new rive::TranslationConstraint();
         case 138: return new rive::CubicValueInterpolator(); // Bezier interpolator
         case 165: return new rive::FollowPathConstraint();
+        case 134: return new rive::Text();
+        case 135: return new rive::TextValueRun();
+        case 137: return new rive::TextStylePaint();
+        case 141: return new rive::FontAsset();
         // case 420: return new rive::LayoutComponentStyle(); // Requires WITH_RIVE_LAYOUT - skipped for now
         case 533: return new rive::Feather();
         case 507: return new rive::Dash();      // Dash (DashBase::typeKey)
@@ -264,9 +316,16 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
                 builder.set(obj, 364, value.get<bool>());
             } else if (value.is_number()) {
                 builder.set(obj, 364, value.get<double>() != 0.0);
-            }
         }
     }
+    else if (key == "assetId") {
+        builder.set(obj, 204, value.get<uint32_t>());
+    }
+    else if (key == "bytes") {
+        std::vector<uint8_t> decoded = decode_base64(value.get<std::string>());
+        builder.set(obj, 212, decoded);
+    }
+}
     else if (key == "offset") {
         uint16_t typeKey = obj.core->coreType();
         if (typeKey == 47) { // TrimPath
@@ -322,6 +381,24 @@ static void setProperty(CoreBuilder& builder, CoreObject& obj, const std::string
     else if (key == "thickness") builder.set(obj, 140, value.get<float>());
     else if (key == "cap") builder.set(obj, 48, value.get<uint32_t>());
     else if (key == "join") builder.set(obj, 49, value.get<uint32_t>());
+
+    // Text component properties
+    else if (key == "align") builder.set(obj, 281, value.get<uint32_t>());
+    else if (key == "sizing") builder.set(obj, 284, value.get<uint32_t>());
+    else if (key == "overflow") builder.set(obj, 287, value.get<uint32_t>());
+    else if (key == "paragraphSpacing") builder.set(obj, 371, value.get<float>());
+    else if (key == "origin") builder.set(obj, 377, value.get<uint32_t>());
+    else if (key == "wrap") builder.set(obj, 683, value.get<uint32_t>());
+    else if (key == "verticalAlign") builder.set(obj, 685, value.get<uint32_t>());
+    else if (key == "fitFromBaseline") builder.set(obj, 703, value.get<bool>());
+    else if (key == "originX") builder.set(obj, 366, value.get<float>());
+    else if (key == "originY") builder.set(obj, 367, value.get<float>());
+    else if (key == "text") builder.set(obj, 268, value.get<std::string>());
+
+    // Text style properties
+    else if (key == "fontSize") builder.set(obj, 274, value.get<float>());
+    else if (key == "lineHeight") builder.set(obj, 370, value.get<float>());
+    else if (key == "letterSpacing") builder.set(obj, 390, value.get<float>());
 
     // Drawable
     else if (key == "blendMode" || key == "blendModeValue") builder.set(obj, 23, value.get<uint32_t>());
@@ -538,6 +615,28 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[280] = rive::CoreStringType::id; // KeyFrameString.value
     typeMap[631] = rive::CoreUintType::id;   // KeyFrameUint.value
     typeMap[69]  = rive::CoreUintType::id;   // InterpolatingKeyFrame.interpolatorId
+
+    // Text / Font properties
+    typeMap[203] = rive::CoreStringType::id; // Component name (for FontAsset names)
+    typeMap[204] = rive::CoreUintType::id;   // FontAsset.assetId
+    typeMap[212] = rive::CoreBytesType::id;  // FileAssetContents.bytes
+    typeMap[268] = rive::CoreStringType::id; // TextValueRun.text
+    typeMap[272] = rive::CoreUintType::id;   // TextValueRun.styleId
+    typeMap[274] = rive::CoreDoubleType::id; // TextStyle.fontSize
+    typeMap[279] = rive::CoreUintType::id;   // TextStyle.fontAssetId
+    typeMap[281] = rive::CoreUintType::id;   // Text.alignValue
+    typeMap[284] = rive::CoreUintType::id;   // Text.sizingValue
+    typeMap[285] = rive::CoreDoubleType::id; // Text.width
+    typeMap[286] = rive::CoreDoubleType::id; // Text.height
+    typeMap[287] = rive::CoreUintType::id;   // Text.overflowValue
+    typeMap[366] = rive::CoreDoubleType::id; // Text.originX
+    typeMap[367] = rive::CoreDoubleType::id; // Text.originY
+    typeMap[371] = rive::CoreDoubleType::id; // Text.paragraphSpacing
+    typeMap[377] = rive::CoreUintType::id;   // Text.originValue
+    typeMap[390] = rive::CoreDoubleType::id; // TextStyle.letterSpacing
+    typeMap[683] = rive::CoreUintType::id;   // Text.wrapValue
+    typeMap[685] = rive::CoreUintType::id;   // Text.verticalAlignValue
+    typeMap[703] = rive::CoreBoolType::id;   // Text.fitFromBaseline
     
     // Backboard & Component
     // NOTE: Field 3 (Component ID) does NOT exist in Rive format! It's internal only.
@@ -657,6 +756,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
     CoreBuilder builder;
     PropertyTypeMap typeMap;
     initUniversalTypeMap(typeMap);
+    std::vector<uint8_t> embeddedFontData;
     
     // Add Backboard
     auto& backboard = builder.addCore(new rive::Backboard());
@@ -709,7 +809,6 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::set<uint32_t> skippedLocalIds; // Track stub/skipped object localIds
         std::unordered_map<uint32_t, uint32_t> parentRemap; // old parent localId -> Shape container localId
         std::unordered_map<uint32_t, uint32_t> parentToSyntheticShape; // PR-ORPHAN-FIX: parent localId -> synthetic Shape localId
-        
         // Deferred targetId remapping (PASS3)
         struct DeferredTargetId {
             CoreObject* obj;
@@ -1132,6 +1231,25 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 }
             }
             
+            if (typeKey == rive::FileAssetContents::typeKey)
+            {
+                std::vector<uint8_t> decodedBytes;
+                if (objJson.contains("properties"))
+                {
+                    const auto& props = objJson["properties"];
+                    if (props.contains("bytes") && props["bytes"].is_string())
+                    {
+                        decodedBytes = decode_base64(props["bytes"].get<std::string>());
+                    }
+                }
+                if (!decodedBytes.empty())
+                {
+                    embeddedFontData = std::move(decodedBytes);
+                }
+                delete coreObj;
+                continue;
+            }
+
             auto& obj = builder.addCore(coreObj);
 
             // Ensure drawable objects are visible/renderable by default
@@ -1317,22 +1435,42 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         builder.set(obj, 14, value.get<float>());
                     }
                 }
-                    else if (key == "width") {
+                else if (key == "width") {
                     if (typeKey == 1) {
-                            builder.set(obj, 7, value.get<float>());
+                        builder.set(obj, 7, value.get<float>());
+                    } else if (typeKey == 134) {
+                        builder.set(obj, 285, value.get<float>());
                     } else {
-                            builder.set(obj, 20, value.get<float>());
-                        }
+                        builder.set(obj, 20, value.get<float>());
                     }
-                    else if (key == "height") {
+                }
+                else if (key == "height") {
                     if (typeKey == 1) {
-                            builder.set(obj, 8, value.get<float>());
+                        builder.set(obj, 8, value.get<float>());
+                    } else if (typeKey == 134) {
+                        builder.set(obj, 286, value.get<float>());
                     } else {
-                            builder.set(obj, 21, value.get<float>());
-                        }
+                        builder.set(obj, 21, value.get<float>());
                     }
-                    // Defer targetId for PASS3 (needs complete object ID mapping)
-                    else if (key == "targetId" && value.is_number()) {
+                }
+                else if (key == "styleId" && value.is_number()) {
+                    int64_t styleLocalId = value.get<int64_t>();
+                    if (styleLocalId < 0) {
+                        builder.set(obj, 272, static_cast<uint32_t>(styleLocalId));
+                    } else {
+                        deferredComponentRefs.push_back({&obj, 272, static_cast<uint32_t>(styleLocalId)});
+                    }
+                }
+                else if (key == "fontAssetId" && value.is_number()) {
+                    int64_t fontLocalId = value.get<int64_t>();
+                    if (fontLocalId < 0) {
+                        builder.set(obj, 279, static_cast<uint32_t>(fontLocalId));
+                    } else {
+                        deferredComponentRefs.push_back({&obj, 279, static_cast<uint32_t>(fontLocalId)});
+                    }
+                }
+                // Defer targetId for PASS3 (needs complete object ID mapping)
+                else if (key == "targetId" && value.is_number()) {
                         // Use int64_t to preserve full uint32_t range while detecting -1 sentinel
                         int64_t targetIdWide = value.get<int64_t>();
                         if (targetIdWide == -1) {
@@ -1685,6 +1823,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
     
     // Build final document
     auto doc = builder.build(typeMap);
+    if (!embeddedFontData.empty())
+    {
+        doc.fontData = std::move(embeddedFontData);
+    }
     
     // Copy typeMap to output (for serializer)
     outTypeMap = typeMap;
