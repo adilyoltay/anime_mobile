@@ -64,7 +64,7 @@ def generate_test_riv():
     write_varuint(data, 3)     # id property
     write_varuint(data, 2)     # id = 2
     write_varuint(data, 5)     # parentId property
-    write_varuint(data, 1)     # parentId = 1 (backboard)
+    write_varuint(data, 0)     # parentId = 0 (no parent)
     write_varuint(data, 7)     # width property
     data.extend(struct.pack('<f', 500.0))  # width = 500
     write_varuint(data, 8)     # height property
@@ -76,7 +76,7 @@ def generate_test_riv():
     write_varuint(data, 3)     # id property
     write_varuint(data, 3)     # id = 3
     write_varuint(data, 5)     # parentId property
-    write_varuint(data, 2)     # parentId = 2 (artboard)
+    write_varuint(data, 0)     # parentId = 0 (artboard at index 0)
     write_varuint(data, 0)     # End properties
     
     # Rectangle (typeKey 7)
@@ -84,7 +84,7 @@ def generate_test_riv():
     write_varuint(data, 3)     # id property
     write_varuint(data, 4)     # id = 4
     write_varuint(data, 5)     # parentId property
-    write_varuint(data, 3)     # parentId = 3 (shape)
+    write_varuint(data, 1)     # parentId = 1 (shape component index)
     write_varuint(data, 0)     # End properties
     
     # Fill (typeKey 20)
@@ -92,7 +92,7 @@ def generate_test_riv():
     write_varuint(data, 3)     # id property
     write_varuint(data, 5)     # id = 5
     write_varuint(data, 5)     # parentId property
-    write_varuint(data, 3)     # parentId = 3 (shape)
+    write_varuint(data, 1)     # parentId = 1 (shape component index)
     write_varuint(data, 0)     # End properties
     
     # SolidColor (typeKey 18)
@@ -100,7 +100,7 @@ def generate_test_riv():
     write_varuint(data, 3)     # id property
     write_varuint(data, 6)     # id = 6
     write_varuint(data, 5)     # parentId property
-    write_varuint(data, 5)     # parentId = 5 (fill)
+    write_varuint(data, 3)     # parentId = 3 (fill component index)
     write_varuint(data, 0)     # End properties
     
     write_varuint(data, 0)     # End main chunk

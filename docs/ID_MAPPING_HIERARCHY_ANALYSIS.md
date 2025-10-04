@@ -240,6 +240,10 @@ ImportResult File::read(BinaryReader& reader, const RuntimeHeader& header) {
         auto object = readRuntimeObject(reader, header);
         if (object == nullptr) {
             importStack.readNullObject();  // NULL placeholder
+
+            // NB: src/file.cpp filters artboard catalog chunk typeKeys (8726/8776)
+            // before calling readNullObject(); metadata chunk’ları artboard
+            // m_Objects dizisine dummy slot olarak düşmez.
             continue;
         }
         if (object->import(importStack) == StatusCode::Ok) {
@@ -1267,4 +1271,3 @@ cmp original.riv roundtrip.riv
 - Document property category mappings in `riv_structure.md`
 
 ---
-

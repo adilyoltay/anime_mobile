@@ -251,6 +251,7 @@ Sık hatalar:
 
 ## 10. Bilinen sınırlamalar / TODO
 - Artboard catalog (8726/8776) Play’de warning verdiği için kapalı; resmi encoding araştırılmalı.
+- Runtime importer (src/file.cpp) 8726/8776 chunk’larını `ImportStack::readNullObject()`’a göndermeden atlıyor; böylece metadata chunk’ları artboard `m_Objects` dizisine `nullptr` olarak eklenmiyor.
 - TransitionCondition henüz yok.
 - ViewModel, LayoutComponentStyle (420) gibi karmaşık tipler JSON tarafında “stub” olarak kalıyor.
 - Runtime tarafından üretilmiş (extractor’ın `resolvedObjects` patch’i) bileşenler için hiyerarşi normalde korunuyor; yeni tip eklerken extractor/builder eşleşmesini kontrol edin.

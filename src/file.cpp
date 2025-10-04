@@ -102,7 +102,8 @@ size_t File::debugTotalFileCount = 0;
 // Used by the file importer.
 static Core* readRuntimeObject(BinaryReader& reader,
                                const RuntimeHeader& header,
-                               bool& hitTerminator)
+                               bool& hitTerminator,
+                               uint32_t& outCoreObjectKey)
 {
     hitTerminator = false;
     auto coreObjectKey = reader.readVarUintAs<int>();
@@ -110,6 +111,8 @@ static Core* readRuntimeObject(BinaryReader& reader,
     {
         return nullptr;
     }
+
+    outCoreObjectKey = static_cast<uint32_t>(coreObjectKey);
 
     if (coreObjectKey == 0)
     {
@@ -335,18 +338,21 @@ ImportResult File::read(BinaryReader& reader, const RuntimeHeader& header)
     while (!reader.reachedEnd())
     {
         bool hitTerminator = false;
-        auto object = readRuntimeObject(reader, header, hitTerminator);
-        if (hitTerminator)
-        {
-            break;
-        }
+        uint32_t objectTypeKey = 0;
+        auto object =
+            readRuntimeObject(reader, header, hitTerminator, objectTypeKey);
         if (object == nullptr)
         {
             if (reader.hasError())
             {
                 break;
             }
-            importStack.readNullObject();
+            const bool isCatalogChunk =
+                objectTypeKey == 8726 || objectTypeKey == 8776;
+            if (!hitTerminator && !isCatalogChunk)
+            {
+                importStack.readNullObject();
+            }
             continue;
         }
         if (!object->is<DataBind>())
@@ -1090,7 +1096,9 @@ const std::vector<uint8_t> File::stripAssets(Span<const uint8_t> bytes,
         while (!reader.reachedEnd())
         {
             bool hitTerminator = false;
-            auto object = readRuntimeObject(reader, header, hitTerminator);
+            uint32_t objectTypeKey = 0;
+            auto object =
+                readRuntimeObject(reader, header, hitTerminator, objectTypeKey);
             if (hitTerminator)
             {
                 to = reader.position();
