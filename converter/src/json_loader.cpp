@@ -478,12 +478,22 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
             data.value = static_cast<float>(valueJson.get<double>());
             assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
         }
-        else if (valueJson.is_number_unsigned() || valueJson.is_number_integer())
+        else if (valueJson.is_number_integer())
         {
-            // Preserve both integer and float representations
-            double numericValue = valueJson.get<double>();
+            // Preserve both integer and float representations, accepting negatives
+            int64_t numericValue = valueJson.get<int64_t>();
             data.value = static_cast<float>(numericValue);
-            data.uintValue = static_cast<uint32_t>(valueJson.get<uint64_t>());
+            if (numericValue >= 0)
+            {
+                data.uintValue = static_cast<uint32_t>(numericValue);
+            }
+            assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
+        }
+        else if (valueJson.is_number_unsigned())
+        {
+            uint64_t numericValue = valueJson.get<uint64_t>();
+            data.value = static_cast<float>(numericValue);
+            data.uintValue = static_cast<uint32_t>(numericValue);
             assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
         }
         else if (valueJson.is_string())
