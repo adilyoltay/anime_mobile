@@ -1905,18 +1905,26 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
 
-        auto makePathBytes = [](const std::vector<uint32_t>& ids) {
-                    std::vector<uint8_t> bytes;
-                    bytes.reserve(ids.size() * 2);
-                    for (uint32_t id : ids) {
-                        if (id > 0xFFFFu) {
-                            std::cerr << "  ⚠️  DataBind path id overflow: " << id << std::endl;
-                        }
-                        uint16_t u16 = static_cast<uint16_t>(id & 0xFFFFu);
-                        bytes.push_back(static_cast<uint8_t>(u16 & 0xFF));
-                        bytes.push_back(static_cast<uint8_t>((u16 >> 8) & 0xFF));
-                    }
-                    return bytes;
+        auto writeVarUint = [](std::vector<uint8_t>& out, uint32_t value) {
+            while (true) {
+                uint8_t byte = static_cast<uint8_t>(value & 0x7Fu);
+                value >>= 7;
+                if (value != 0) {
+                    byte |= 0x80u;
+                }
+                out.push_back(byte);
+                if (value == 0) {
+                    break;
+                }
+            }
+        };
+
+        auto makePathBytes = [&](const std::vector<uint32_t>& ids) {
+            std::vector<uint8_t> bytes;
+            for (uint32_t id : ids) {
+                writeVarUint(bytes, id);
+            }
+            return bytes;
         };
 
         if (!dataBindContexts.empty()) {
