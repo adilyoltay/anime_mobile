@@ -1915,6 +1915,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         int hierarchicalKeyedObjectsCreated = 0;
         int hierarchicalKeyedPropertiesCreated = 0;
         int hierarchicalKeyframesCreated = 0;
+        int hierarchicalInterpolatorsCreated = 0;
 
         if (abJson.contains("animations") && abJson["animations"].is_array())
         {
@@ -1972,6 +1973,65 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
                 linearAnimCount++;
                 hierarchicalAnimationsCreated++;
+
+                // Instantiate interpolators defined in hierarchical animation JSON
+                for (const auto& interpolatorJson : animData.interpolators)
+                {
+                    if (!interpolatorJson.contains("typeKey"))
+                    {
+                        continue;
+                    }
+
+                    uint16_t interpolatorTypeKey = interpolatorJson["typeKey"].get<uint16_t>();
+                    rive::Core* interpolatorCore = createObjectByTypeKey(interpolatorTypeKey);
+                    if (interpolatorCore == nullptr)
+                    {
+                        continue;
+                    }
+
+                    auto& interpolatorObj = builder.addCore(interpolatorCore);
+
+                    uint32_t interpolatorLocalId = nextSyntheticLocalId++;
+                    if (interpolatorJson.contains("localId") &&
+                        interpolatorJson["localId"].is_number_unsigned())
+                    {
+                        interpolatorLocalId = interpolatorJson["localId"].get<uint32_t>();
+                        if (interpolatorLocalId >= nextSyntheticLocalId)
+                        {
+                            nextSyntheticLocalId = interpolatorLocalId + 1;
+                        }
+                    }
+
+                    uint32_t interpolatorParentLocalId = animationLocalId;
+                    if (interpolatorJson.contains("parentId") &&
+                        interpolatorJson["parentId"].is_number_unsigned())
+                    {
+                        interpolatorParentLocalId = interpolatorJson["parentId"].get<uint32_t>();
+                    }
+
+                    pendingObjects.push_back({&interpolatorObj,
+                                              interpolatorTypeKey,
+                                              interpolatorLocalId,
+                                              interpolatorParentLocalId});
+                    localIdToBuilderObjectId[interpolatorLocalId] = interpolatorObj.id;
+                    localIdToType[interpolatorLocalId] = interpolatorTypeKey;
+                    hierarchicalInterpolatorsCreated++;
+                    interpolatorCount++;
+
+                    if (interpolatorJson.contains("properties"))
+                    {
+                        for (const auto& [propKey, propValue] : interpolatorJson["properties"].items())
+                        {
+                            setProperty(builder,
+                                        interpolatorObj,
+                                        propKey,
+                                        propValue,
+                                        localIdToBuilderObjectId,
+                                        objectIdRemapSuccess,
+                                        objectIdRemapFail);
+                        }
+                    }
+                }
 
                 for (const auto& keyedObjectData : animData.keyedObjects)
                 {
@@ -2079,6 +2139,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             std::cout << "  → Added " << hierarchicalAnimationsCreated << " animations"
                       << " (keyedObjects=" << hierarchicalKeyedObjectsCreated
                       << ", keyedProperties=" << hierarchicalKeyedPropertiesCreated
+                      << ", interpolators=" << hierarchicalInterpolatorsCreated
                       << ", keyframes=" << hierarchicalKeyframesCreated << ")" << std::endl;
         }
 
@@ -2322,13 +2383,21 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                                                                          aliases);
 
                                     uint32_t resolvedAnimationIndex = std::numeric_limits<uint32_t>::max();
+                                    uint32_t resolvedAnimationBuilderId = 0;
                                     bool animationResolved = false;
 
                                     if (!animationName.empty()) {
                                         auto idxIt = animationNameToIndex.find(animationName);
                                         if (idxIt != animationNameToIndex.end()) {
                                             resolvedAnimationIndex = idxIt->second;
-                                            animationResolved = true;
+                                            if (resolvedAnimationIndex < animationLocalIdsInOrder.size()) {
+                                                uint32_t animationLocalId = animationLocalIdsInOrder[resolvedAnimationIndex];
+                                                auto builderIdIt = localIdToBuilderObjectId.find(animationLocalId);
+                                                if (builderIdIt != localIdToBuilderObjectId.end()) {
+                                                    resolvedAnimationBuilderId = builderIdIt->second;
+                                                    animationResolved = true;
+                                                }
+                                            }
                                         } else {
                                             std::cerr << "  ⚠️  StateMachine '"
                                                       << smJson.value("name", std::string())
@@ -2343,7 +2412,12 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                                         uint32_t jsonIndex = stateJson["animationId"].get<uint32_t>();
                                         if (jsonIndex < animationLocalIdsInOrder.size()) {
                                             resolvedAnimationIndex = jsonIndex;
-                                            animationResolved = true;
+                                            uint32_t animationLocalId = animationLocalIdsInOrder[resolvedAnimationIndex];
+                                            auto builderIdIt = localIdToBuilderObjectId.find(animationLocalId);
+                                            if (builderIdIt != localIdToBuilderObjectId.end()) {
+                                                resolvedAnimationBuilderId = builderIdIt->second;
+                                                animationResolved = true;
+                                            }
                                         } else {
                                             std::cerr << "  ⚠️  StateMachine '"
                                                       << smJson.value("name", std::string())
@@ -2356,7 +2430,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                                     if (animationResolved) {
                                         builder.set(*animStateCore,
                                                     rive::AnimationStateBase::animationIdPropertyKey,
-                                                    resolvedAnimationIndex);
+                                                    resolvedAnimationBuilderId);
                                     }
                                 }
                                 else if (stateType == "entry" || stateType == "exit" || stateType == "any") {
