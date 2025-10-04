@@ -3,7 +3,7 @@
 **Date:** October 4, 2024  
 **File:** `output/bpm_dashboard.riv` (4,816 bytes)  
 **Symptom (initial):** Black screen in Rive Play  
-**Status:** ✅ FIXED — PASS 1C now emits animation states and wires animationId correctly
+**Status:** ✅ FIXED — PASS 1B animasyonları artboard'dan hemen sonra yayınlıyor, PASS 1C animationId kablolamasını yapıyor
 
 ---
 
@@ -112,6 +112,12 @@ Animations are parsed correctly, but the state machine flattening logic still cr
 ---
 
 ## Solution Implemented
+
+### ✅ Animation Sıralaması ve State Flattening
+
+**PASS 1B güncellemesi:** Hiyerarşik animasyonlar PASS 1 tamamlanana kadar bekletiliyor; tüm komponentler builder'a eklendikten sonra tek seferde oluşturuluyor. `hierarchicalAnimationLocalIds` ile JSON sırası korunuyor ve `animationLocalIdsInOrder` sonradan güncelleniyor, böylece animationId fallback'leri bozulmadan bileşenler önce, animasyonlar sonra serialize ediliyor.
+
+**Serializer koruması:** `converter/src/serializer.cpp` remap bulunmayan component referanslarını (objectId/styleId/sourceId) eskiden olduğu gibi atlamaya devam ediyor; PASS 3 remap'leri geldiğinde doğru değer dosyaya ekleniyor ve sahte indeksler üretilmiyor.
 
 ### ✅ Animation State Flattening (PASS 1C)
 

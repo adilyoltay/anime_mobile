@@ -744,14 +744,13 @@ std::vector<uint8_t> serialize_core_document(const CoreDocument& document, Prope
                     }
                     else
                     {
-                        // PR2b: Mapping not found - SKIP this property entirely
                         remapMissCountCore[property.key]++;
                         if (remapMissCountCore[property.key] <= 10)
                         {
                             std::cerr << "⚠️  PR2b remap-miss (core): key=" << property.key 
                                       << " globalId=" << globalId << " — skipping property" << std::endl;
                         }
-                        continue; // CRITICAL: Skip writing this property
+                        continue;
                     }
                 }
             }

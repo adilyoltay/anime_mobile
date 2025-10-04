@@ -1276,9 +1276,243 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::map<uint16_t, int> keyedCreated;
         int linearAnimCount = 0;
         int stateMachineCount = 0;
-        
+
+        int hierarchicalAnimationsCreated = 0;
+        int hierarchicalKeyedObjectsCreated = 0;
+        int hierarchicalKeyedPropertiesCreated = 0;
+        int hierarchicalKeyframesCreated = 0;
+        int hierarchicalInterpolatorsCreated = 0;
+        std::vector<uint32_t> hierarchicalAnimationLocalIds;
+
+        bool animationsEmitted = false;
+        auto emitHierarchicalAnimations = [&]() {
+            if (animationsEmitted)
+            {
+                return;
+            }
+            animationsEmitted = true;
+
+            if (!abJson.contains("animations") || !abJson["animations"].is_array())
+            {
+                return;
+            }
+
+            const auto& animationsJson = abJson["animations"];
+            if (!animationsJson.empty())
+            {
+                std::cout << "  PASS 1B: Integrating " << animationsJson.size()
+                          << " hierarchical animation definitions" << std::endl;
+            }
+
+            for (const auto& animJson : animationsJson)
+            {
+                rive_converter::AnimationData animData = rive_converter::parse_animation_json(animJson);
+
+                auto& animationObj = builder.addCore(new rive::LinearAnimation());
+                uint32_t animationLocalId = nextSyntheticLocalId++;
+
+                builder.set(animationObj, rive::AnimationBase::namePropertyKey, animData.name);
+                builder.set(animationObj, rive::LinearAnimationBase::fpsPropertyKey, animData.fps);
+                builder.set(animationObj, rive::LinearAnimationBase::durationPropertyKey, animData.duration);
+                builder.set(animationObj, rive::LinearAnimationBase::loopValuePropertyKey, animData.loop);
+
+                if (animData.speed.has_value())
+                {
+                    builder.set(animationObj, rive::LinearAnimationBase::speedPropertyKey, *animData.speed);
+                }
+                if (animData.workStart.has_value())
+                {
+                    builder.set(animationObj, rive::LinearAnimationBase::workStartPropertyKey, *animData.workStart);
+                }
+                if (animData.workEnd.has_value())
+                {
+                    builder.set(animationObj, rive::LinearAnimationBase::workEndPropertyKey, *animData.workEnd);
+                }
+                if (animData.enableWorkArea.has_value())
+                {
+                    builder.set(animationObj, rive::LinearAnimationBase::enableWorkAreaPropertyKey,
+                                *animData.enableWorkArea);
+                }
+                if (animData.quantize.has_value())
+                {
+                    builder.set(animationObj, rive::LinearAnimationBase::quantizePropertyKey,
+                                static_cast<bool>(*animData.quantize));
+                }
+
+                pendingObjects.push_back({&animationObj, kTypeKeyLinearAnimation, animationLocalId, invalidParent});
+                localIdToBuilderObjectId[animationLocalId] = animationObj.id;
+                localIdToType[animationLocalId] = kTypeKeyLinearAnimation;
+                hierarchicalAnimationLocalIds.push_back(animationLocalId);
+                if (!animData.name.empty())
+                {
+                    animationNameToLocalId[animData.name] = animationLocalId;
+                    animationNameToBuilderId[animData.name] = animationObj.id;
+                }
+
+                linearAnimCount++;
+                hierarchicalAnimationsCreated++;
+
+                for (const auto& interpolatorJson : animData.interpolators)
+                {
+                    if (!interpolatorJson.contains("typeKey"))
+                    {
+                        continue;
+                    }
+
+                    uint16_t interpolatorTypeKey = interpolatorJson["typeKey"].get<uint16_t>();
+                    rive::Core* interpolatorCore = createObjectByTypeKey(interpolatorTypeKey);
+                    if (interpolatorCore == nullptr)
+                    {
+                        continue;
+                    }
+
+                    auto& interpolatorObj = builder.addCore(interpolatorCore);
+
+                    uint32_t interpolatorLocalId = nextSyntheticLocalId++;
+                    if (interpolatorJson.contains("localId") &&
+                        interpolatorJson["localId"].is_number_unsigned())
+                    {
+                        interpolatorLocalId = interpolatorJson["localId"].get<uint32_t>();
+                        if (interpolatorLocalId >= nextSyntheticLocalId)
+                        {
+                            nextSyntheticLocalId = interpolatorLocalId + 1;
+                        }
+                    }
+
+                    uint32_t interpolatorParentLocalId = animationLocalId;
+                    if (interpolatorJson.contains("parentId") &&
+                        interpolatorJson["parentId"].is_number_unsigned())
+                    {
+                        interpolatorParentLocalId = interpolatorJson["parentId"].get<uint32_t>();
+                    }
+
+                    pendingObjects.push_back({&interpolatorObj,
+                                              interpolatorTypeKey,
+                                              interpolatorLocalId,
+                                              interpolatorParentLocalId});
+                    localIdToBuilderObjectId[interpolatorLocalId] = interpolatorObj.id;
+                    localIdToType[interpolatorLocalId] = interpolatorTypeKey;
+                    hierarchicalInterpolatorsCreated++;
+                    interpolatorCount++;
+
+                    if (interpolatorJson.contains("properties"))
+                    {
+                        for (const auto& [propKey, propValue] : interpolatorJson["properties"].items())
+                        {
+                            setProperty(builder,
+                                        interpolatorObj,
+                                        propKey,
+                                        propValue,
+                                        localIdToBuilderObjectId,
+                                        objectIdRemapSuccess,
+                                        objectIdRemapFail);
+                        }
+                    }
+                }
+
+                for (const auto& keyedObjectData : animData.keyedObjects)
+                {
+                    auto& keyedObject = builder.addCore(new rive::KeyedObject());
+                    uint32_t keyedObjectLocalId = nextSyntheticLocalId++;
+
+                    pendingObjects.push_back({&keyedObject, kTypeKeyKeyedObject, keyedObjectLocalId, invalidParent});
+                    localIdToBuilderObjectId[keyedObjectLocalId] = keyedObject.id;
+                    localIdToType[keyedObjectLocalId] = kTypeKeyKeyedObject;
+                    keyedObjectCount++;
+                    hierarchicalKeyedObjectsCreated++;
+                    if (!OMIT_KEYED)
+                    {
+                        keyedCreated[kTypeKeyKeyedObject]++;
+                    }
+
+                    if (keyedObjectData.objectId != 0)
+                    {
+                        deferredComponentRefs.push_back({&keyedObject, 51, keyedObjectData.objectId});
+                    }
+
+                    for (const auto& keyedPropertyData : keyedObjectData.keyedProperties)
+                    {
+                        auto& keyedProperty = builder.addCore(new rive::KeyedProperty());
+                        uint32_t keyedPropertyLocalId = nextSyntheticLocalId++;
+
+                        pendingObjects.push_back({&keyedProperty, kTypeKeyKeyedProperty, keyedPropertyLocalId,
+                                                 invalidParent});
+                        localIdToBuilderObjectId[keyedPropertyLocalId] = keyedProperty.id;
+                        localIdToType[keyedPropertyLocalId] = kTypeKeyKeyedProperty;
+                        builder.set(keyedProperty, rive::KeyedPropertyBase::propertyKeyPropertyKey,
+                                    keyedPropertyData.propertyKey);
+                        keyedPropertyCount++;
+                        hierarchicalKeyedPropertiesCreated++;
+                        if (!OMIT_KEYED)
+                        {
+                            keyedCreated[kTypeKeyKeyedProperty]++;
+                        }
+
+                        int propertyFieldType = rive::CoreDoubleType::id;
+                        auto typeIt = typeMap.find(keyedPropertyData.propertyKey);
+                        if (typeIt != typeMap.end())
+                        {
+                            propertyFieldType = typeIt->second;
+                        }
+
+                        for (const auto& keyframeData : keyedPropertyData.keyframes)
+                        {
+                            uint16_t keyframeTypeKey = selectKeyFrameType(keyframeData, propertyFieldType);
+                            rive::Core* keyframeCore = nullptr;
+                            switch (keyframeTypeKey)
+                            {
+                                case rive::KeyFrameColor::typeKey:
+                                    keyframeCore = new rive::KeyFrameColor();
+                                    break;
+                                case rive::KeyFrameBool::typeKey:
+                                    keyframeCore = new rive::KeyFrameBool();
+                                    break;
+                                case rive::KeyFrameString::typeKey:
+                                    keyframeCore = new rive::KeyFrameString();
+                                    break;
+                                case rive::KeyFrameUint::typeKey:
+                                    keyframeCore = new rive::KeyFrameUint();
+                                    break;
+                                case rive::KeyFrameId::typeKey:
+                                    keyframeCore = new rive::KeyFrameId();
+                                    break;
+                                case rive::KeyFrameDouble::typeKey:
+                                default:
+                                    keyframeCore = new rive::KeyFrameDouble();
+                                    keyframeTypeKey = rive::KeyFrameDouble::typeKey;
+                                    break;
+                            }
+
+                            auto& keyframeObj = builder.addCore(keyframeCore);
+                            pendingObjects.push_back({&keyframeObj, keyframeTypeKey, std::nullopt, invalidParent});
+
+                            builder.set(keyframeObj, rive::KeyFrameBase::framePropertyKey, keyframeData.frame);
+                            builder.set(keyframeObj, rive::InterpolatingKeyFrameBase::interpolationTypePropertyKey,
+                                        keyframeData.interpolationType);
+
+                            if (keyframeData.interpolatorId.has_value())
+                            {
+                                deferredComponentRefs.push_back(
+                                    {&keyframeObj, rive::InterpolatingKeyFrameBase::interpolatorIdPropertyKey,
+                                     *keyframeData.interpolatorId});
+                            }
+
+                            applyKeyFrameValue(builder, keyframeObj, keyframeTypeKey, keyframeData, propertyFieldType);
+
+                            keyFrameCount++;
+                            hierarchicalKeyframesCreated++;
+                            if (!OMIT_KEYED)
+                            {
+                                keyedCreated[keyframeTypeKey]++;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
         bool skipKeyframeData = false; // Flag to cascade-skip KeyedProperty/KeyFrame after invalid KeyedObject
-        CoreObject* lastKeyframe = nullptr; // Track last created InterpolatingKeyFrame for interpolatorId wiring
+        CoreObject* lastKeyframe = nullptr; // Track most recent keyframe for interpolator wiring
         
         for (const auto& objJson : orderedObjects) {
             uint16_t typeKey = objJson["typeKey"];
@@ -1911,227 +2145,15 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
 
-        int hierarchicalAnimationsCreated = 0;
-        int hierarchicalKeyedObjectsCreated = 0;
-        int hierarchicalKeyedPropertiesCreated = 0;
-        int hierarchicalKeyframesCreated = 0;
-        int hierarchicalInterpolatorsCreated = 0;
 
-        if (abJson.contains("animations") && abJson["animations"].is_array())
+
+        emitHierarchicalAnimations();
+
+        if (!hierarchicalAnimationLocalIds.empty())
         {
-            const auto& animationsJson = abJson["animations"];
-            if (!animationsJson.empty())
-            {
-                std::cout << "  PASS 1B: Integrating " << animationsJson.size()
-                          << " hierarchical animation definitions" << std::endl;
-            }
-
-            for (const auto& animJson : animationsJson)
-            {
-                rive_converter::AnimationData animData = rive_converter::parse_animation_json(animJson);
-
-                auto& animationObj = builder.addCore(new rive::LinearAnimation());
-                uint32_t animationLocalId = nextSyntheticLocalId++;
-
-                builder.set(animationObj, rive::AnimationBase::namePropertyKey, animData.name);
-                builder.set(animationObj, rive::LinearAnimationBase::fpsPropertyKey, animData.fps);
-                builder.set(animationObj, rive::LinearAnimationBase::durationPropertyKey, animData.duration);
-                builder.set(animationObj, rive::LinearAnimationBase::loopValuePropertyKey, animData.loop);
-
-                if (animData.speed.has_value())
-                {
-                    builder.set(animationObj, rive::LinearAnimationBase::speedPropertyKey, *animData.speed);
-                }
-                if (animData.workStart.has_value())
-                {
-                    builder.set(animationObj, rive::LinearAnimationBase::workStartPropertyKey, *animData.workStart);
-                }
-                if (animData.workEnd.has_value())
-                {
-                    builder.set(animationObj, rive::LinearAnimationBase::workEndPropertyKey, *animData.workEnd);
-                }
-                if (animData.enableWorkArea.has_value())
-                {
-                    builder.set(animationObj, rive::LinearAnimationBase::enableWorkAreaPropertyKey,
-                                *animData.enableWorkArea);
-                }
-                if (animData.quantize.has_value())
-                {
-                    builder.set(animationObj, rive::LinearAnimationBase::quantizePropertyKey,
-                                static_cast<bool>(*animData.quantize));
-                }
-
-                pendingObjects.push_back({&animationObj, kTypeKeyLinearAnimation, animationLocalId, invalidParent});
-                localIdToBuilderObjectId[animationLocalId] = animationObj.id;
-                localIdToType[animationLocalId] = kTypeKeyLinearAnimation;
-                animationLocalIdsInOrder.push_back(animationLocalId);
-                if (!animData.name.empty())
-                {
-                    animationNameToLocalId[animData.name] = animationLocalId;
-                    animationNameToBuilderId[animData.name] = animationObj.id;
-                }
-
-                linearAnimCount++;
-                hierarchicalAnimationsCreated++;
-
-                // Instantiate interpolators defined in hierarchical animation JSON
-                for (const auto& interpolatorJson : animData.interpolators)
-                {
-                    if (!interpolatorJson.contains("typeKey"))
-                    {
-                        continue;
-                    }
-
-                    uint16_t interpolatorTypeKey = interpolatorJson["typeKey"].get<uint16_t>();
-                    rive::Core* interpolatorCore = createObjectByTypeKey(interpolatorTypeKey);
-                    if (interpolatorCore == nullptr)
-                    {
-                        continue;
-                    }
-
-                    auto& interpolatorObj = builder.addCore(interpolatorCore);
-
-                    uint32_t interpolatorLocalId = nextSyntheticLocalId++;
-                    if (interpolatorJson.contains("localId") &&
-                        interpolatorJson["localId"].is_number_unsigned())
-                    {
-                        interpolatorLocalId = interpolatorJson["localId"].get<uint32_t>();
-                        if (interpolatorLocalId >= nextSyntheticLocalId)
-                        {
-                            nextSyntheticLocalId = interpolatorLocalId + 1;
-                        }
-                    }
-
-                    uint32_t interpolatorParentLocalId = animationLocalId;
-                    if (interpolatorJson.contains("parentId") &&
-                        interpolatorJson["parentId"].is_number_unsigned())
-                    {
-                        interpolatorParentLocalId = interpolatorJson["parentId"].get<uint32_t>();
-                    }
-
-                    pendingObjects.push_back({&interpolatorObj,
-                                              interpolatorTypeKey,
-                                              interpolatorLocalId,
-                                              interpolatorParentLocalId});
-                    localIdToBuilderObjectId[interpolatorLocalId] = interpolatorObj.id;
-                    localIdToType[interpolatorLocalId] = interpolatorTypeKey;
-                    hierarchicalInterpolatorsCreated++;
-                    interpolatorCount++;
-
-                    if (interpolatorJson.contains("properties"))
-                    {
-                        for (const auto& [propKey, propValue] : interpolatorJson["properties"].items())
-                        {
-                            setProperty(builder,
-                                        interpolatorObj,
-                                        propKey,
-                                        propValue,
-                                        localIdToBuilderObjectId,
-                                        objectIdRemapSuccess,
-                                        objectIdRemapFail);
-                        }
-                    }
-                }
-
-                for (const auto& keyedObjectData : animData.keyedObjects)
-                {
-                    auto& keyedObject = builder.addCore(new rive::KeyedObject());
-                    uint32_t keyedObjectLocalId = nextSyntheticLocalId++;
-
-                    pendingObjects.push_back({&keyedObject, kTypeKeyKeyedObject, keyedObjectLocalId, invalidParent});
-                    localIdToBuilderObjectId[keyedObjectLocalId] = keyedObject.id;
-                    localIdToType[keyedObjectLocalId] = kTypeKeyKeyedObject;
-                    keyedObjectCount++;
-                    hierarchicalKeyedObjectsCreated++;
-                    if (!OMIT_KEYED)
-                    {
-                        keyedCreated[kTypeKeyKeyedObject]++;
-                    }
-
-                    if (keyedObjectData.objectId != 0)
-                    {
-                        deferredComponentRefs.push_back({&keyedObject, 51, keyedObjectData.objectId});
-                    }
-
-                    for (const auto& keyedPropertyData : keyedObjectData.keyedProperties)
-                    {
-                        auto& keyedProperty = builder.addCore(new rive::KeyedProperty());
-                        uint32_t keyedPropertyLocalId = nextSyntheticLocalId++;
-
-                        pendingObjects.push_back({&keyedProperty, kTypeKeyKeyedProperty, keyedPropertyLocalId,
-                                                 invalidParent});
-                        localIdToBuilderObjectId[keyedPropertyLocalId] = keyedProperty.id;
-                        localIdToType[keyedPropertyLocalId] = kTypeKeyKeyedProperty;
-                        builder.set(keyedProperty, rive::KeyedPropertyBase::propertyKeyPropertyKey,
-                                    keyedPropertyData.propertyKey);
-                        keyedPropertyCount++;
-                        hierarchicalKeyedPropertiesCreated++;
-                        if (!OMIT_KEYED)
-                        {
-                            keyedCreated[kTypeKeyKeyedProperty]++;
-                        }
-
-                        int propertyFieldType = rive::CoreDoubleType::id;
-                        auto typeIt = typeMap.find(keyedPropertyData.propertyKey);
-                        if (typeIt != typeMap.end())
-                        {
-                            propertyFieldType = typeIt->second;
-                        }
-
-                        for (const auto& keyframeData : keyedPropertyData.keyframes)
-                        {
-                            uint16_t keyframeTypeKey = selectKeyFrameType(keyframeData, propertyFieldType);
-                            rive::Core* keyframeCore = nullptr;
-                            switch (keyframeTypeKey)
-                            {
-                                case rive::KeyFrameColor::typeKey:
-                                    keyframeCore = new rive::KeyFrameColor();
-                                    break;
-                                case rive::KeyFrameBool::typeKey:
-                                    keyframeCore = new rive::KeyFrameBool();
-                                    break;
-                                case rive::KeyFrameString::typeKey:
-                                    keyframeCore = new rive::KeyFrameString();
-                                    break;
-                                case rive::KeyFrameUint::typeKey:
-                                    keyframeCore = new rive::KeyFrameUint();
-                                    break;
-                                case rive::KeyFrameId::typeKey:
-                                    keyframeCore = new rive::KeyFrameId();
-                                    break;
-                                case rive::KeyFrameDouble::typeKey:
-                                default:
-                                    keyframeCore = new rive::KeyFrameDouble();
-                                    keyframeTypeKey = rive::KeyFrameDouble::typeKey;
-                                    break;
-                            }
-
-                            auto& keyframeObj = builder.addCore(keyframeCore);
-                            pendingObjects.push_back({&keyframeObj, keyframeTypeKey, std::nullopt, invalidParent});
-
-                            builder.set(keyframeObj, rive::KeyFrameBase::framePropertyKey, keyframeData.frame);
-                            builder.set(keyframeObj, rive::InterpolatingKeyFrameBase::interpolationTypePropertyKey,
-                                        keyframeData.interpolationType);
-
-                            if (keyframeData.interpolatorId.has_value())
-                            {
-                                deferredComponentRefs.push_back(
-                                    {&keyframeObj, rive::InterpolatingKeyFrameBase::interpolatorIdPropertyKey,
-                                     *keyframeData.interpolatorId});
-                            }
-
-                            applyKeyFrameValue(builder, keyframeObj, keyframeTypeKey, keyframeData, propertyFieldType);
-
-                            keyFrameCount++;
-                            hierarchicalKeyframesCreated++;
-                            if (!OMIT_KEYED)
-                            {
-                                keyedCreated[keyframeTypeKey]++;
-                            }
-                        }
-                    }
-                }
-            }
+            animationLocalIdsInOrder.insert(animationLocalIdsInOrder.end(),
+                                           hierarchicalAnimationLocalIds.begin(),
+                                           hierarchicalAnimationLocalIds.end());
         }
 
         if (hierarchicalAnimationsCreated > 0)
