@@ -196,10 +196,45 @@ struct ShapeData
     ShapeStroke stroke;
 };
 
+enum class KeyFrameValueType
+{
+    unknown,
+    doubleValue,
+    colorValue,
+    boolValue,
+    uintValue,
+    idValue,
+    stringValue
+};
+
 struct KeyFrameData
 {
     uint32_t frame = 0;
-    float value = 0.0f;
+    float value = 0.0f; // Legacy convenience field for double keyframes
+    KeyFrameValueType valueType = KeyFrameValueType::unknown;
+    uint32_t colorValue = 0;
+    uint32_t uintValue = 0;
+    uint32_t idValue = 0;
+    bool boolValue = false;
+    std::string stringValue;
+    uint32_t interpolationType = 1;
+    std::optional<uint32_t> interpolatorId;
+    nlohmann::json rawValue;
+    nlohmann::json customData; // curve/easing payloads captured verbatim
+};
+
+struct KeyedPropertyData
+{
+    uint32_t propertyKey = 0;
+    std::vector<KeyFrameData> keyframes;
+};
+
+struct KeyedObjectData
+{
+    uint32_t objectId = 0;
+    std::optional<std::string> objectName;
+    std::optional<uint32_t> componentIndex; // Diagnostic index from exact export
+    std::vector<KeyedPropertyData> keyedProperties;
 };
 
 struct TextStyleData
@@ -240,6 +275,14 @@ struct AnimationData
     uint32_t fps = 60;
     uint32_t duration = 60;
     uint32_t loop = 1;
+    std::optional<float> speed;
+    std::optional<uint32_t> workStart;
+    std::optional<uint32_t> workEnd;
+    std::optional<bool> enableWorkArea;
+    std::optional<bool> quantize;
+    std::vector<KeyedObjectData> keyedObjects;
+    bool hasHierarchicalData = false;
+    std::vector<nlohmann::json> interpolators; // Raw interpolator payloads for deferred creation
     std::vector<KeyFrameData> yKeyframes;
     std::vector<KeyFrameData> scaleKeyframes;
     std::vector<KeyFrameData> opacityKeyframes;
