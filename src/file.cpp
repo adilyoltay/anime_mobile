@@ -341,6 +341,10 @@ ImportResult File::read(BinaryReader& reader, const RuntimeHeader& header)
         uint32_t objectTypeKey = 0;
         auto object =
             readRuntimeObject(reader, header, hitTerminator, objectTypeKey);
+        if (hitTerminator)
+        {
+            break;
+        }
         if (object == nullptr)
         {
             if (reader.hasError())
