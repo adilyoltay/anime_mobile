@@ -1939,15 +1939,15 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     uint16_t inputIndex = ctxInfo.originalPath[1];
                     CoreObject* inputCore = nullptr;
 
-                    if (inputIndex > 0) {
+                    if (inputIndex < smBinding.inputList.size()) {
+                        inputCore = smBinding.inputList[inputIndex];
+                    }
+
+                    if (inputCore == nullptr && inputIndex > 0) {
                         size_t zeroIndex = static_cast<size_t>(inputIndex - 1);
                         if (zeroIndex < smBinding.inputList.size()) {
                             inputCore = smBinding.inputList[zeroIndex];
                         }
-                    }
-
-                    if (inputCore == nullptr && inputIndex < smBinding.inputList.size()) {
-                        inputCore = smBinding.inputList[inputIndex];
                     }
 
                     if (inputCore != nullptr) {
