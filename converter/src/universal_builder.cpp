@@ -2,6 +2,8 @@
 #include "json_loader.hpp"
 #include <nlohmann/json.hpp>
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <cctype>
 #include <iostream>
 #include <map>
@@ -70,6 +72,7 @@
 #include "rive/generated/animation/state_machine_trigger_base.hpp"
 #include "rive/generated/animation/entry_state_base.hpp"
 #include "rive/generated/animation/any_state_base.hpp"
+#include "rive/generated/animation/animation_state_base.hpp"
 #include "rive/animation/cubic_ease_interpolator.hpp"
 #include "rive/animation/cubic_value_interpolator.hpp"
 #include "rive/bones/bone.hpp"
@@ -338,12 +341,50 @@ static void applyKeyFrameValue(CoreBuilder& builder,
                                const rive_converter::KeyFrameData& data,
                                int propertyFieldType)
 {
-    auto clamp_to_uint = [](float value) -> uint32_t {
-        if (value <= 0.0f)
+    constexpr uint32_t kSentinelNone = std::numeric_limits<uint32_t>::max();
+
+    auto resolveUnsigned = [&](const rive_converter::KeyFrameData& keyframeData) -> uint32_t {
+        if (keyframeData.valueType == rive_converter::KeyFrameValueType::uintValue)
         {
-            return 0u;
+            return keyframeData.uintValue;
         }
-        return static_cast<uint32_t>(value + 0.5f);
+
+        if (!keyframeData.rawValue.is_null())
+        {
+            if (keyframeData.rawValue.is_number_integer())
+            {
+                int64_t rawInt = keyframeData.rawValue.get<int64_t>();
+                if (rawInt < 0)
+                {
+                    return kSentinelNone;
+                }
+                return static_cast<uint32_t>(rawInt);
+            }
+            if (keyframeData.rawValue.is_number_unsigned())
+            {
+                return keyframeData.rawValue.get<uint32_t>();
+            }
+        }
+
+        if (keyframeData.valueType == rive_converter::KeyFrameValueType::doubleValue)
+        {
+            if (keyframeData.value < 0.0f)
+            {
+                return kSentinelNone;
+            }
+            double rounded = std::llround(static_cast<double>(keyframeData.value));
+            if (rounded < 0.0)
+            {
+                return 0u;
+            }
+            if (rounded > static_cast<double>(std::numeric_limits<uint32_t>::max()))
+            {
+                return std::numeric_limits<uint32_t>::max();
+            }
+            return static_cast<uint32_t>(rounded);
+        }
+
+        return 0u;
     };
 
     switch (typeKey)
@@ -364,11 +405,7 @@ static void applyKeyFrameValue(CoreBuilder& builder,
             break;
         case rive::KeyFrameUint::typeKey:
         {
-            uint32_t uintValue = data.uintValue;
-            if (uintValue == 0u && data.valueType == rive_converter::KeyFrameValueType::doubleValue)
-            {
-                uintValue = clamp_to_uint(data.value);
-            }
+            uint32_t uintValue = resolveUnsigned(data);
             builder.set(keyframeObj, rive::KeyFrameUintBase::valuePropertyKey, uintValue);
             break;
         }
@@ -377,11 +414,7 @@ static void applyKeyFrameValue(CoreBuilder& builder,
             uint32_t idValue = data.idValue;
             if (idValue == 0u)
             {
-                idValue = data.uintValue;
-            }
-            if (idValue == 0u)
-            {
-                idValue = clamp_to_uint(data.value);
+                idValue = resolveUnsigned(data);
             }
             builder.set(keyframeObj, rive::KeyFrameIdBase::valuePropertyKey, idValue);
             break;
@@ -1053,6 +1086,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             CoreObject* stateMachine = nullptr;
             std::unordered_map<std::string, CoreObject*> inputsByName;
             std::vector<CoreObject*> inputList;
+            std::unordered_map<std::string, CoreObject*> statesByName;
+            std::vector<CoreObject*> stateList;
         };
 
         struct DataBindContextInfo
@@ -1104,6 +1139,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         std::vector<uint32_t> animationLocalIdsInOrder;
         std::unordered_map<std::string, uint32_t> animationNameToLocalId;
         std::unordered_map<std::string, uint32_t> animationNameToBuilderId;
+        std::unordered_map<uint32_t, uint32_t> animationLocalIdToIndex;
+        std::unordered_map<std::string, uint32_t> animationNameToIndex;
 
         uint32_t maxLocalId = 0;
         for (const auto& objJson : abJson["objects"]) {
@@ -2035,13 +2072,30 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     }
                 }
             }
+        }
 
-            if (hierarchicalAnimationsCreated > 0)
+        if (hierarchicalAnimationsCreated > 0)
+        {
+            std::cout << "  → Added " << hierarchicalAnimationsCreated << " animations"
+                      << " (keyedObjects=" << hierarchicalKeyedObjectsCreated
+                      << ", keyedProperties=" << hierarchicalKeyedPropertiesCreated
+                      << ", keyframes=" << hierarchicalKeyframesCreated << ")" << std::endl;
+        }
+
+        // Build animation localId → index map (artboard-local ordering)
+        animationLocalIdToIndex.clear();
+        for (size_t idx = 0; idx < animationLocalIdsInOrder.size(); ++idx)
+        {
+            animationLocalIdToIndex[animationLocalIdsInOrder[idx]] = static_cast<uint32_t>(idx);
+        }
+
+        animationNameToIndex.clear();
+        for (const auto& [name, localId] : animationNameToLocalId)
+        {
+            auto idxIt = animationLocalIdToIndex.find(localId);
+            if (idxIt != animationLocalIdToIndex.end())
             {
-                std::cout << "  → Added " << hierarchicalAnimationsCreated << " animations"
-                          << " (keyedObjects=" << hierarchicalKeyedObjectsCreated
-                          << ", keyedProperties=" << hierarchicalKeyedPropertiesCreated
-                          << ", keyframes=" << hierarchicalKeyframesCreated << ")" << std::endl;
+                animationNameToIndex[name] = idxIt->second;
             }
         }
 
@@ -2050,34 +2104,6 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             if (!artboardLocalIdValid) {
                 std::cerr << "  ⚠️  Unable to flatten state machines: missing artboard localId" << std::endl;
             } else {
-                auto createBasicLayerStates = [&](uint32_t layerLocalId,
-                                                  const std::string& layerName) {
-                    auto addState = [&](rive::LayerState* state,
-                                        uint16_t typeKey,
-                                        const std::string& suffix) {
-                        auto& stateObj = builder.addCore(state);
-                        if (!layerName.empty()) {
-                            builder.set(stateObj,
-                                        rive::StateMachineComponentBase::namePropertyKey,
-                                        layerName + suffix);
-                        }
-                        uint32_t stateLocalId = nextSyntheticLocalId++;
-                        pendingObjects.push_back({&stateObj, typeKey, stateLocalId, layerLocalId});
-                        localIdToBuilderObjectId[stateLocalId] = stateObj.id;
-                        localIdToType[stateLocalId] = typeKey;
-                    };
-
-                    addState(new rive::EntryState(),
-                             rive::EntryState::typeKey,
-                             " Entry");
-                    addState(new rive::AnyState(),
-                             rive::AnyState::typeKey,
-                             " Any");
-                    addState(new rive::ExitState(),
-                             rive::ExitState::typeKey,
-                             " Exit");
-                };
-
                 for (const auto& smJson : abJson["stateMachines"]) {
                     StateMachineBindingInfo bindingInfo;
 
@@ -2160,6 +2186,196 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         }
                     }
 
+                    auto emitLayerStates = [&](uint32_t layerLocalId,
+                                               const std::string& layerName,
+                                               const nlohmann::json* statesArray) {
+                        std::unordered_map<std::string, uint32_t> layerStateLocalIds;
+
+                        auto registerAlias = [&](const std::string& key,
+                                                 uint32_t localId,
+                                                 CoreObject* stateCore) {
+                            if (key.empty()) {
+                                return;
+                            }
+                            layerStateLocalIds[key] = localId;
+                            bindingInfo.statesByName[key] = stateCore;
+                        };
+
+                        auto addState = [&](rive::LayerState* state,
+                                            uint16_t typeKey,
+                                            const std::string& displayName,
+                                            const std::vector<std::string>& aliases) -> CoreObject* {
+                            auto& stateObj = builder.addCore(state);
+                            if (!displayName.empty()) {
+                                builder.set(stateObj,
+                                            rive::StateMachineComponentBase::namePropertyKey,
+                                            displayName);
+                            }
+                            uint32_t stateLocalId = nextSyntheticLocalId++;
+                            pendingObjects.push_back({&stateObj, typeKey, stateLocalId, layerLocalId});
+                            localIdToBuilderObjectId[stateLocalId] = stateObj.id;
+                            localIdToType[stateLocalId] = typeKey;
+                            bindingInfo.stateList.push_back(&stateObj);
+
+                            if (!displayName.empty()) {
+                                registerAlias(displayName, stateLocalId, &stateObj);
+                            }
+                            for (const auto& alias : aliases) {
+                                if (!alias.empty() && alias != displayName) {
+                                    registerAlias(alias, stateLocalId, &stateObj);
+                                }
+                            }
+
+                            return &stateObj;
+                        };
+
+                        auto renameState = [&](const std::string& canonicalKey,
+                                               const std::string& newName) {
+                            if (newName.empty()) {
+                                return;
+                            }
+                            auto statePtrIt = bindingInfo.statesByName.find(canonicalKey);
+                            if (statePtrIt == bindingInfo.statesByName.end()) {
+                                return;
+                            }
+                            CoreObject* stateCore = statePtrIt->second;
+                            if (stateCore == nullptr) {
+                                return;
+                            }
+                            builder.set(*stateCore,
+                                        rive::StateMachineComponentBase::namePropertyKey,
+                                        newName);
+                            auto localIdIt = layerStateLocalIds.find(canonicalKey);
+                            if (localIdIt != layerStateLocalIds.end()) {
+                                registerAlias(newName, localIdIt->second, stateCore);
+                            }
+                        };
+
+                        const std::string entryDisplay = layerName.empty() ? std::string("Entry") : layerName + " Entry";
+                        const std::string exitDisplay = layerName.empty() ? std::string("Exit") : layerName + " Exit";
+                        const std::string anyDisplay = layerName.empty() ? std::string("Any") : layerName + " Any";
+
+                        addState(new rive::EntryState(),
+                                 rive::EntryState::typeKey,
+                                 entryDisplay,
+                                 {"Entry"});
+                        addState(new rive::AnyState(),
+                                 rive::AnyState::typeKey,
+                                 anyDisplay,
+                                 {"Any"});
+                        addState(new rive::ExitState(),
+                                 rive::ExitState::typeKey,
+                                 exitDisplay,
+                                 {"Exit"});
+
+                        if (statesArray != nullptr && statesArray->is_array()) {
+                            for (const auto& stateJson : *statesArray) {
+                                uint16_t stateTypeKey = 0;
+                                if (stateJson.contains("typeKey") && stateJson["typeKey"].is_number_unsigned()) {
+                                    stateTypeKey = static_cast<uint16_t>(stateJson["typeKey"].get<uint32_t>());
+                                }
+
+                                std::string stateType;
+                                if (stateJson.contains("type") && stateJson["type"].is_string()) {
+                                    stateType = stateJson["type"].get<std::string>();
+                                }
+
+                                if (stateType.empty()) {
+                                    switch (stateTypeKey)
+                                    {
+                                        case rive::EntryState::typeKey:
+                                            stateType = "entry";
+                                            break;
+                                        case rive::ExitState::typeKey:
+                                            stateType = "exit";
+                                            break;
+                                        case rive::AnyState::typeKey:
+                                            stateType = "any";
+                                            break;
+                                        default:
+                                            stateType = "animation";
+                                            break;
+                                    }
+                                }
+
+                                std::string explicitName = stateJson.value("name", std::string());
+
+                                if (stateType == "animation") {
+                                    std::string animationName = stateJson.value("animationName", std::string());
+                                    std::string stateDisplayName = !explicitName.empty() ? explicitName : animationName;
+                                    if (stateDisplayName.empty()) {
+                                        stateDisplayName = layerName.empty() ? std::string("Animation State")
+                                                                             : layerName + " Animation";
+                                    }
+
+                                    std::vector<std::string> aliases;
+                                    if (!stateDisplayName.empty()) {
+                                        aliases.push_back(stateDisplayName);
+                                    }
+                                    if (!animationName.empty() && animationName != stateDisplayName) {
+                                        aliases.push_back(animationName);
+                                    }
+
+                                    CoreObject* animStateCore = addState(new rive::AnimationState(),
+                                                                         rive::AnimationState::typeKey,
+                                                                         stateDisplayName,
+                                                                         aliases);
+
+                                    uint32_t resolvedAnimationIndex = std::numeric_limits<uint32_t>::max();
+                                    bool animationResolved = false;
+
+                                    if (!animationName.empty()) {
+                                        auto idxIt = animationNameToIndex.find(animationName);
+                                        if (idxIt != animationNameToIndex.end()) {
+                                            resolvedAnimationIndex = idxIt->second;
+                                            animationResolved = true;
+                                        } else {
+                                            std::cerr << "  ⚠️  StateMachine '"
+                                                      << smJson.value("name", std::string())
+                                                      << "' layer '" << layerName
+                                                      << "' references unknown animation '"
+                                                      << animationName << "'" << std::endl;
+                                        }
+                                    }
+
+                                    if (!animationResolved && stateJson.contains("animationId") &&
+                                        stateJson["animationId"].is_number_unsigned()) {
+                                        uint32_t jsonIndex = stateJson["animationId"].get<uint32_t>();
+                                        if (jsonIndex < animationLocalIdsInOrder.size()) {
+                                            resolvedAnimationIndex = jsonIndex;
+                                            animationResolved = true;
+                                        } else {
+                                            std::cerr << "  ⚠️  StateMachine '"
+                                                      << smJson.value("name", std::string())
+                                                      << "' layer '" << layerName
+                                                      << "' references animation index " << jsonIndex
+                                                      << " out of range" << std::endl;
+                                        }
+                                    }
+
+                                    if (animationResolved) {
+                                        builder.set(*animStateCore,
+                                                    rive::AnimationStateBase::animationIdPropertyKey,
+                                                    resolvedAnimationIndex);
+                                    }
+                                }
+                                else if (stateType == "entry" || stateType == "exit" || stateType == "any") {
+                                    if (!explicitName.empty()) {
+                                        const std::string canonicalKey =
+                                            stateType == "entry" ? "Entry"
+                                                                  : (stateType == "exit" ? "Exit" : "Any");
+                                        renameState(canonicalKey, explicitName);
+                                    }
+                                }
+                                else {
+                                    std::cerr << "  ⚠️  Unsupported state type '" << stateType
+                                              << "' in state machine '" << smJson.value("name", std::string())
+                                              << "' layer '" << layerName << "'" << std::endl;
+                                }
+                            }
+                        }
+                    };
+
                     // Minimal layer so runtime considers the state machine valid
                     if (smJson.contains("layers") && smJson["layers"].is_array() &&
                         !smJson["layers"].empty())
@@ -2178,7 +2394,11 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
 
                             const std::string layerName =
                                 layerJson.value("name", std::string());
-                            createBasicLayerStates(layerLocalId, layerName);
+                            const nlohmann::json* statesArray =
+                                (layerJson.contains("states") && layerJson["states"].is_array())
+                                    ? &layerJson["states"]
+                                    : nullptr;
+                            emitLayerStates(layerLocalId, layerName, statesArray);
                         }
                     }
                     else
@@ -2192,7 +2412,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         localIdToBuilderObjectId[layerLocalId] = layerObj.id;
                         localIdToType[layerLocalId] = rive::StateMachineLayer::typeKey;
 
-                        createBasicLayerStates(layerLocalId, std::string("Layer"));
+                        emitLayerStates(layerLocalId, std::string("Layer"), nullptr);
                     }
 
                     stateMachineBindings.push_back(std::move(bindingInfo));
