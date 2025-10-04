@@ -2430,7 +2430,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                                     if (animationResolved) {
                                         builder.set(*animStateCore,
                                                     rive::AnimationStateBase::animationIdPropertyKey,
-                                                    resolvedAnimationBuilderId);
+                                                    resolvedAnimationIndex);
                                     }
                                 }
                                 else if (stateType == "entry" || stateType == "exit" || stateType == "any") {

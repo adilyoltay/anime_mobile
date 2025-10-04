@@ -590,6 +590,7 @@ if (!deferredComponentRefs.empty()) {
 - Property key 119 = `drawableId` (DrawTarget)
 - Property key 121 = `drawTargetId` (DrawRules)
 - **Unified deferred remapping:** Tüm component referansları PASS3'te
+- **PASS 1B güncellemesi:** Hierarchical `animations[].interpolators[]` JSON girdileri artık interpolator Core objeleri olarak instantiate ediliyor (`pendingObjects` + `localIdToBuilderObjectId`), böylece PASS3 `interpolatorId` remap işlemi başarılı tamamlanıyor.
 
 ---
 
@@ -927,6 +928,36 @@ Artboard
 - **Cross-references:** KeyedObject.objectId references Component in m_Objects
 - **No mixing:** Animation graph NEVER in m_Objects, Components NEVER in m_Animations
 - **SDK enforcement:** Separate import paths enforce this separation
+
+---
+
+### 5.7. State Machine Animation State Flattening
+
+**Dosya:** `converter/src/universal_builder.cpp:2050-2385`
+
+```cpp
+// PASS 1B: artboard animations → animationLocalIdsInOrder / animationNameToIndex
+animationLocalIdToIndex[animationLocalIdsInOrder[idx]] = static_cast<uint32_t>(idx);
+
+// PASS 1C: layer states → AnimationState
+if (stateType == "animation") {
+    auto* animState = addState(new rive::AnimationState(), ...);
+    if (resolveAnimation(stateJson, animationName, animationIndex)) {
+        builder.set(*animState,
+                    rive::AnimationStateBase::animationIdPropertyKey,
+                    animationIndex); // 0-based artboard animation index
+    }
+    bindingInfo.statesByName[stateDisplayName] = animState;
+}
+```
+
+**Bulgu:**
+- `animationLocalIdsInOrder` ve `animationNameToIndex` PASS 1B’de tüm LinearAnimation'ları artboard-local sıra ile izler.
+- PASS 1C, `layerJson["states"]` girdilerinde `type`/`typeKey` bilgilerini okuyarak gerçek `rive::AnimationState` nesneleri üretir.
+- `animationName` varsa isimden, yoksa `animationId` (uint index) fallback ile hedef animasyon bulunur.
+- `AnimationState.animationId` (property 149) artboard animasyon dizisinin 0-tabanlı indeksidir; builder component id kullanılmaz.
+- Yeni state nesneleri `statesByName` map’ine eklenerek PASS 3 transition remap'lerinde kullanılır.
+- Legacy `typeKey` değerleri (63/64/62) entry/exit/any olarak yeniden adlandırılır; duplicate AnimationState oluşumu engellenir.
 
 ---
 

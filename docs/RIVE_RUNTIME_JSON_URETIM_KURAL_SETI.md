@@ -30,8 +30,18 @@ Bu kılavuz, converter sözleşmesine ve Rive SDK başlıklarına bire bir uyuml
   - Shape: `type → x → y → width → height → points → cornerRadius → innerRadius → assetId → originX → originY → sourceId → fillRule → clipVisible → fill → stroke`
   - CustomPath: `isClosed → vertices → fillEnabled → hasGradient → gradient → fillColor → strokeEnabled → strokeColor → strokeThickness`
   - Text: `content → x → y → width → height → align → sizing → overflow → wrap → verticalAlign → paragraphSpacing → fitFromBaseline → style`
-  - Animation: `name → fps → duration → loop → yKeyframes → scaleKeyframes → opacityKeyframes`
-  - StateMachine: `name → inputs → layers → listeners → dataBinds`
+- Animation: `name → fps → duration → loop → yKeyframes → scaleKeyframes → opacityKeyframes`
+- Hierarchical Animation (opsiyonel gelişmiş): `name → fps → duration → loop → interpolators[] → keyedObjects[]`
+  - `interpolators[]`: `{ typeKey (28=CubicEase,138=CubicValue,...), localId?, parentId?, properties{ key:value } }`
+  - `keyedObjects[]`: `{ objectId, keyedProperties[] }`
+    - `keyedProperties[]`: `{ propertyKey, keyframes[] }`
+    - `keyframes[]`: `{ frame, value|color|bool|string|uint|id, interpolationType?, interpolatorId?, customData? }`
+  - `interpolatorId` alanları JSON `localId` değerine dayanır; builder PASS 3 yeniden eşler (bkz. §10).
+- StateMachine: `name → inputs → layers → listeners → dataBinds`
+  - `layers[].states[]`: her state için `{ type: "entry"|"any"|"exit"|"animation"|..., name?, animationName?, animationId?, typeKey? }`
+    - `animationName` varsa artboard animasyonu isimle eşlenir.
+    - `animationId` (uint) artboard animasyon listesi indeksidir; isim yoksa fallback olarak kullanılır.
+    - `typeKey` legacy değerleri (63/64/62) sırasıyla entry/exit/any olarak yorumlanır.
 - Sayısal biçim: NaN/Inf yok. Gereksiz son sıfırlar yok (1 yerine 1.0 yazmayın).
 - Birimler: pozisyon/ölçüler px; rotation/slant derece; duration (anim) frame; duration (transition) ms.
 - Null/empty: Sadece sözleşmenin izin verdiği yerlerde; aksi halde alanı hiç yazmayın.
