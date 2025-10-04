@@ -942,7 +942,14 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
         struct StateMachineBindingInfo
         {
             CoreObject* stateMachine = nullptr;
-            std::unordered_map<std::string, CoreObject*> inputs;
+            std::unordered_map<std::string, CoreObject*> inputsByName;
+            std::vector<CoreObject*> inputList;
+        };
+
+        struct DataBindContextInfo
+        {
+            CoreObject* context = nullptr;
+            std::vector<uint16_t> originalPath;
         };
 
         const uint32_t invalidParent = 0xFFFFFFFFu;
@@ -982,8 +989,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             uint32_t jsonComponentLocalId;
         };
         std::vector<DeferredComponentRef> deferredComponentRefs;
-        std::vector<CoreObject*> dataBindContexts;
+        std::vector<DataBindContextInfo> dataBindContexts;
         std::vector<StateMachineBindingInfo> stateMachineBindings;
+        std::unordered_map<uint32_t, std::vector<uint16_t>> dataBindContextOriginalPaths;
 
         uint32_t maxLocalId = 0;
         for (const auto& objJson : abJson["objects"]) {
@@ -1288,6 +1296,26 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 localId = objJson["localId"].get<uint32_t>();
             }
 
+            std::vector<uint16_t> originalContextPath;
+            if (typeKey == rive::DataBindContext::typeKey)
+            {
+                for (const auto& [key, value] : properties)
+                {
+                    if (key == "sourcePathIds" && value.is_array())
+                    {
+                        for (const auto& entry : value)
+                        {
+                            originalContextPath.push_back(
+                                static_cast<uint16_t>(entry.get<uint32_t>() & 0xFFFFu));
+                        }
+                    }
+                }
+                if (localId.has_value())
+                {
+                    dataBindContextOriginalPaths[*localId] = originalContextPath;
+                }
+            }
+
             // PR-KEYED-ORDER: Inject Shape container for:
             // 1. Parametric paths (Rectangle/Ellipse/etc) with non-Shape parent
             // 2. Top-level paints (Fill/Stroke) with non-Shape parent
@@ -1430,7 +1458,16 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});
 
             if (typeKey == rive::DataBindContext::typeKey) {
-                dataBindContexts.push_back(&obj);
+                std::vector<uint16_t> path;
+                if (localId.has_value())
+                {
+                    auto itPath = dataBindContextOriginalPaths.find(*localId);
+                    if (itPath != dataBindContextOriginalPaths.end())
+                    {
+                        path = itPath->second;
+                    }
+                }
+                dataBindContexts.push_back({&obj, std::move(path)});
             }
             
             // PR3: Track animation graph objects
@@ -1822,10 +1859,9 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                             localIdToType[inputLocalId] = inputTypeKey;
 
                             if (!inputName.empty()) {
-                                bindingInfo.inputs[inputName] = inputCore;
-                            } else {
-                                bindingInfo.inputs["__input" + std::to_string(bindingInfo.inputs.size())] = inputCore;
+                                bindingInfo.inputsByName[inputName] = inputCore;
                             }
+                            bindingInfo.inputList.push_back(inputCore);
                         }
                     }
 
@@ -1869,18 +1905,7 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
 
-        if (!stateMachineBindings.empty() && !dataBindContexts.empty()) {
-            const auto& binding = stateMachineBindings.front();
-            uint32_t smId = binding.stateMachine ? binding.stateMachine->id : 0;
-            uint32_t firstInputId = 0;
-            if (!binding.inputs.empty()) {
-                firstInputId = binding.inputs.begin()->second->id;
-            }
-
-            if (smId != 0 && firstInputId != 0) {
-                std::cout << "  ℹ️  Binding DataBind contexts to StateMachine id="
-                          << smId << " inputId=" << firstInputId << std::endl;
-                auto makePathBytes = [](const std::vector<uint32_t>& ids) {
+        auto makePathBytes = [](const std::vector<uint32_t>& ids) {
                     std::vector<uint8_t> bytes;
                     bytes.reserve(ids.size() * 2);
                     for (uint32_t id : ids) {
@@ -1892,33 +1917,53 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                         bytes.push_back(static_cast<uint8_t>((u16 >> 8) & 0xFF));
                     }
                     return bytes;
-                };
+        };
 
-                const auto pathBytes = makePathBytes({smId, firstInputId});
-                std::cout << "  ℹ️  DataBind path bytes: ";
-                for (uint8_t b : pathBytes) {
-                    std::cout << std::hex << std::uppercase << static_cast<int>(b)
-                              << " ";
+        if (!dataBindContexts.empty()) {
+            for (auto& ctxInfo : dataBindContexts) {
+                if (ctxInfo.originalPath.empty()) {
+                    continue;
                 }
-                std::cout << std::dec << std::endl;
+                uint16_t smIndex = ctxInfo.originalPath[0];
+                if (smIndex >= stateMachineBindings.size()) {
+                    continue;
+                }
+                const auto& smBinding = stateMachineBindings[smIndex];
+                if (smBinding.stateMachine == nullptr) {
+                    continue;
+                }
+                std::vector<uint32_t> resolved;
+                resolved.push_back(smBinding.stateMachine->id);
 
-                for (auto* ctx : dataBindContexts) {
-                    for (auto it = ctx->properties.begin(); it != ctx->properties.end(); ++it) {
-                        if (it->key == 588) {
-                            ctx->properties.erase(it);
-                            break;
-                        }
+                if (ctxInfo.originalPath.size() > 1) {
+                    uint16_t inputIndex = ctxInfo.originalPath[1];
+                    CoreObject* inputCore = nullptr;
+                    if (inputIndex < smBinding.inputList.size()) {
+                        inputCore = smBinding.inputList[inputIndex];
+                    } else if (inputIndex > 0 &&
+                               (inputIndex - 1) < smBinding.inputList.size()) {
+                        inputCore = smBinding.inputList[inputIndex - 1];
                     }
-                    builder.set(*ctx, 588, pathBytes);
-                    for (const auto& prop : ctx->properties) {
-                        if (prop.key == 588) {
-                            const auto& bytes = std::get<std::vector<uint8_t>>(prop.value);
-                            std::cout << "  ℹ️  Context " << ctx->id << " path byte count="
-                                      << bytes.size() << std::endl;
-                            break;
-                        }
+                    if (inputCore != nullptr) {
+                        resolved.push_back(inputCore->id);
+                    } else {
+                        continue;
                     }
                 }
+
+                for (size_t i = 2; i < ctxInfo.originalPath.size(); ++i) {
+                    resolved.push_back(ctxInfo.originalPath[i]);
+                }
+
+                auto& ctx = ctxInfo.context;
+                auto pathBytes = makePathBytes(resolved);
+                for (auto it = ctx->properties.begin(); it != ctx->properties.end(); ++it) {
+                    if (it->key == 588) {
+                        ctx->properties.erase(it);
+                        break;
+                    }
+                }
+                builder.set(*ctx, 588, pathBytes);
             }
         }
 
