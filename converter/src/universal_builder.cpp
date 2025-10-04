@@ -1938,12 +1938,18 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                 if (ctxInfo.originalPath.size() > 1) {
                     uint16_t inputIndex = ctxInfo.originalPath[1];
                     CoreObject* inputCore = nullptr;
-                    if (inputIndex < smBinding.inputList.size()) {
-                        inputCore = smBinding.inputList[inputIndex];
-                    } else if (inputIndex > 0 &&
-                               (inputIndex - 1) < smBinding.inputList.size()) {
-                        inputCore = smBinding.inputList[inputIndex - 1];
+
+                    if (inputIndex > 0) {
+                        size_t zeroIndex = static_cast<size_t>(inputIndex - 1);
+                        if (zeroIndex < smBinding.inputList.size()) {
+                            inputCore = smBinding.inputList[zeroIndex];
+                        }
                     }
+
+                    if (inputCore == nullptr && inputIndex < smBinding.inputList.size()) {
+                        inputCore = smBinding.inputList[inputIndex];
+                    }
+
                     if (inputCore != nullptr) {
                         resolved.push_back(inputCore->id);
                     } else {
