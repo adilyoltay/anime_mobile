@@ -409,5 +409,10 @@ struct Document
     std::vector<SkinData> skins;
 };
 
+KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJson);
+KeyedPropertyData parse_keyed_property_json(const nlohmann::json& propertyJson);
+KeyedObjectData parse_keyed_object_json(const nlohmann::json& keyedObjectJson);
+AnimationData parse_animation_json(const nlohmann::json& animJson);
+
 Document parse_json(const std::string& json_content);
 } // namespace rive_converter

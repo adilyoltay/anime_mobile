@@ -446,9 +446,13 @@ rive_converter::StateMachineListenerData parse_listener_json(const nlohmann::jso
     return listener;
 }
 
-rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJson)
+} // namespace
+
+namespace rive_converter
 {
-    rive_converter::KeyFrameData data;
+KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJson)
+{
+    KeyFrameData data;
     data.frame = keyframeJson.value("frame", data.frame);
     data.interpolationType = keyframeJson.value("interpolationType", data.interpolationType);
 
@@ -458,7 +462,7 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
         data.interpolatorId = keyframeJson["interpolatorId"].get<uint32_t>();
     }
 
-    auto assign_value_type = [&](rive_converter::KeyFrameValueType type) {
+    auto assign_value_type = [&](KeyFrameValueType type) {
         data.valueType = type;
     };
 
@@ -471,12 +475,12 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
         {
             data.boolValue = valueJson.get<bool>();
             data.value = data.boolValue ? 1.0f : 0.0f;
-            assign_value_type(rive_converter::KeyFrameValueType::boolValue);
+            assign_value_type(KeyFrameValueType::boolValue);
         }
         else if (valueJson.is_number_float())
         {
             data.value = static_cast<float>(valueJson.get<double>());
-            assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
+            assign_value_type(KeyFrameValueType::doubleValue);
         }
         else if (valueJson.is_number_integer())
         {
@@ -487,23 +491,23 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
             {
                 data.uintValue = static_cast<uint32_t>(numericValue);
             }
-            assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
+            assign_value_type(KeyFrameValueType::doubleValue);
         }
         else if (valueJson.is_number_unsigned())
         {
             uint64_t numericValue = valueJson.get<uint64_t>();
             data.value = static_cast<float>(numericValue);
             data.uintValue = static_cast<uint32_t>(numericValue);
-            assign_value_type(rive_converter::KeyFrameValueType::doubleValue);
+            assign_value_type(KeyFrameValueType::doubleValue);
         }
         else if (valueJson.is_string())
         {
             data.stringValue = valueJson.get<std::string>();
-            assign_value_type(rive_converter::KeyFrameValueType::stringValue);
+            assign_value_type(KeyFrameValueType::stringValue);
         }
         else
         {
-            assign_value_type(rive_converter::KeyFrameValueType::unknown);
+            assign_value_type(KeyFrameValueType::unknown);
         }
     }
 
@@ -511,28 +515,28 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
     {
         data.colorValue = parse_color_string(keyframeJson["color"].get<std::string>(), data.colorValue);
         data.rawValue = keyframeJson["color"];
-        assign_value_type(rive_converter::KeyFrameValueType::colorValue);
+        assign_value_type(KeyFrameValueType::colorValue);
     }
 
     if (keyframeJson.contains("colorValue") && keyframeJson["colorValue"].is_number_unsigned())
     {
         data.colorValue = keyframeJson["colorValue"].get<uint32_t>();
         data.rawValue = keyframeJson["colorValue"];
-        assign_value_type(rive_converter::KeyFrameValueType::colorValue);
+        assign_value_type(KeyFrameValueType::colorValue);
     }
 
     if (keyframeJson.contains("uintValue") && keyframeJson["uintValue"].is_number_unsigned())
     {
         data.uintValue = keyframeJson["uintValue"].get<uint32_t>();
         data.rawValue = keyframeJson["uintValue"];
-        assign_value_type(rive_converter::KeyFrameValueType::uintValue);
+        assign_value_type(KeyFrameValueType::uintValue);
     }
 
     if (keyframeJson.contains("idValue") && keyframeJson["idValue"].is_number_unsigned())
     {
         data.idValue = keyframeJson["idValue"].get<uint32_t>();
         data.rawValue = keyframeJson["idValue"];
-        assign_value_type(rive_converter::KeyFrameValueType::idValue);
+        assign_value_type(KeyFrameValueType::idValue);
     }
 
     if (keyframeJson.contains("boolValue") && keyframeJson["boolValue"].is_boolean())
@@ -540,14 +544,14 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
         data.boolValue = keyframeJson["boolValue"].get<bool>();
         data.value = data.boolValue ? 1.0f : 0.0f;
         data.rawValue = keyframeJson["boolValue"];
-        assign_value_type(rive_converter::KeyFrameValueType::boolValue);
+        assign_value_type(KeyFrameValueType::boolValue);
     }
 
     if (keyframeJson.contains("stringValue") && keyframeJson["stringValue"].is_string())
     {
         data.stringValue = keyframeJson["stringValue"].get<std::string>();
         data.rawValue = keyframeJson["stringValue"];
-        assign_value_type(rive_converter::KeyFrameValueType::stringValue);
+        assign_value_type(KeyFrameValueType::stringValue);
     }
 
     if (keyframeJson.is_object())
@@ -572,9 +576,9 @@ rive_converter::KeyFrameData parse_keyframe_json(const nlohmann::json& keyframeJ
     return data;
 }
 
-rive_converter::KeyedPropertyData parse_keyed_property_json(const nlohmann::json& propertyJson)
+KeyedPropertyData parse_keyed_property_json(const nlohmann::json& propertyJson)
 {
-    rive_converter::KeyedPropertyData propertyData;
+    KeyedPropertyData propertyData;
     propertyData.propertyKey = propertyJson.value("propertyKey", propertyData.propertyKey);
 
     const auto keyframesIt = propertyJson.find("keyframes");
@@ -589,9 +593,9 @@ rive_converter::KeyedPropertyData parse_keyed_property_json(const nlohmann::json
     return propertyData;
 }
 
-rive_converter::KeyedObjectData parse_keyed_object_json(const nlohmann::json& keyedObjectJson)
+KeyedObjectData parse_keyed_object_json(const nlohmann::json& keyedObjectJson)
 {
-    rive_converter::KeyedObjectData objectData;
+    KeyedObjectData objectData;
     objectData.objectId = keyedObjectJson.value("objectId", objectData.objectId);
 
     if (keyedObjectJson.contains("name") && keyedObjectJson["name"].is_string())
@@ -616,9 +620,9 @@ rive_converter::KeyedObjectData parse_keyed_object_json(const nlohmann::json& ke
     return objectData;
 }
 
-rive_converter::AnimationData parse_animation_json(const nlohmann::json& animJson)
+AnimationData parse_animation_json(const nlohmann::json& animJson)
 {
-    rive_converter::AnimationData animData;
+    AnimationData animData;
     animData.name = animJson.value("name", animData.name);
     animData.fps = animJson.value("fps", animData.fps);
     animData.duration = animJson.value("duration", animData.duration);
@@ -667,10 +671,7 @@ rive_converter::AnimationData parse_animation_json(const nlohmann::json& animJso
 
     return animData;
 }
-} // namespace
 
-namespace rive_converter
-{
 Document parse_json(const std::string& json_content)
 {
     Document doc;
