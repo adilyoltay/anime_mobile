@@ -53,6 +53,7 @@
 #include "rive/animation/state_machine.hpp"
 #include "rive/animation/state_machine_layer.hpp"
 #include "rive/animation/animation_state.hpp"
+#include "rive/animation/layer_state.hpp"
 #include "rive/animation/any_state.hpp"
 #include "rive/animation/entry_state.hpp"
 #include "rive/animation/exit_state.hpp"
@@ -60,6 +61,14 @@
 #include "rive/animation/state_machine_bool.hpp"
 #include "rive/animation/state_machine_number.hpp"
 #include "rive/animation/state_machine_trigger.hpp"
+#include "rive/generated/animation/animation_base.hpp"
+#include "rive/generated/animation/state_machine_component_base.hpp"
+#include "rive/generated/animation/state_machine_layer_base.hpp"
+#include "rive/generated/animation/state_machine_number_base.hpp"
+#include "rive/generated/animation/state_machine_bool_base.hpp"
+#include "rive/generated/animation/state_machine_trigger_base.hpp"
+#include "rive/generated/animation/entry_state_base.hpp"
+#include "rive/generated/animation/any_state_base.hpp"
 #include "rive/animation/cubic_ease_interpolator.hpp"
 #include "rive/animation/cubic_value_interpolator.hpp"
 #include "rive/bones/bone.hpp"
@@ -822,6 +831,9 @@ static void initUniversalTypeMap(PropertyTypeMap& typeMap) {
     typeMap[590] = rive::CoreUintType::id; // interpolationType
     typeMap[591] = rive::CoreUintType::id; // interpolatorId
     typeMap[592] = rive::CoreDoubleType::id; // interpolationTime
+    typeMap[586] = rive::CoreUintType::id; // DataBind.propertyKey
+    typeMap[660] = rive::CoreUintType::id; // DataBind.converterId
+    typeMap[588] = rive::CoreBytesType::id; // DataBindContext.sourcePathIds
     typeMap[596] = rive::CoreUintType::id; // displayValue
     typeMap[597] = rive::CoreUintType::id; // positionTypeValue
     typeMap[598] = rive::CoreUintType::id; // flexDirectionValue
@@ -927,6 +939,12 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             uint32_t parentLocalId = 0xFFFFFFFFu;
         };
 
+        struct StateMachineBindingInfo
+        {
+            CoreObject* stateMachine = nullptr;
+            std::unordered_map<std::string, CoreObject*> inputs;
+        };
+
         const uint32_t invalidParent = 0xFFFFFFFFu;
         
         // PR2: Debug counters for visibility
@@ -964,6 +982,8 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             uint32_t jsonComponentLocalId;
         };
         std::vector<DeferredComponentRef> deferredComponentRefs;
+        std::vector<CoreObject*> dataBindContexts;
+        std::vector<StateMachineBindingInfo> stateMachineBindings;
 
         uint32_t maxLocalId = 0;
         for (const auto& objJson : abJson["objects"]) {
@@ -972,6 +992,19 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
         }
         uint32_t nextSyntheticLocalId = maxLocalId + 1;
+
+        uint32_t artboardLocalId = 0;
+        bool artboardLocalIdValid = false;
+        for (const auto& objJson : abJson["objects"]) {
+            if (objJson.contains("typeKey") &&
+                objJson["typeKey"].get<uint16_t>() == rive::Artboard::typeKey &&
+                objJson.contains("localId"))
+            {
+                artboardLocalId = objJson["localId"].get<uint32_t>();
+                artboardLocalIdValid = true;
+                break;
+            }
+        }
 
         // PASS 0: Pre-scan all objects to build complete localId → typeKey mapping
         // This prevents false synthetic Shape injection when parent appears later in JSON
@@ -1395,6 +1428,10 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
             }
 
             pendingObjects.push_back({&obj, typeKey, localId, parentLocalId});
+
+            if (typeKey == rive::DataBindContext::typeKey) {
+                dataBindContexts.push_back(&obj);
+            }
             
             // PR3: Track animation graph objects
             if (typeKey == 25) keyedObjectCount++;
@@ -1672,6 +1709,215 @@ CoreDocument build_from_universal_json(const nlohmann::json& data, PropertyTypeM
                     uint32_t interpolatorLocalId = props["interpolatorId"].get<uint32_t>();
                     // Defer for PASS 3 remapping (localId → component ID)
                     deferredComponentRefs.push_back({&obj, 69, interpolatorLocalId});
+                }
+            }
+        }
+
+        // PASS 1C: Flatten hierarchical state machine definitions into runtime objects
+        if (abJson.contains("stateMachines") && abJson["stateMachines"].is_array()) {
+            if (!artboardLocalIdValid) {
+                std::cerr << "  ⚠️  Unable to flatten state machines: missing artboard localId" << std::endl;
+            } else {
+                auto createBasicLayerStates = [&](uint32_t layerLocalId,
+                                                  const std::string& layerName) {
+                    auto addState = [&](rive::LayerState* state,
+                                        uint16_t typeKey,
+                                        const std::string& suffix) {
+                        auto& stateObj = builder.addCore(state);
+                        if (!layerName.empty()) {
+                            builder.set(stateObj,
+                                        rive::StateMachineComponentBase::namePropertyKey,
+                                        layerName + suffix);
+                        }
+                        uint32_t stateLocalId = nextSyntheticLocalId++;
+                        pendingObjects.push_back({&stateObj, typeKey, stateLocalId, layerLocalId});
+                        localIdToBuilderObjectId[stateLocalId] = stateObj.id;
+                        localIdToType[stateLocalId] = typeKey;
+                    };
+
+                    addState(new rive::EntryState(),
+                             rive::EntryState::typeKey,
+                             " Entry");
+                    addState(new rive::AnyState(),
+                             rive::AnyState::typeKey,
+                             " Any");
+                    addState(new rive::ExitState(),
+                             rive::ExitState::typeKey,
+                             " Exit");
+                };
+
+                for (const auto& smJson : abJson["stateMachines"]) {
+                    StateMachineBindingInfo bindingInfo;
+
+                    auto& smObj = builder.addCore(new rive::StateMachine());
+                    if (smJson.contains("name")) {
+                        builder.set(smObj,
+                                    rive::AnimationBase::namePropertyKey,
+                                    smJson["name"].get<std::string>());
+                    }
+
+                    uint32_t smLocalId = nextSyntheticLocalId++;
+                    pendingObjects.push_back({&smObj, rive::StateMachine::typeKey, smLocalId, artboardLocalId});
+                    localIdToBuilderObjectId[smLocalId] = smObj.id;
+                    localIdToType[smLocalId] = rive::StateMachine::typeKey;
+                    stateMachineCount++;
+                    bindingInfo.stateMachine = &smObj;
+
+                    if (smJson.contains("inputs") && smJson["inputs"].is_array()) {
+                        for (const auto& inputJson : smJson["inputs"]) {
+                            std::string inputType = inputJson.value("type", std::string("number"));
+                            std::string inputName = inputJson.value("name", std::string());
+
+                            CoreObject* inputCore = nullptr;
+                            uint16_t inputTypeKey = 0;
+
+                            if (inputType == "number") {
+                                auto& numberObj = builder.addCore(new rive::StateMachineNumber());
+                                if (!inputName.empty()) {
+                                    builder.set(numberObj,
+                                                rive::StateMachineComponentBase::namePropertyKey,
+                                                inputName);
+                                }
+                                double defaultValue = inputJson.value("value",
+                                                                     inputJson.value("defaultValue", 0.0));
+                                builder.set(numberObj,
+                                            rive::StateMachineNumberBase::valuePropertyKey,
+                                            static_cast<float>(defaultValue));
+                                inputCore = &numberObj;
+                                inputTypeKey = rive::StateMachineNumber::typeKey;
+                            }
+                            else if (inputType == "bool") {
+                                auto& boolObj = builder.addCore(new rive::StateMachineBool());
+                                if (!inputName.empty()) {
+                                    builder.set(boolObj,
+                                                rive::StateMachineComponentBase::namePropertyKey,
+                                                inputName);
+                                }
+                                bool defaultValue = inputJson.value("value",
+                                                                   inputJson.value("defaultValue", false));
+                                builder.set(boolObj,
+                                            rive::StateMachineBoolBase::valuePropertyKey,
+                                            defaultValue);
+                                inputCore = &boolObj;
+                                inputTypeKey = rive::StateMachineBool::typeKey;
+                            }
+                            else if (inputType == "trigger") {
+                                auto& triggerObj = builder.addCore(new rive::StateMachineTrigger());
+                                if (!inputName.empty()) {
+                                    builder.set(triggerObj,
+                                                rive::StateMachineComponentBase::namePropertyKey,
+                                                inputName);
+                                }
+                                inputCore = &triggerObj;
+                                inputTypeKey = rive::StateMachineTrigger::typeKey;
+                            }
+
+                            if (inputCore == nullptr) {
+                                continue;
+                            }
+
+                            uint32_t inputLocalId = nextSyntheticLocalId++;
+                            pendingObjects.push_back({inputCore, inputTypeKey, inputLocalId, smLocalId});
+                            localIdToBuilderObjectId[inputLocalId] = inputCore->id;
+                            localIdToType[inputLocalId] = inputTypeKey;
+
+                            if (!inputName.empty()) {
+                                bindingInfo.inputs[inputName] = inputCore;
+                            } else {
+                                bindingInfo.inputs["__input" + std::to_string(bindingInfo.inputs.size())] = inputCore;
+                            }
+                        }
+                    }
+
+                    // Minimal layer so runtime considers the state machine valid
+                    if (smJson.contains("layers") && smJson["layers"].is_array() &&
+                        !smJson["layers"].empty())
+                    {
+                        for (const auto& layerJson : smJson["layers"]) {
+                            auto& layerObj = builder.addCore(new rive::StateMachineLayer());
+                            if (layerJson.contains("name")) {
+                                builder.set(layerObj,
+                                            rive::StateMachineComponentBase::namePropertyKey,
+                                            layerJson["name"].get<std::string>());
+                            }
+                            uint32_t layerLocalId = nextSyntheticLocalId++;
+                            pendingObjects.push_back({&layerObj, rive::StateMachineLayer::typeKey, layerLocalId, smLocalId});
+                            localIdToBuilderObjectId[layerLocalId] = layerObj.id;
+                            localIdToType[layerLocalId] = rive::StateMachineLayer::typeKey;
+
+                            const std::string layerName =
+                                layerJson.value("name", std::string());
+                            createBasicLayerStates(layerLocalId, layerName);
+                        }
+                    }
+                    else
+                    {
+                        auto& layerObj = builder.addCore(new rive::StateMachineLayer());
+                        builder.set(layerObj,
+                                    rive::StateMachineComponentBase::namePropertyKey,
+                                    std::string("Layer"));
+                        uint32_t layerLocalId = nextSyntheticLocalId++;
+                        pendingObjects.push_back({&layerObj, rive::StateMachineLayer::typeKey, layerLocalId, smLocalId});
+                        localIdToBuilderObjectId[layerLocalId] = layerObj.id;
+                        localIdToType[layerLocalId] = rive::StateMachineLayer::typeKey;
+
+                        createBasicLayerStates(layerLocalId, std::string("Layer"));
+                    }
+
+                    stateMachineBindings.push_back(std::move(bindingInfo));
+                }
+            }
+        }
+
+        if (!stateMachineBindings.empty() && !dataBindContexts.empty()) {
+            const auto& binding = stateMachineBindings.front();
+            uint32_t smId = binding.stateMachine ? binding.stateMachine->id : 0;
+            uint32_t firstInputId = 0;
+            if (!binding.inputs.empty()) {
+                firstInputId = binding.inputs.begin()->second->id;
+            }
+
+            if (smId != 0 && firstInputId != 0) {
+                std::cout << "  ℹ️  Binding DataBind contexts to StateMachine id="
+                          << smId << " inputId=" << firstInputId << std::endl;
+                auto makePathBytes = [](const std::vector<uint32_t>& ids) {
+                    std::vector<uint8_t> bytes;
+                    bytes.reserve(ids.size() * 2);
+                    for (uint32_t id : ids) {
+                        if (id > 0xFFFFu) {
+                            std::cerr << "  ⚠️  DataBind path id overflow: " << id << std::endl;
+                        }
+                        uint16_t u16 = static_cast<uint16_t>(id & 0xFFFFu);
+                        bytes.push_back(static_cast<uint8_t>(u16 & 0xFF));
+                        bytes.push_back(static_cast<uint8_t>((u16 >> 8) & 0xFF));
+                    }
+                    return bytes;
+                };
+
+                const auto pathBytes = makePathBytes({smId, firstInputId});
+                std::cout << "  ℹ️  DataBind path bytes: ";
+                for (uint8_t b : pathBytes) {
+                    std::cout << std::hex << std::uppercase << static_cast<int>(b)
+                              << " ";
+                }
+                std::cout << std::dec << std::endl;
+
+                for (auto* ctx : dataBindContexts) {
+                    for (auto it = ctx->properties.begin(); it != ctx->properties.end(); ++it) {
+                        if (it->key == 588) {
+                            ctx->properties.erase(it);
+                            break;
+                        }
+                    }
+                    builder.set(*ctx, 588, pathBytes);
+                    for (const auto& prop : ctx->properties) {
+                        if (prop.key == 588) {
+                            const auto& bytes = std::get<std::vector<uint8_t>>(prop.value);
+                            std::cout << "  ℹ️  Context " << ctx->id << " path byte count="
+                                      << bytes.size() << std::endl;
+                            break;
+                        }
+                    }
                 }
             }
         }

@@ -13,7 +13,8 @@
 - `utils/no_op_factory.cpp` gerçek render stub’ları ile güncellendi; HarfBuzz/SbeenBidi shaping artık crash üretmiyor.
 - `CoreBuilder::addCore` metin bileşenlerini `std::unique_ptr` ile saklıyor; Text/TextValueRun/TextStylePaint nesneleri runtime tarafından yönetiliyor.
 - `File::readRuntimeObject` terminatörü tanıyor; NULL object oluşumu engellendi. `File::stripAssets` terminatörden sonraki chunk’ları koruyor.
-- `converter/test_bind.json` ve `converter/heart_rate_scene.json` → `.riv` → `import_test` akışı başarıyla doğrulandı (Rive Play açılış testi: ✅ `output/tests/heart_rate_scene_new.riv`).
+- `converter/test_bind.json` ve `converter/heart_rate_scene.json` → `.riv` → `import_test` akışı artık state machine flattening + data binding yeniden yazımıyla doğrulandı (Rive Play açılış testi: ✅ `output/bpm_dashboard.riv`).
+- Universal builder hierarchical `stateMachines` bloklarını runtime objelerine flatten ediyor; DataBindContext `sourcePathIds` alanları synthesize edilen `componentIndex` değerlerine göre yeniden paketleniyor (önceki P0 crash sebebi çözüldü).
 - Dokümanlar (`RIVE_RUNTIME_JSON_URETIM_KURAL_SETI.md`, bu dosya) güncellendi; AGENTS to-do listesi temizlendi.
 
 ## 1. SDK Tanımları Araştırması

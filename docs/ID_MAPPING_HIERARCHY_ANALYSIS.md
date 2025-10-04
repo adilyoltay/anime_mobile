@@ -1271,3 +1271,12 @@ cmp original.riv roundtrip.riv
 - Document property category mappings in `riv_structure.md`
 
 ---
+## 12. Universal builder state machine flattening (2024-10)
+
+- `converter/src/universal_builder.cpp` artık hierarchical `stateMachines` bloklarını gerçek runtime nesnelerine dönüştürüyor:
+  * `StateMachine` artboard’a synthesize ediliyor, altındaki `inputs` dizisi uygun `StateMachineNumber/Bool/Trigger` tipleriyle aynı sırada üretiliyor.
+  * Her layer için `StateMachineLayer` + zorunlu `Entry/Any/Exit` state üçlüsü ekleniyor; böylece importer `StateMachineLayer::onAddedDirty()` sırasında `m_Any/m_Entry/m_Exit` eksikliği yaşamıyor.
+- Data bind pipeline güncellendi:
+  * Universal builder state machine objelerini oluşturduktan sonra ilgili `DataBindContext` nesnelerinin `sourcePathIds (588)` alanları gerçek `componentIndex` değerleriyle yeniden paketleniyor (`[stateMachineId, inputId]`).
+  * `PropertyTypeMap` artık 586/588/660 → uint/bytes girdilerini içerdiğinden serializer header’da bu key’leri ilan ediyor ve bytes alanları varuint uzunluk + ham data olarak yazıyor.
+- Rive Play crash sebebi: daha önce path dizileri boş (`b''`) olduğundan Swift runtime null binding pointer’a düşüyordu; yeni flattening + path rewrite ile `import_test` “HeartState” state machine’i 1 input/1 layer ile okuyabiliyor.

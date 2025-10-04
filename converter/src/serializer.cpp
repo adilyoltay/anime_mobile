@@ -143,12 +143,22 @@ void writeProperty(VectorBinaryWriter& writer,
         }
         case CoreStringType::id:
         {
-            std::string value;
             if (auto p = std::get_if<std::string>(&property.value))
             {
-                value = *p;
+                writer.write(*p);
             }
-            writer.write(std::move(value));
+            else if (auto p = std::get_if<std::vector<uint8_t>>(&property.value))
+            {
+                writer.writeVarUint(static_cast<uint32_t>(p->size()));
+                if (!p->empty())
+                {
+                    writer.write(p->data(), p->size());
+                }
+            }
+            else
+            {
+                writer.write(std::string());
+            }
             break;
         }
         case CoreBoolType::id:

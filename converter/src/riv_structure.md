@@ -197,6 +197,7 @@ Serializer field-type bitmap eşlemesi:
 - Artboard içindeki `dataBinds`, hedef `Component` üretiminden sonra builder tarafından eklenir. `propertyKey` değerleri SDK header’larından (`*_base.hpp`) doğrulanır.
 - State machine listener’ları ve listener action’ları hem `dataBinds` hem `dataBindings` anahtarlarıyla gelen binding listelerini destekler; parser iki adı da kabul eder ve tüm binding’ler artboard’a eklenir.
 - PASS3 remap aşaması `converterId`, `targetId`, `inputId`, `viewModelPathIds` gibi referansları importer’ın beklediği artboard-lokal indekslere dönüştürür.
+- Hierarchical JSON’da `stateMachines[].inputs[]` ile tanımlanan veri yolları, runtime state machine objeleri synthesize edildikten sonra gerçek `componentIndex` değerleriyle yeniden yazılır; böylece JSON’daki `[0,1]` gibi kısayol path’leri doğrudan `.riv` component ID’lerine karşılık gelir.
 
 
 ## 5. ID remap kuralları
@@ -229,6 +230,7 @@ Artboard
 
 
 ## 8. State machine özet
+- Hierarchical JSON’daki `stateMachines` dizisi runtime objelerine flatten edilir: builder `StateMachine`, altındaki `inputs` için `StateMachineNumber/Bool/Trigger`, ve her layer için `StateMachineLayer` + zorunlu `Entry/Any/Exit` state üçlüsünü synthesize eder.
 - Objeler explicit `parentId` taşımaz; ImportStack sırası önemli: `StateMachine → Inputs → Layer → States → Transitions`.
 - Her layer’da Entry/Exit/Any otomatik eklenir; `stateToId` layer-lokal indextir.
 - `animationId` hesaplanırken artboard’daki state machine sayısı göz önünde bulundurulur.
